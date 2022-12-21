@@ -1,1 +1,4 @@
 /sandbox/
+/data/
+/notebooks/*.py
+.ipynb_checkpoints
