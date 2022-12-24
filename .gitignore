@@ -1,5 +1,6 @@
 /sandbox/
 /data/*
-!/data/.txt
-/notebooks/*.py
+!/data/*.txt
+/notebooks/*
+!/notebooks/*.ipynb
 .ipynb_checkpoints
