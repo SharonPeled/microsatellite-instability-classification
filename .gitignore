@@ -4,3 +4,4 @@
 /notebooks/*
 !/notebooks/*.ipynb
 .ipynb_checkpoints
+/.idea/
