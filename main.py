@@ -22,10 +22,11 @@ if __name__ == '__main__':
             ('filter_black', FunctionTransformer(filter_black, kw_args=Configs.BLACK_FILTER)),
             ('filter_pen', FunctionTransformer(filter_pen, kw_args=Configs.PEN_FILTER)),
             ('filter_otsu', FunctionTransformer(center_crop, kw_args=Configs.OTSU_FILTER)),
+            ('macenko_color_norm', FunctionTransformer(macenko_color_norm, kw_args=Configs.OTSU_FILTER)),
             ('save_processed_tile', FunctionTransformer(save_processed_tile,
                                                         kw_args={'processed_tile_dir': Configs.PROCESSED_TILE_DIR}))])),
         ('slide', FunctionTransformer(recover_missfiltered_tiles))
     ]
-    slide_dataset.apply_pipeline(pipeline_list) # TODO: add color norm
+    slide_dataset.apply_pipeline(pipeline_list)
 
 

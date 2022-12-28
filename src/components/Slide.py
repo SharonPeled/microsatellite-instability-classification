@@ -59,4 +59,5 @@ class Slide:
     def __getattr__(self, attr):
         if self.slide is None:
             raise Exception("Slide not loaded.")
-        return getattr(self.slide, attr)
+        self.slide = getattr(self.slide, attr)
+        return self

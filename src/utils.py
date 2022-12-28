@@ -1,5 +1,13 @@
 import numpy as np
 from components.Tile import Tile
+import torch
+import random
+
+
+def set_random_seed(seed):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
 
 
 def generate_spatial_filter_array(df, f):

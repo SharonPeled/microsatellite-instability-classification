@@ -45,7 +45,8 @@ class Tile:
     def __getattr__(self, attr):
         if self.tile is None:
             raise Exception("Tile not loaded.")
-        return getattr(self.tile, attr)
+        self.tile = getattr(self.tile, attr)
+        return self
 
 
 

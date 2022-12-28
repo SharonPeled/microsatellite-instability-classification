@@ -5,6 +5,8 @@ import os
 import numpy as np
 from pen_filter import pen_percent
 from ..utils import get_filtered_tiles_to_recover
+from histomicstk.preprocessing.color_normalization.\
+    deconvolution_based_normalization import deconvolution_based_normalization
 
 
 def load_slide(slide):
@@ -108,5 +110,14 @@ def recover_missfiltered_tiles(slide, pen_filter, black_filter, superpixel_size,
         tile.recover()
 
 
+def macenko_color_norm(tile, ref_img):
+    tile_rgb = tile[:,:,:3]
+    ref_img_rgb = ref_img[:,:,:3]
+    stain_unmixing_routine_params = {
+        'stains': ['H&E'],
+        'stain_unmixing_method': 'macenko_pca',
+    }
+    return deconvolution_based_normalization(im_src=tile_rgb, im_target=ref_img_rgb,
+                                             stain_unmixing_routine_params=stain_unmixing_routine_params)
 
 

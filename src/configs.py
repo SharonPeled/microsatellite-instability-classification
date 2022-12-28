@@ -2,11 +2,15 @@ from dataclasses import dataclass
 import os
 from pathlib import Path
 from preprocessing.pen_filter import get_pen_color_palette
+import logging
+from utils import set_random_seed
 
 
 @dataclass
 class ConfigsClass():
+    RANDOM_SEED = 123
     ROOT = Path(__file__).parent.resolve()
+    LOG_FILE = 'log.txt'
     SLIDE_MANIFEST_PATH = os.path.join(ROOT, 'data', 'slides', 'manifest_COAD_READ_MSIStatus_DX.txt')
     SLIDE_DIR = os.path.join(ROOT, 'data', 'slides')
     TILE_DIR = os.path.join(ROOT, 'data', 'tiles')
@@ -21,6 +25,10 @@ class ConfigsClass():
                   'color_palette': get_pen_color_palette()}  # tile with more than threshold percent pen is filtered
     SUPERPIXEL_SIZE = 2
     TILE_RECOVERY_SUFFIX = 'R'
+    COLOR_NORM_REF_IMG = os.path.join(ROOT, 'src', 'preprocessing', 'color_norm_reference_image.png')
+
 
 
 Configs = ConfigsClass()
+logging.basicConfig(filename=Configs.LOG_FILE, filemode='a+', format='%(asctime)s - %(message)s', datefmt='%d-%m-%y %H:%M:%S')
+set_random_seed(Configs.RANDOM_SEED)
