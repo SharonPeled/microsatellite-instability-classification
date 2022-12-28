@@ -11,7 +11,6 @@ class ConfigsClass():
     RANDOM_SEED = 123
     ROOT = Path(__file__).parent.resolve()
     LOG_FILE = 'log.txt'
-    SLIDE_MANIFEST_PATH = os.path.join(ROOT, 'data', 'slides', 'manifest_COAD_READ_MSIStatus_DX.txt')
     SLIDE_DIR = os.path.join(ROOT, 'data', 'slides')
     TILE_DIR = os.path.join(ROOT, 'data', 'tiles')
     PROCESSED_TILE_DIR = os.path.join(ROOT, 'data', 'processed_tiles')
