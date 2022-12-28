@@ -1,7 +1,7 @@
 from torch.utils.data import Dataset
 import os
 from glob import glob
-from Slide import Slide
+from .Slide import Slide
 
 
 class SlideDataset(Dataset):

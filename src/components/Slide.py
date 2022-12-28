@@ -3,7 +3,7 @@ from pyvips import Image
 from glob import glob
 from pathlib import Path
 import os
-from Tile import Tile
+from .Tile import Tile
 
 
 class Slide:

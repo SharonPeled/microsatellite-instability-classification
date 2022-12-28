@@ -1,15 +1,15 @@
 from dataclasses import dataclass
 import os
 from pathlib import Path
-from preprocessing.pen_filter import get_pen_color_palette
+from .preprocessing.pen_filter import get_pen_color_palette
 import logging
-from utils import set_random_seed
+from .utils import set_random_seed
 
 
 @dataclass
-class ConfigsClass():
+class ConfigsClass:
     RANDOM_SEED = 123
-    ROOT = Path(__file__).parent.resolve()
+    ROOT = Path(__file__).parent.parent.resolve()
     LOG_FILE = 'log.txt'
     SLIDE_DIR = os.path.join(ROOT, 'data', 'slides')
     TILE_DIR = os.path.join(ROOT, 'data', 'tiles')
@@ -25,7 +25,6 @@ class ConfigsClass():
     SUPERPIXEL_SIZE = 2
     TILE_RECOVERY_SUFFIX = 'R'
     COLOR_NORM_REF_IMG = os.path.join(ROOT, 'src', 'preprocessing', 'color_norm_reference_image.png')
-
 
 
 Configs = ConfigsClass()

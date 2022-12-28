@@ -1,5 +1,5 @@
 import numpy as np
-from components.Tile import Tile
+from .components.Tile import Tile
 import torch
 import random
 

@@ -3,7 +3,7 @@ from pyvips import Image
 from skimage import filters
 import os
 import numpy as np
-from pen_filter import pen_percent
+from .pen_filter import pen_percent
 from ..utils import get_filtered_tiles_to_recover
 from histomicstk.preprocessing.color_normalization.\
     deconvolution_based_normalization import deconvolution_based_normalization
