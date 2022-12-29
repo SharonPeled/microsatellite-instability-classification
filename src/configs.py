@@ -9,6 +9,7 @@ from .utils import set_random_seed
 @dataclass
 class ConfigsClass:
     RANDOM_SEED = 123
+    VERBOSE = 2 # 0 no logs, 1 logs to LOG_FILE, 2 logs to LOG_FILE and consol
     ROOT = Path(__file__).parent.parent.resolve()
     LOG_FILE = 'log.txt'
     SLIDE_DIR = os.path.join(ROOT, 'data', 'slides')
@@ -28,5 +29,10 @@ class ConfigsClass:
 
 
 Configs = ConfigsClass()
-logging.basicConfig(filename=Configs.LOG_FILE, filemode='a+', format='%(asctime)s - %(message)s', datefmt='%d-%m-%y %H:%M:%S')
 set_random_seed(Configs.RANDOM_SEED)
+# TODO: both write to file and print
+logging.basicConfig(filename=Configs.LOG_FILE, filemode='a+', format='%(asctime)s  [%(levelname)s] (%(pathname)s) - %(message)s', datefmt='%d-%m-%y %H:%M:%S')
+if Configs.VERBOSE == 2:
+    logging.getLogger().addHandler(logging.StreamHandler())
+
+

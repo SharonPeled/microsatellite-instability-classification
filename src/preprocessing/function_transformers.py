@@ -17,6 +17,8 @@ def load_slide(slide):
 def resize(slide, target_mpp):
     slide_mpp = float(slide.get(Configs.MPP_ATTRIBUTE))
     scale = slide_mpp / target_mpp
+    t = slide.resize(scale)
+    print(t)
     return slide.resize(scale)
 
 
@@ -34,7 +36,9 @@ def calc_otsu(slide):
     slide_bw = slide.colourspace("b-w")
     hist = slide_bw.hist_find().numpy()
     otsu_val = filters.threshold_otsu(image=None, hist=(hist[0][:, 0], range(256)))
-    slide = slide.set('otsu_val', otsu_val)
+    print(type(slide))
+    print(slide.path)
+    slide = slide.set_type(otsu_val, 'otsu_val', otsu_val)
     return slide
 
 

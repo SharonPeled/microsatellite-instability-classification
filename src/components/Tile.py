@@ -1,6 +1,7 @@
 from pyvips import Image
 import os
 import numpy as np
+import pyvips
 
 
 class Tile:
@@ -10,6 +11,14 @@ class Tile:
         self.tile = None
         self.otsu_val = otsu_val
         self.out_filename = os.path.basename(self.path)
+
+    @classmethod
+    def from_tile(cls, tile):
+        # create a new Tile object and copy all attributes from the existing tile object
+        new_tile = cls(tile.path)
+        new_tile.__dict__.update({k: v for k, v in tile.__dict__.items() if k != "tile"})
+        new_tile.tile = tile.tile
+        return new_tile
 
     def load(self):
         self.tile = pyvips.Image.new_from_file(self.path).numpy()
@@ -43,10 +52,21 @@ class Tile:
         self.path = new_name
 
     def __getattr__(self, attr):
+        """
+        A wrapper function that allows to use all self.tile methods (resize, crop, etc.) directly on the Tile object
+        without wrapping method.
+        :param attr: attribute to get/call over self.tile
+        :return: Tile object when attr is callable, self.tile.attr otherwise
+        """
         if self.tile is None:
             raise Exception("Tile not loaded.")
-        self.tile = getattr(self.tile, attr)
-        return self
+        if callable(getattr(self.slide, attr)):
+            def wrapper(*args, **kwargs):
+                result = getattr(self.slide, attr)(*args, **kwargs)
+                # create a new Slide object using the from_slide class method
+                return self.from_tile(result)
+            return wrapper
+        return getattr(self.tile, attr)
 
 
 
