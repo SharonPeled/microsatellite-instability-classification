@@ -11,14 +11,14 @@ from src.configs import Configs
 # TODO: Override the LoggingFunctionTransformer and add logs
 if __name__ == '__main__':
     Logger.log('Starting preprocessing ..')
-    slide_dataset = SlideDataset(Configs.SLIDE_DIR)
+    slide_dataset = SlideDataset(Configs.SLIDES_DIR)
     pipeline_list = [
         ('slide', Pipeline([
             ('load_slide', LoggingFunctionTransformer(load_slide)),
             ('scale_mpp', LoggingFunctionTransformer(resize, kw_args={'target_mpp': Configs.TARGET_MPP})),
             ('center_crop', LoggingFunctionTransformer(center_crop, kw_args={'tile_size': Configs.TILE_SIZE})),
             ('calc_otsu', LoggingFunctionTransformer(calc_otsu)),
-            ('save_tiles', LoggingFunctionTransformer(save_tiles, kw_args={'tile_dir': Configs.TILE_DIR,
+            ('save_tiles', LoggingFunctionTransformer(save_tiles, kw_args={'tiles_dir': Configs.TILES_DIR,
                                                                            'tile_size': Configs.TILE_SIZE}))])),
         ('tile', Pipeline([
             ('load_tile', LoggingFunctionTransformer(load_tile)),
@@ -27,7 +27,7 @@ if __name__ == '__main__':
             ('filter_otsu', LoggingFunctionTransformer(center_crop, kw_args=Configs.OTSU_FILTER)),
             ('macenko_color_norm', LoggingFunctionTransformer(macenko_color_norm, kw_args=Configs.OTSU_FILTER)),
             ('save_processed_tile', LoggingFunctionTransformer(save_processed_tile,
-                                                               kw_args={'processed_tile_dir': Configs.PROCESSED_TILE_DIR}))])),
+                                                               kw_args={'processed_tiles_dir': Configs.PROCESSED_TILES_DIR}))])),
         ('slide', LoggingFunctionTransformer(recover_missfiltered_tiles))
     ]
     slide_dataset.apply_pipeline(pipeline_list)

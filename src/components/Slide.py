@@ -8,16 +8,16 @@ from .Image import Image
 
 
 class Slide(Image):
-    def __init__(self, path, tile_dir=None, slide_uuid=None, **kwargs):
+    def __init__(self, path, slide_uuid=None, **kwargs):
         """
         :param slide_uuid:
         :param path: if slide_uuid=None then path directory name must be uuid of the slide, as in the gdc-client format
-        :param tile_dir:
+        :param tiles_dir: directory for storing all tiles from all slides
         """
         super().__init__(path, slide_uuid=slide_uuid, **kwargs)
-        self.tile_dir = tile_dir
         if not slide_uuid:
             self.set('slide_uuid', self._get_uuid())
+        self.tile_dir = None
 
     def load(self):
         self.img = pyvips.Image.new_from_file(self.path)
@@ -25,8 +25,8 @@ class Slide(Image):
     def _get_uuid(self):
         return Path(self.path).parent.name
 
-    def set_tile_dir(self, tile_dir):
-        self.tile_dir = tile_dir
+    def set_tile_dir(self, tiles_dir):
+        self.tile_dir = os.path.join(tiles_dir, self.get('slide_uuid'))
 
     def apply_pipeline(self, pipeline_list):
         self._log(f"""Processing slide_uuid: {self.get('slide_uuid')}""")
@@ -40,7 +40,7 @@ class Slide(Image):
         self._log(f'Finished processing {self.uuid}')
         return self
 
-    def get_tiles(self, **kwargs): #TODO: str method for tile and slide
+    def get_tiles(self, **kwargs): #TODO: str method for tile and slide and slide number
         if not self.tile_dir:
             raise Exception("""You have to tile the image before applying a pipeline over tiles. 
                                 tile_dir is None.""")

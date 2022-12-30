@@ -14,9 +14,9 @@ class ConfigsClass:
     ROOT = Path(__file__).parent.parent.resolve()
     LOG_FILE = 'log.txt'
     LOG_FORMAT = {'format': '%(asctime)s  [%(name)s] - %(message)s', 'datefmt':'%d-%m-%y %H:%M:%S'}
-    SLIDE_DIR = os.path.join(ROOT, 'data', 'test_slides')
-    TILE_DIR = os.path.join(ROOT, 'data', 'test_tiles')
-    PROCESSED_TILE_DIR = os.path.join(ROOT, 'data', 'processed_tiles')
+    SLIDES_DIR = os.path.join(ROOT, 'data', 'test_slides')
+    TILES_DIR = os.path.join(ROOT, 'data', 'test_tiles')
+    PROCESSED_TILES_DIR = os.path.join(ROOT, 'data', 'processed_tiles')
     TILE_SIZE = 512
     TARGET_MPP = 0.5
     MPP_ATTRIBUTE = 'aperio.MPP'

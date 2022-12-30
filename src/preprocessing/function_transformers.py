@@ -41,17 +41,15 @@ def calc_otsu(slide):
     return slide
 
 
-def save_tiles(slide, tile_dir, tile_size):
-    slidegi.dzsave(
-        ,
-        filename=tile_dir,
-        basename=slide.get('slide_uuid'),
+def save_tiles(slide, tiles_dir, tile_size):
+    slide.set_tile_dir(tiles_dir)
+    slide.dzsave(
+        slide.tile_dir,
         suffix='.jpg',
         tile_size=tile_size,
         overlap=0,
         depth='one'
     )
-    slide.set_tile_dir(os.path.join(tile_dir, slide.get('slide_uuid') + '_files', '0'))
     return slide
 
 
@@ -60,8 +58,8 @@ def load_tile(tile):
     return tile
 
 
-def save_processed_tile(tile, processed_tile_dir):
-    tile.save(processed_tile_dir)
+def save_processed_tile(tile, processed_tiles_dir):
+    tile.save(processed_tiles_dir)
     return tile
 
 
