@@ -29,7 +29,11 @@ class Tile(Image):
         filename, file_extension = self.out_filename.split('.')
         attrs = filename.split('_')[:2] # first 2 attrs are row and col
         attrs.append(suffix)
-        self.out_filename = '_'.join(attrs) + file_extension
+        self.out_filename = '_'.join(attrs) + '.' + file_extension
+
+    def get_tile_position(self):
+        col, row = self.out_filename[:-4].split('_')[:2]
+        return row,col
 
     def recover(self, tile_recovery_suffix):
         filename, file_extension = self.path.split('.')
@@ -39,6 +43,11 @@ class Tile(Image):
         new_name = filename + '_' + tile_recovery_suffix + '.' + 'jpg'
         os.rename(self.path, new_name)
         self.path = new_name
+
+    def __str__(self):
+        if self.img is None:
+            return f"""<{type(self).__name__} - uuid:{self.get('slide_uuid')} Not loaded.>"""
+        return f"""<{type(self).__name__} - {self.out_filename} shape:{self.img.shape}, uuid:{self.get('slide_uuid')}>"""
 
 
 

@@ -29,22 +29,25 @@ class Slide(Image):
         self.tile_dir = os.path.join(tiles_dir, self.get('slide_uuid'))
 
     def apply_pipeline(self, pipeline_list):
-        self._log(f"""Processing slide_uuid: {self.get('slide_uuid')}""")
+        self._log(f"""Processing {self}""")
         for resolution, pipeline in pipeline_list:
             if resolution == 'slide':
-                pipeline.transform(self)
+                self = pipeline.transform(self)
             elif resolution == 'tile':
                 tiles = self.get_tiles(otsu_val=self.get('otsu_val'), slide_uuid=self.get('slide_uuid'))
+                self._log(f"""Processing {len(tiles)} tiles.""")
                 for tile in tiles:
+                    print(tile.path)
                     pipeline.transform(tile)
-        self._log(f'Finished processing {self.uuid}')
+                self._log(f"""Finished processing {len(tiles)} tiles.""")
+        self._log(f"""Finish processing {self}""")
         return self
 
     def get_tiles(self, **kwargs): #TODO: str method for tile and slide and slide number
         if not self.tile_dir:
             raise Exception("""You have to tile the image before applying a pipeline over tiles. 
                                 tile_dir is None.""")
-        return [Tile(tile_path, **kwargs) for tile_path in glob(os.path.join(self.tile_dir, '*.jpg'))]
+        return [Tile(tile_path, **kwargs) for tile_path in glob(f"{self.tile_dir}/**/*.jpg", recursive=True)] # all .jpg files
 
     def get_tile_summary_df(self):
         csv_rows = []
@@ -63,3 +66,9 @@ class Slide(Image):
 
     def recover_tiles(self):
         pass
+
+    def __str__(self):
+        if self.img is None:
+            return f"""<{type(self).__name__} - uuid:{self.get('slide_uuid')} Not loaded.>"""
+        shape = (self.img.height, self.img.width, self.img.bands)
+        return f"""<{type(self).__name__} - shape:{shape}, uuid:{self.get('slide_uuid')}>"""

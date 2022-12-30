@@ -8,8 +8,7 @@ from .Logger import Logger
 class SlideDataset(Dataset, Logger):
     def __init__(self, slides_dir):
         self.slides_dir = slides_dir
-        self.slide_paths = [y for x in os.walk(slides_dir)
-                            for y in glob(os.path.join(x[0], '*.svs'))] # all .svs files
+        self.slide_paths = glob(f"{slides_dir}/**/*.svs", recursive=True)  # all .svs files
         self.slides = None
         self._log(f'Created with {len(self.slide_paths)} slides.')
 

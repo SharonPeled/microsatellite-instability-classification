@@ -1,4 +1,7 @@
+import pyvips
+import numpy as np
 from .Logger import Logger
+import builtins
 
 
 class Image(Logger):
@@ -29,9 +32,7 @@ class Image(Logger):
         :param attr: attribute to get/call over self.img
         :return: Image object when attr is callable, self.tile.attr otherwise
         """
-        if self.img is None:
-            raise Exception("Image not loaded.")
-        if callable(getattr(self.img, attr)):
+        if self.img is not None and callable(getattr(self.img, attr)):
             def wrapper(*args, **kwargs):
                 result = getattr(self.img, attr)(*args, **kwargs)
                 if isinstance(result, type(self.img)):
@@ -40,6 +41,9 @@ class Image(Logger):
                 return result
             return wrapper
         return getattr(self.img, attr)
+
+    def __repr__(self):
+        return self.__str__()
 
 
 

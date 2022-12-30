@@ -24,10 +24,11 @@ if __name__ == '__main__':
             ('load_tile', LoggingFunctionTransformer(load_tile)),
             ('filter_black', LoggingFunctionTransformer(filter_black, kw_args=Configs.BLACK_FILTER)),
             ('filter_pen', LoggingFunctionTransformer(filter_pen, kw_args=Configs.PEN_FILTER)),
-            ('filter_otsu', LoggingFunctionTransformer(center_crop, kw_args=Configs.OTSU_FILTER)),
-            ('macenko_color_norm', LoggingFunctionTransformer(macenko_color_norm, kw_args=Configs.OTSU_FILTER)),
+            ('filter_otsu', LoggingFunctionTransformer(filter_otsu, kw_args=Configs.OTSU_FILTER)),
+            ('macenko_color_norm', LoggingFunctionTransformer(macenko_color_norm,
+                                                              kw_args={'ref_img_path':Configs.COLOR_NORM_REF_IMG})),
             ('save_processed_tile', LoggingFunctionTransformer(save_processed_tile,
                                                                kw_args={'processed_tiles_dir': Configs.PROCESSED_TILES_DIR}))])),
-        ('slide', LoggingFunctionTransformer(recover_missfiltered_tiles))
+        # ('slide', LoggingFunctionTransformer(recover_missfiltered_tiles))
     ]
     slide_dataset.apply_pipeline(pipeline_list)

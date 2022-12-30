@@ -1,13 +1,12 @@
 from ..configs import Configs
-from pyvips import Image
-from skimage import filters
+from skimage import color
 import os
 import numpy as np
 from .pen_filter import pen_percent
 from ..utils import get_filtered_tiles_to_recover
 from histomicstk.preprocessing.color_normalization.\
     deconvolution_based_normalization import deconvolution_based_normalization
-
+from ..components.Tile import Tile
 
 def load_slide(slide):
     slide.load()
@@ -42,14 +41,24 @@ def calc_otsu(slide):
 
 
 def save_tiles(slide, tiles_dir, tile_size):
+    """
+    saves tiles to RGB (3 channels), even if the original image is RGBA.
+    :param slide:
+    :param tiles_dir:
+    :param tile_size:
+    :return:
+    """
     slide.set_tile_dir(tiles_dir)
-    slide.dzsave(
-        slide.tile_dir,
-        suffix='.jpg',
-        tile_size=tile_size,
-        overlap=0,
-        depth='one'
-    )
+    # slide.dzsave(
+    #     slide.tile_dir,
+    #     suffix='.jpg',
+    #     tile_size=tile_size,
+    #     overlap=0,
+    #     depth='one'
+    # )
+    if os.path.exists(slide.tile_dir + '_files') and os.path.exists(slide.tile_dir):
+        # dzsave adds _files extension to output dir
+        os.rename(slide.tile_dir + '_files', slide.tile_dir)
     return slide
 
 
@@ -63,23 +72,24 @@ def save_processed_tile(tile, processed_tiles_dir):
     return tile
 
 
-def filter_otsu(tile, otsu_val, threshold, suffix):
-    filtered_pixels = int((tile.colourspace("b-w").numpy() < otsu_val)[:, :, 0].sum())
-    r = filtered_pixels / (tile.width * tile.height)
+def filter_otsu(tile, threshold, suffix, **kwargs):
+    bw_img = (color.rgb2gray(tile.img)*255)
+    filtered_pixels = (bw_img < tile.get('otsu_val')).sum()
+    r = filtered_pixels / tile.size
     if r < threshold: # classified as background
         tile.set_filename_suffix(suffix)
     return tile
 
 
-def filter_black(tile, color_palette, threshold, suffix):
-    r, g, b, _ = np.rollaxis(tile, -1)
+def filter_black(tile, color_palette, threshold, suffix, **kwargs):
+    r, g, b = np.rollaxis(tile.img, -1)
     mask = (r < color_palette['r']) & (g < color_palette['g']) & (b < color_palette['b'])
     if mask.mean() > threshold:
         tile.set_filename_suffix(suffix)
     return tile
 
 
-def filter_pen(tile, color_palette, threshold, suffix):
+def filter_pen(tile, color_palette, threshold, suffix, **kwargs):
     pen_colors = color_palette.keys()
     max_pen_percent = max([pen_percent(tile, color_palette, color) for color in pen_colors])
     if max_pen_percent > threshold:
@@ -110,14 +120,14 @@ def recover_missfiltered_tiles(slide, pen_filter, black_filter, superpixel_size,
         tile.recover()
 
 
-def macenko_color_norm(tile, ref_img):
-    tile_rgb = tile[:,:,:3]
-    ref_img_rgb = ref_img[:,:,:3]
+def macenko_color_norm(tile, ref_img_path):
+    ref_tile = Tile(path=ref_img_path)
+    ref_tile.load()
+    print(tile.img.shape, ref_tile.img.shape)
     stain_unmixing_routine_params = {
         'stains': ['H&E'],
         'stain_unmixing_method': 'macenko_pca',
     }
-    return deconvolution_based_normalization(im_src=tile_rgb, im_target=ref_img_rgb,
+    return deconvolution_based_normalization(im_src=tile.img, im_target=ref_tile.img,
                                              stain_unmixing_routine_params=stain_unmixing_routine_params)
-
 
