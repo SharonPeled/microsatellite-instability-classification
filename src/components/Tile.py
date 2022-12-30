@@ -13,7 +13,9 @@ class Tile(Image):
         self.img = pyvips.Image.new_from_file(self.path).numpy()
 
     def save(self, processed_tiles_dir):
-        np.save(os.path.join(processed_tiles_dir, self.slide_uuid, self.out_filename), self.img)
+        path = os.path.join(processed_tiles_dir, self.get('slide_uuid'), self.out_filename)
+        os.makedirs(path)
+        np.save(path, self.img)
 
     def set_filename_suffix(self, suffix):
         """
