@@ -1,30 +1,19 @@
-from pyvips import Image
 import os
 import numpy as np
 import pyvips
+from .Image import Image
 
 
-class Tile:
-    def __init__(self, path, slide_uuid = None, otsu_val = None):
-        self.path = path
-        self.slide_uuid = slide_uuid
-        self.tile = None
-        self.otsu_val = otsu_val
+class Tile(Image):
+    def __init__(self, path, slide_uuid=None, **kwargs):
+        super().__init__(path, slide_uuid=slide_uuid, **kwargs)
         self.out_filename = os.path.basename(self.path)
 
-    @classmethod
-    def from_tile(cls, tile, new_img):
-        # create a new Tile object and copy all attributes from the existing tile object
-        new_tile = cls(tile.path)
-        new_tile.__dict__.update({k: v for k, v in tile.__dict__.items() if k != "tile"})
-        new_tile.tile = new_img
-        return new_tile
-
     def load(self):
-        self.tile = pyvips.Image.new_from_file(self.path).numpy()
+        self.img = pyvips.Image.new_from_file(self.path).numpy()
 
     def save(self, processed_tile_dir):
-        np.save(os.path.join(processed_tile_dir, self.slide_uuid, self.out_filename), self.tile)
+        np.save(os.path.join(processed_tile_dir, self.slide_uuid, self.out_filename), self.img)
 
     def set_filename_suffix(self, suffix):
         """
@@ -50,25 +39,6 @@ class Tile:
         new_name = filename + '_' + tile_recovery_suffix + '.' + 'jpg'
         os.rename(self.path, new_name)
         self.path = new_name
-
-    def __getattr__(self, attr):
-        """
-        A wrapper function that allows to use all self.tile methods (resize, crop, etc.) directly on the Tile object
-        without wrapping method.
-        :param attr: attribute to get/call over self.tile
-        :return: Tile object when attr is callable, self.tile.attr otherwise
-        """
-        if self.tile is None:
-            raise Exception("Tile not loaded.")
-        if callable(getattr(self.slide, attr)):
-            def wrapper(*args, **kwargs):
-                result = getattr(self.slide, attr)(*args, **kwargs)
-                if isinstance(result, type(self.tile)):
-                    # create a new Tile object using the from_tile class method
-                    return self.from_tile(self, result)
-                return result
-            return wrapper
-        return getattr(self.tile, attr)
 
 
 

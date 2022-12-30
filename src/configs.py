@@ -2,7 +2,6 @@ from dataclasses import dataclass
 import os
 from pathlib import Path
 from .preprocessing.pen_filter import get_pen_color_palette
-import logging
 from .utils import set_random_seed
 from .components.Logger import Logger
 
@@ -10,15 +9,13 @@ from .components.Logger import Logger
 @dataclass
 class ConfigsClass:
     RANDOM_SEED = 123
-    VERBOSE = 2 # 0 no logs, 1 logs to LOG_FILE, 2 logs to console, 3 logs to both to file and console
-    DEBUG_MODE = False # overrides verbose, logs to console only
+    VERBOSE = 1 # 0 no logs, 1 logs to LOG_FILE, 2 logs to console, 3 logs to both to file and console
+    DEBUG_MODE = True # overrides verbose, logs to console only
     ROOT = Path(__file__).parent.parent.resolve()
     LOG_FILE = 'log.txt'
     LOG_FORMAT = {'format': '%(asctime)s  [%(name)s] - %(message)s', 'datefmt':'%d-%m-%y %H:%M:%S'}
-    LOG_FORMAT_DEBUG_MODE = {'format': '%(asctime)s  [%(name)s] %(message)s  %(pathname)s:%(lineno)d',
-                             'datefmt':'%d-%m-%y %H:%M:%S'}
-    SLIDE_DIR = os.path.join(ROOT, 'data', 'slides')
-    TILE_DIR = os.path.join(ROOT, 'data', 'tiles')
+    SLIDE_DIR = os.path.join(ROOT, 'data', 'test_slides')
+    TILE_DIR = os.path.join(ROOT, 'data', 'test_tiles')
     PROCESSED_TILE_DIR = os.path.join(ROOT, 'data', 'processed_tiles')
     TILE_SIZE = 512
     TARGET_MPP = 0.5

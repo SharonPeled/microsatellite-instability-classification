@@ -31,26 +31,27 @@ def center_crop(slide, tile_size):
 
 
 def calc_otsu(slide):
-    slide_bw = slide.colourspace("b-w")
-    hist = slide_bw.hist_find().numpy()
-    otsu_val = filters.threshold_otsu(image=None, hist=(hist[0][:, 0], range(256)))
-    print(otsu_val) # 192
-    slide.otsu_val = otsu_val
+    # slide_bw = slide.colourspace("b-w")
+    # hist = slide_bw.hist_find().numpy()
+    # otsu_val = filters.threshold_otsu(image=None, hist=(hist[0][:, 0], range(256)))
+    # print(otsu_val) # 194
+    # slide.otsu_val = 192
+    slide.set('otsu_val', 194)
+    # slide.set('otsu_val', otsu_val)
     return slide
 
 
 def save_tiles(slide, tile_dir, tile_size):
-    Image.dzsave(
-        slide,
-        tile_dir,
-        basename=slide.uuid,
+    slidegi.dzsave(
+        ,
+        filename=tile_dir,
+        basename=slide.get('slide_uuid'),
         suffix='.jpg',
         tile_size=tile_size,
         overlap=0,
-        depth='one',
-        properites=False
+        depth='one'
     )
-    slide.set_tile_dir(os.path.join(tile_dir, slide.uuid + '_files', '0'))
+    slide.set_tile_dir(os.path.join(tile_dir, slide.get('slide_uuid') + '_files', '0'))
     return slide
 
 
