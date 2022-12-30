@@ -4,14 +4,19 @@ from pathlib import Path
 from .preprocessing.pen_filter import get_pen_color_palette
 import logging
 from .utils import set_random_seed
+from .components.Logger import Logger
 
 
 @dataclass
 class ConfigsClass:
     RANDOM_SEED = 123
-    VERBOSE = 2 # 0 no logs, 1 logs to LOG_FILE, 2 logs to LOG_FILE and consol
+    VERBOSE = 2 # 0 no logs, 1 logs to LOG_FILE, 2 logs to console, 3 logs to both to file and console
+    DEBUG_MODE = False # overrides verbose, logs to console only
     ROOT = Path(__file__).parent.parent.resolve()
     LOG_FILE = 'log.txt'
+    LOG_FORMAT = {'format': '%(asctime)s  [%(name)s] - %(message)s', 'datefmt':'%d-%m-%y %H:%M:%S'}
+    LOG_FORMAT_DEBUG_MODE = {'format': '%(asctime)s  [%(name)s] %(message)s  %(pathname)s:%(lineno)d',
+                             'datefmt':'%d-%m-%y %H:%M:%S'}
     SLIDE_DIR = os.path.join(ROOT, 'data', 'slides')
     TILE_DIR = os.path.join(ROOT, 'data', 'tiles')
     PROCESSED_TILE_DIR = os.path.join(ROOT, 'data', 'processed_tiles')
@@ -27,12 +32,11 @@ class ConfigsClass:
     TILE_RECOVERY_SUFFIX = 'R'
     COLOR_NORM_REF_IMG = os.path.join(ROOT, 'src', 'preprocessing', 'color_norm_reference_image.png')
 
+    def __init__(self):
+        Logger.set_default_logger(self)
+        set_random_seed(self.RANDOM_SEED)
+
 
 Configs = ConfigsClass()
-set_random_seed(Configs.RANDOM_SEED)
-# TODO: both write to file and print
-logging.basicConfig(filename=Configs.LOG_FILE, filemode='a+', format='%(asctime)s  [%(levelname)s] (%(pathname)s) - %(message)s', datefmt='%d-%m-%y %H:%M:%S')
-if Configs.VERBOSE == 2:
-    logging.getLogger().addHandler(logging.StreamHandler())
 
 

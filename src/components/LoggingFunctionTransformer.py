@@ -1,11 +1,12 @@
 from sklearn.preprocessing import FunctionTransformer
 import logging
+from .Logger import Logger
 
 
-class LoggingFunctionTransformer(FunctionTransformer):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+class LoggingFunctionTransformer(FunctionTransformer, Logger):
+    def __init__(self, func, **kwargs):
+        super().__init__(func, **kwargs)
 
-    def __call__(self, *args, **kwargs):
-        logging.info(f"Called function {self.func} on object {self} with args {args} and kwargs {kwargs}")
-        return super().__call__(*args, **kwargs)
+    def transform(self, *args, **kwargs):
+        self._log(f"args {args}, kwargs {kwargs}", name=self.func.__name__)
+        return super().transform(*args, **kwargs)

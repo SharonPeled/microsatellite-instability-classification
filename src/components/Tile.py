@@ -13,11 +13,11 @@ class Tile:
         self.out_filename = os.path.basename(self.path)
 
     @classmethod
-    def from_tile(cls, tile):
+    def from_tile(cls, tile, new_img):
         # create a new Tile object and copy all attributes from the existing tile object
         new_tile = cls(tile.path)
         new_tile.__dict__.update({k: v for k, v in tile.__dict__.items() if k != "tile"})
-        new_tile.tile = tile.tile
+        new_tile.tile = new_img
         return new_tile
 
     def load(self):
@@ -63,8 +63,10 @@ class Tile:
         if callable(getattr(self.slide, attr)):
             def wrapper(*args, **kwargs):
                 result = getattr(self.slide, attr)(*args, **kwargs)
-                # create a new Slide object using the from_slide class method
-                return self.from_tile(result)
+                if isinstance(result, type(self.tile)):
+                    # create a new Tile object using the from_tile class method
+                    return self.from_tile(self, result)
+                return result
             return wrapper
         return getattr(self.tile, attr)
 

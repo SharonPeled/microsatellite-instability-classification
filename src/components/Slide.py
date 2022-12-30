@@ -5,41 +5,47 @@ from pathlib import Path
 import os
 from .Tile import Tile
 import pyvips
+from .Logger import Logger
 
-
-class Slide:
+class Slide(Logger):
     def __init__(self, path, tile_dir=None):
+        """
+        :param path: directory name must be uuid of the slide, as in the gdc-client format
+        :param tile_dir:
+        """
         self.path = path
         self.tile_dir = tile_dir
         self.slide = None
-        self.uuid = None
+        self.uuid = self._get_UUID()
+        self.otsu_val = None
 
     @classmethod
-    def from_slide(cls, slide):
+    def from_slide(cls, slide, new_img):
         # create a new Slide object and copy all attributes from the existing slide object
         new_slide = cls(slide.path, slide.tile_dir)
         new_slide.__dict__.update({k: v for k, v in slide.__dict__.items() if k != "slide"})
-        new_slide.slide = slide.slide
+        new_slide.slide = new_img
         return new_slide
 
     def load(self):
         self.slide = pyvips.Image.new_from_file(self.path)
-        self.uuid = self._get_UUID()
 
     def _get_UUID(self):
-        return Path(self.slide.get('filename')).parent.name
+        return Path(self.path).parent.name
 
     def set_tile_dir(self, tile_dir):
         self.tile_dir = tile_dir
 
     def apply_pipeline(self, pipeline_list):
-        for resulotion, pipeline in pipeline_list:
-            if resulotion == 'slide':
+        self._log(f'Processing {self.uuid}')
+        for resolution, pipeline in pipeline_list:
+            if resolution == 'slide':
                 pipeline.transform(self)
-            elif resulotion == 'tile':
-                tiles = self.get_tiles(otsu_val=self.slide.get("otsu_val"), slide_uuid=self.uuid)
+            elif resolution == 'tile':
+                tiles = self.get_tiles(otsu_val=self.slide.otsu_val, slide_uuid=self.uuid)
                 for tile in tiles:
                     pipeline.transform(tile)
+        self._log(f'Finished processing {self.uuid}')
         return self
 
     def get_tiles(self, **kwargs):
@@ -78,7 +84,9 @@ class Slide:
         if callable(getattr(self.slide, attr)):
             def wrapper(*args, **kwargs):
                 result = getattr(self.slide, attr)(*args, **kwargs)
-                # create a new Slide object using the from_slide class method
-                return self.from_slide(result)
+                if isinstance(result, type(self.slide)):
+                    # create a new Slide object using the from_slide class method
+                    return self.from_slide(self, result)
+                return result
             return wrapper
         return getattr(self.slide, attr)
