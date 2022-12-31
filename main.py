@@ -29,6 +29,6 @@ if __name__ == '__main__':
                                                               kw_args={'ref_img_path':Configs.COLOR_NORM_REF_IMG})),
             ('save_processed_tile', LoggingFunctionTransformer(save_processed_tile,
                                                                kw_args={'processed_tiles_dir': Configs.PROCESSED_TILES_DIR}))])),
-        # ('slide', LoggingFunctionTransformer(recover_missfiltered_tiles))
+        # ('slide', LoggingFunctionTransformer(recover_missfiltered_tiles)) # TODO:  review this
     ]
     slide_dataset.apply_pipeline(pipeline_list)

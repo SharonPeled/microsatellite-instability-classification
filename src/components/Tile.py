@@ -17,7 +17,7 @@ class Tile(Image):
         os.makedirs(path)
         np.save(path, self.img)
 
-    def set_filename_suffix(self, suffix):
+    def set_filename_suffix(self, suffix): #TODO: reconsider this decision
         """
         Append a suffix to the filename of the tile. The suffix is separated from the rest of the filename
         by an underscore character.

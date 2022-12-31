@@ -121,9 +121,6 @@ def recover_missfiltered_tiles(slide, pen_filter, black_filter, superpixel_size,
 
 
 def macenko_color_norm(tile, ref_img_path):
-    #TODO: probably because of background images..
-    if 'BG' in tile.out_filename:
-        return tile
     ref_tile = Tile(path=ref_img_path)
     ref_tile.load()
     print(tile.img.shape, ref_tile.img.shape)
@@ -131,6 +128,12 @@ def macenko_color_norm(tile, ref_img_path):
         'stains': ['H&E'],
         'stain_unmixing_method': 'macenko_pca',
     }
-    normed_img = deconvolution_based_normalization(im_src=tile.img, im_target=ref_tile.img,
-                                             stain_unmixing_routine_params=stain_unmixing_routine_params)
-    return Tile.from_img(tile, normed_img)
+    try:
+        normed_img = deconvolution_based_normalization(im_src=tile.img, im_target=ref_tile.img,
+                                                       stain_unmixing_routine_params=stain_unmixing_routine_params)
+        normed_tile = Tile.from_img(tile, normed_img)
+        # TODO: continue this
+        return
+    except:
+        return tile
+
