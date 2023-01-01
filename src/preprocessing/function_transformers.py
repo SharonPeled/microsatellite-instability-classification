@@ -103,8 +103,7 @@ def recover_missfiltered_tiles(slide, pen_filter, black_filter, superpixel_size,
         df.drop(columns=tile_recovery_suffix, inplace=True)
     filters = list(df.columns[2:])
     num_unfiltered_tiles = (df[filters].sum(axis=1) == 0).sum() # zero in all filters
-    tiles_to_recover = {f: set(get_filtered_tiles_to_recover(df, f, superpixel_size))
-                           for f in filters}
+    tile_paths_to_recover = set(get_filtered_tiles_to_recover(df, filters, superpixel_size))
     # very few pen/black tiles are probably not a real pen/black tiles
     # when tissu is very colorful it can be misinterpreted as pen
     # tissue dark spots can also be misinterpreted as black tiles
@@ -113,10 +112,10 @@ def recover_missfiltered_tiles(slide, pen_filter, black_filter, superpixel_size,
     pen_suffix = pen_filter['suffix']
     black_suffix = black_filter['suffix']
     if df[pen_suffix].sum() / num_unfiltered_tiles < num_unfiltered_tiles * pen_filter['min_pen_tiles']:
-        tiles_to_recover[pen_suffix].update(df[df[pen_suffix]].tile_path.values)
+        tile_paths_to_recover.update(df[df[pen_suffix]].tile_path.values)
     if df[black_suffix].sum() / num_unfiltered_tiles < num_unfiltered_tiles * black_filter['min_pen_tiles']:
-        tiles_to_recover[black_suffix].update(df[df[black_suffix]].tile_path.values)
-    for tile in tiles_to_recover:
+        tile_paths_to_recover.update(df[df[black_suffix]].tile_path.values)
+    for tile in tile_paths_to_recover:
         tile.recover()
 
 

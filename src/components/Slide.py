@@ -60,7 +60,7 @@ class Slide(Image):
             filter_suffixes_dict = {f:True for f in attrs[2:]}
             csv_row_dict.update(filter_suffixes_dict)
             csv_rows.append(csv_row_dict)
-        df = pd.DataFrame(csv_rows)
+        df = pd.DataFrame(csv_rows, index=['row', 'col'])
         df.fillna(False, inplace=True)
         return df
 
