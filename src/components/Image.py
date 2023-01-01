@@ -10,9 +10,12 @@ class Image(Logger):
         self.metadata = kwargs
         self.img = None
 
-    def get(self, key):
+    def get(self, key, soft=False):
         if key not in self.metadata.keys():
-            return self.img.get(key)
+            try:
+                return self.img.get(key)
+            except:
+                return None
         return self.metadata[key]
 
     def set(self, key, val):

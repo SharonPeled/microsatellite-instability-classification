@@ -14,37 +14,33 @@ class Tile(Image):
 
     def save(self, processed_tiles_dir):
         path = os.path.join(processed_tiles_dir, self.get('slide_uuid'), self.out_filename)
-        os.makedirs(path)
+        if not os.path.exists(os.path.dirname(path)):
+            os.makedirs(path)
         np.save(path, self.img)
 
-    def set_filename_suffix(self, suffix): #TODO: reconsider this decision
+    def add_filename_suffix(self, suffix): #TODO: reconsider this decision
         """
         Append a suffix to the filename of the tile. The suffix is separated from the rest of the filename
         by an underscore character.
-        If the tile has already been processed by another filter, the existing suffix will be replaced with
-        the new one.
-        This allows for tracking which tiles have been processed by which filters, and to maintain order relation
-        between filters.
         :param suffix: The suffix to append to the filename.
         :return: None
         """
         filename, file_extension = self.out_filename.split('.')
-        attrs = filename.split('_')[:2] # first 2 attrs are row and col
-        attrs.append(suffix)
-        self.out_filename = '_'.join(attrs) + '.' + file_extension
+        filename += '_' + suffix
+        self.out_filename = filename + '.' + file_extension
 
     def get_tile_position(self):
         col, row = self.out_filename[:-4].split('_')[:2]
         return row,col
 
-    def recover(self, tile_recovery_suffix):
-        filename, file_extension = self.path.split('.')
-        if filename.split('_')[-1] == tile_recovery_suffix:
+    @staticmethod
+    def recover(path, tile_recovery_suffix):
+        filename, file_extension = os.path.basename(path).split('.')
+        if tile_recovery_suffix in filename.split('_'):
             # already recovered
             return
-        new_name = filename + '_' + tile_recovery_suffix + '.' + 'jpg'
-        os.rename(self.path, new_name)
-        self.path = new_name
+        new_name = filename + '_' + tile_recovery_suffix + '.' + file_extension
+        os.rename(path, os,path.join(os.path.dirname(path), new_name))
 
     def __str__(self):
         if self.img is None:

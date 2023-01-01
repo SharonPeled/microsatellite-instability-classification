@@ -26,6 +26,9 @@ class ConfigsClass:
                   'color_palette': get_pen_color_palette()}  # tile with more than threshold percent pen is filtered
     SUPERPIXEL_SIZE = 2
     TILE_RECOVERY_SUFFIX = 'R'
+    COLOR_NORMED_SUFFIX = 'N'
+    TILE_SUFFIXES = {'filters': [OTSU_FILTER['suffix'], BLACK_FILTER['suffix'], PEN_FILTER['suffix']],
+                     'other': [TILE_RECOVERY_SUFFIX, COLOR_NORMED_SUFFIX]}
     COLOR_NORM_REF_IMG = os.path.join(ROOT, 'src', 'preprocessing', 'color_norm_reference_image.png')
 
     def __init__(self):

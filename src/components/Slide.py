@@ -37,7 +37,6 @@ class Slide(Image):
                 tiles = self.get_tiles(otsu_val=self.get('otsu_val'), slide_uuid=self.get('slide_uuid'))
                 self._log(f"""Processing {len(tiles)} tiles.""")
                 for tile in tiles:
-                    print(tile.path)
                     pipeline.transform(tile)
                 self._log(f"""Finished processing {len(tiles)} tiles.""")
         self._log(f"""Finish processing {self}""")
@@ -64,11 +63,9 @@ class Slide(Image):
         df.fillna(False, inplace=True)
         return df
 
-    def recover_tiles(self):
-        pass
-
     def __str__(self):
         if self.img is None:
             return f"""<{type(self).__name__} - uuid:{self.get('slide_uuid')} Not loaded.>"""
         shape = (self.img.height, self.img.width, self.img.bands)
-        return f"""<{type(self).__name__} - shape:{shape}, uuid:{self.get('slide_uuid')}>"""
+        otsu_val = self.get('otsu_val',soft=True)
+        return f"""<{type(self).__name__} - shape:{shape}, otsu_val:{otsu_val}, uuid:{self.get('slide_uuid')}>"""

@@ -25,7 +25,7 @@ def generate_spatial_filter_mask(df, filters):
     return mask
 
 
-def get_filtered_tiles_to_recover(df, filters, superpixel_size):
+def get_filtered_tiles_paths_to_recover(df, filters, superpixel_size):
     """
     Identify tiles that their surroundings wasn't filtered (square with radius superpixel_size).
     Usually, insignificant tiles come in big groups (background, pen, black spots..), therefore if tile isn't
