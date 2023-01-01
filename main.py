@@ -10,6 +10,7 @@ from src.configs import Configs
 # TODO: adding logs!
 # TODO: Override the LoggingFunctionTransformer and add logs
 if __name__ == '__main__':
+    print("TEST")
     Logger.log('Starting preprocessing ..')
     slide_dataset = SlideDataset(Configs.SLIDES_DIR)
     pipeline_list = [

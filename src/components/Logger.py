@@ -19,10 +19,7 @@ class Logger:
 
     @staticmethod
     def set_default_logger(configs):
-        if configs.DEBUG_MODE:
-            logging.basicConfig(handlers=[logging.StreamHandler(), ], level=logging.WARNING,
-                                **configs.LOG_FORMAT)
-        elif configs.VERBOSE == 0:
+        if configs.VERBOSE == 0:
             # suppressing all logs
             logging.getLogger().setLevel(logging.NOTSET)
         elif configs.VERBOSE == 1:

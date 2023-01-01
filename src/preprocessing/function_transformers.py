@@ -1,5 +1,5 @@
 from ..configs import Configs
-from skimage import color
+from skimage import color, filters
 import os
 import numpy as np
 from .pen_filter import pen_percent
@@ -30,13 +30,10 @@ def center_crop(slide, tile_size):
 
 
 def calc_otsu(slide):
-    # slide_bw = slide.colourspace("b-w")
-    # hist = slide_bw.hist_find().numpy()
-    # otsu_val = filters.threshold_otsu(image=None, hist=(hist[0][:, 0], range(256)))
-    # print(otsu_val) # 194
-    # slide.otsu_val = 192
-    slide.set('otsu_val', 194)
-    # slide.set('otsu_val', otsu_val)
+    slide_bw = slide.colourspace("b-w")
+    hist = slide_bw.hist_find().numpy()
+    otsu_val = filters.threshold_otsu(image=None, hist=(hist[0][:, 0], range(256)))
+    slide.set('otsu_val', otsu_val)
     return slide
 
 
@@ -49,13 +46,13 @@ def save_tiles(slide, tiles_dir, tile_size):
     :return:
     """
     slide.set_tile_dir(tiles_dir)
-    # slide.dzsave(
-    #     slide.tile_dir,
-    #     suffix='.jpg',
-    #     tile_size=tile_size,
-    #     overlap=0,
-    #     depth='one'
-    # )
+    slide.dzsave(
+        slide.tile_dir,
+        suffix='.jpg',
+        tile_size=tile_size,
+        overlap=0,
+        depth='one'
+    )
     if os.path.exists(slide.tile_dir + '_files') and os.path.exists(slide.tile_dir):
         # dzsave adds _files extension to output dir
         os.rename(slide.tile_dir + '_files', slide.tile_dir)
