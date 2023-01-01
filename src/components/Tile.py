@@ -2,6 +2,7 @@ import os
 import numpy as np
 import pyvips
 from .Image import Image
+from PIL import Image as PLI_Image
 
 
 class Tile(Image):
@@ -15,8 +16,8 @@ class Tile(Image):
     def save(self, processed_tiles_dir):
         path = os.path.join(processed_tiles_dir, self.get('slide_uuid'), self.out_filename)
         if not os.path.exists(os.path.dirname(path)):
-            os.makedirs(path)
-        np.save(path, self.img)
+            os.makedirs(os.path.dirname(path))
+        PLI_Image.fromarray(self.img).save(path)
 
     def add_filename_suffix(self, suffix): #TODO: reconsider this decision
         """

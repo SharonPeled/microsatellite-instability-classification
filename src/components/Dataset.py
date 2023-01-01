@@ -14,7 +14,10 @@ class SlideDataset(Dataset, Logger):
 
     def apply_pipeline(self, pipeline):
         self._log(f'Applying pipeline on {len(self.slide_paths)} slides.')
-        self.slides = [Slide(path).apply_pipeline(pipeline) for path in self.slide_paths]
+        processed_slides = []
+        for ind, path in enumerate(self.slide_paths):
+            processed_slides.append(Slide(path).apply_pipeline(pipeline, ind, len(self.slide_paths)))
+        self.slides = processed_slides
         self._log(f'Finished pipeline on {len(self.slide_paths)} slides.')
 
     def __len__(self):

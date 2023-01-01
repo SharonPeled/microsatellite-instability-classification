@@ -32,10 +32,10 @@ if __name__ == '__main__':
                                                                        'succ_norm_suffix': Configs.COLOR_NORMED_SUFFIX})),
             ('save_processed_tile', LoggingFunctionTransformer(save_processed_tile,
                                                                kw_args={'processed_tiles_dir': Configs.PROCESSED_TILES_DIR}))])),
-        ('slide', LoggingFunctionTransformer(recover_missfiltered_tiles, kw_args={'pen_filter': Configs.PEN_FILTER,
-                                                                                  'black_filter': Configs.BLACK_FILTER,
-                                                                                  'superpixel_size': Configs.SUPERPIXEL_SIZE,
-                                                                                  'tile_recovery_suffix': Configs.TILE_RECOVERY_SUFFIX,
-                                                                                  'tile_suffixes': Configs.TILE_SUFFIXES}))
+        # ('slide', LoggingFunctionTransformer(recover_missfiltered_tiles, kw_args={'pen_filter': Configs.PEN_FILTER,
+        #                                                                           'black_filter': Configs.BLACK_FILTER,
+        #                                                                           'superpixel_size': Configs.SUPERPIXEL_SIZE,
+        #                                                                           'tile_recovery_suffix': Configs.TILE_RECOVERY_SUFFIX,
+        #                                                                           'tile_suffixes': Configs.TILE_SUFFIXES}))
     ]
     slide_dataset.apply_pipeline(pipeline_list)

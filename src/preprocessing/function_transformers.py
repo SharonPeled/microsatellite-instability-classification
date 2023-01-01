@@ -28,15 +28,16 @@ def center_crop(slide, tile_size):
     y_tiles = height // tile_size
     x_margins = width - x_tiles * tile_size
     y_margins = height - y_tiles * tile_size
-    return slide.crop(x_margins // 2, y_margins // 2, tile_size * x_tiles, tile_size * y_tiles)
+    return slide.crop(x_tiles * tile_size // 2, y_tiles * tile_size // 2, tile_size * 5, tile_size * 5)
+    # return slide.crop(x_margins // 2, y_margins // 2, tile_size * x_tiles, tile_size * y_tiles)
 
 
 def calc_otsu(slide):
     # slide_bw = slide.colourspace("b-w")
     # hist = slide_bw.hist_find().numpy()
     # otsu_val = filters.threshold_otsu(image=None, hist=(hist[0][:, 0], range(256)))
-    slide.set('otsu_val', 192)
     # slide.set('otsu_val', otsu_val)
+    slide.set('otsu_val', 192)
     return slide
 
 
@@ -49,13 +50,13 @@ def save_tiles(slide, tiles_dir, tile_size):
     :return:
     """
     slide.set_tile_dir(tiles_dir)
-    # slide.dzsave(
-    #     slide.tile_dir,
-    #     suffix='.jpg',
-    #     tile_size=tile_size,
-    #     overlap=0,
-    #     depth='one'
-    # )
+    slide.dzsave(
+        slide.tile_dir,
+        suffix='.jpg',
+        tile_size=tile_size,
+        overlap=0,
+        depth='one'
+    )
     if os.path.exists(slide.tile_dir + '_files') and not os.path.exists(slide.tile_dir):
         # dzsave adds _files extension to output dir
         os.rename(slide.tile_dir + '_files', slide.tile_dir)
@@ -99,7 +100,7 @@ def filter_pen(tile, color_palette, threshold, suffix, **kwargs):
 
 def recover_missfiltered_tiles(slide, pen_filter, black_filter, superpixel_size, tile_recovery_suffix, tile_suffixes):
     df = slide.get_tile_summary_df()
-    filters = tile_suffixes['filters']
+    filters = [f for f in df.columns if f in tile_suffixes['filters']]
     num_unfiltered_tiles = (df[filters].sum(axis=1) == 0).sum() # zero in all filters
     tile_paths_to_recover = set(get_filtered_tiles_paths_to_recover(df, filters, superpixel_size))
     # very few pen/black tiles are probably not a real pen/black tiles

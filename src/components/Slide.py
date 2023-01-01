@@ -5,6 +5,7 @@ import os
 from .Tile import Tile
 import pyvips
 from .Image import Image
+from tqdm import tqdm
 
 
 class Slide(Image):
@@ -28,7 +29,7 @@ class Slide(Image):
     def set_tile_dir(self, tiles_dir):
         self.tile_dir = os.path.join(tiles_dir, self.get('slide_uuid'))
 
-    def apply_pipeline(self, pipeline_list):
+    def apply_pipeline(self, pipeline_list, ind, num_slides):
         self._log(f"""Processing {self}""")
         for resolution, pipeline in pipeline_list:
             if resolution == 'slide':
@@ -36,8 +37,10 @@ class Slide(Image):
             elif resolution == 'tile':
                 tiles = self.get_tiles(otsu_val=self.get('otsu_val'), slide_uuid=self.get('slide_uuid'))
                 self._log(f"""Processing {len(tiles)} tiles.""")
-                for tile in tiles:
-                    pipeline.transform(tile)
+                with tqdm(tiles, desc=f"""Slide {ind}/{num_slides} ({int(ind/num_slides)}%)""") as tile_tqdm:
+                    for tile in tiles:
+                        pipeline.transform(tile)
+                        tile_tqdm.update(1)
                 self._log(f"""Finished processing {len(tiles)} tiles.""")
         self._log(f"""Finish processing {self}""")
         return self

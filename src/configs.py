@@ -9,7 +9,7 @@ from .components.Logger import Logger
 @dataclass
 class ConfigsClass:
     RANDOM_SEED = 123
-    VERBOSE = 3 # 0 no logs, 1 logs to LOG_FILE, 2 logs to console, 3 logs to both to file and console
+    VERBOSE = 0 # 0 no logs, 1 logs to LOG_FILE, 2 logs to console, 3 logs to both to file and console
     ROOT = Path(__file__).parent.parent.resolve()
     LOG_FILE = 'log.txt'
     LOG_FORMAT = {'format': '%(asctime)s  [%(name)s] - %(message)s', 'datefmt':'%d-%m-%y %H:%M:%S'}

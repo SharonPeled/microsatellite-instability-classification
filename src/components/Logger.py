@@ -21,7 +21,7 @@ class Logger:
     def set_default_logger(configs):
         if configs.VERBOSE == 0:
             # suppressing all logs
-            logging.getLogger().setLevel(logging.NOTSET)
+            logging.getLogger().setLevel(logging.CRITICAL)
         elif configs.VERBOSE == 1:
             logging.basicConfig(handlers=[logging.FileHandler(configs.LOG_FILE), ], level=logging.WARNING,
                                 **configs.LOG_FORMAT)

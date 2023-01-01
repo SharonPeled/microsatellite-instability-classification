@@ -14,8 +14,10 @@ class Image(Logger):
         if key not in self.metadata.keys():
             try:
                 return self.img.get(key)
-            except:
-                return None
+            except Exception as e:
+                if soft:
+                    return None
+                raise e
         return self.metadata[key]
 
     def set(self, key, val):
