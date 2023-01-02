@@ -9,9 +9,11 @@ from .components.Logger import Logger
 @dataclass
 class ConfigsClass:
     RANDOM_SEED = 123
-    VERBOSE = 0 # 0 no logs, 1 logs to LOG_FILE, 2 logs to console, 3 logs to both to file and console
+    VERBOSE = 2 # 1 logs to LOG_FILE, 2 logs to console, 3 logs to both to file and console
     ROOT = Path(__file__).parent.parent.resolve()
     LOG_FILE = 'log.txt'
+    LOG_IMPORTANCE = 1
+    LOAD_METADATA = True
     LOG_FORMAT = {'format': '%(asctime)s  [%(name)s] - %(message)s', 'datefmt':'%d-%m-%y %H:%M:%S'}
     SLIDES_DIR = os.path.join(ROOT, 'data', 'test_slides')
     TILES_DIR = os.path.join(ROOT, 'data', 'test_tiles')
@@ -20,7 +22,7 @@ class ConfigsClass:
     TARGET_MPP = 0.5
     MPP_ATTRIBUTE = 'aperio.MPP'
     OTSU_FILTER = {'threshold': 0.3, 'suffix': 'BG'}  # tile with less than threshold percent tissue is filtered
-    BLACK_FILTER = {'threshold': 0.5, 'suffix': 'BLK', 'max_non_black_tile_env': 2,
+    BLACK_FILTER = {'threshold': 0.5, 'suffix': 'BLK', 'min_black_tiles': 0.05,
                     'color_palette': {'r': 100, 'g':100, 'b':100}}  # tile with more than threshold percent black is filtered
     PEN_FILTER = {'threshold': 0.8, 'suffix': 'PEN', 'min_pen_tiles': 0.05,
                   'color_palette': get_pen_color_palette()}  # tile with more than threshold percent pen is filtered

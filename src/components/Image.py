@@ -8,6 +8,7 @@ class Image(Logger):
     def __init__(self, path, **kwargs):
         self.path = path
         self.metadata = kwargs
+        self.metadata['path'] = self.path
         self.img = None
 
     def get(self, key, soft=False):
