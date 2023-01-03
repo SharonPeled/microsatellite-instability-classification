@@ -87,7 +87,7 @@ def save_processed_tile(tile, processed_tiles_dir):
 def filter_otsu(tile, threshold, suffix, **kwargs):
     bw_img = (color.rgb2gray(tile.img)*255)
     filtered_pixels = (bw_img < tile.get('otsu_val')).sum()
-    r = filtered_pixels / tile.size
+    r = filtered_pixels / bw_img.size  # careful, nparray.size take the number of channels into account
     if r < threshold: # classified as background
         tile.add_filename_suffix(suffix)
     return tile

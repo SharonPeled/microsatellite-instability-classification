@@ -16,8 +16,8 @@ class ConfigsClass:
     LOAD_METADATA = False
     LOG_FORMAT = {'format': '%(asctime)s  [%(name)s] - %(message)s', 'datefmt':'%d-%m-%y %H:%M:%S'}
     SLIDES_DIR = os.path.join(ROOT, 'data', 'test_slides')
-    TILES_DIR = os.path.join(ROOT, 'data', 'test_tiles')
-    PROCESSED_TILES_DIR = os.path.join(ROOT, 'data', 'test_processed_tiles')
+    TILES_DIR = os.path.join(ROOT, 'data', 'test_full_tiles')
+    PROCESSED_TILES_DIR = os.path.join(ROOT, 'data', 'test_full_processed_tiles')
     TILE_SIZE = 512
     TARGET_MPP = 0.5
     MPP_ATTRIBUTE = 'aperio.MPP'
