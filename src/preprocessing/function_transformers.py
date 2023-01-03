@@ -34,17 +34,18 @@ def center_crop(slide, tile_size):
     slide.set('shape', (tile_size * x_tiles, tile_size * y_tiles))
     slide.set('num_x_tiles', x_tiles)
     slide.set('num_y_tiles', y_tiles)
-    return slide.crop(x_tiles * tile_size // 2, y_tiles * tile_size // 2, tile_size * 10, tile_size * 10)
-    # return slide.crop(x_margins // 2, y_margins // 2, tile_size * x_tiles, tile_size * y_tiles)
+    # return slide.crop(x_tiles * tile_size // 2, y_tiles * tile_size // 2, tile_size * 10, tile_size * 10)
+    return slide.crop(x_margins // 2, y_margins // 2, tile_size * x_tiles, tile_size * y_tiles)
+
 
 def calc_otsu(slide):
     if slide.get('otsu_val', soft=True) is not None:
         return slide
-    # slide_bw = slide.colourspace("b-w")
-    # hist = slide_bw.hist_find().numpy()
-    # otsu_val = filters.threshold_otsu(image=None, hist=(hist[0][:, 0], range(256)))
-    # slide.set('otsu_val', otsu_val)
-    slide.set('otsu_val', 192)
+    slide_bw = slide.colourspace("b-w")
+    hist = slide_bw.hist_find().numpy()
+    otsu_val = filters.threshold_otsu(image=None, hist=(hist[0][:, 0], range(256)))
+    slide.set('otsu_val', otsu_val)
+    # slide.set('otsu_val', 192)
     return slide
 
 
