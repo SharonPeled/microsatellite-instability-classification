@@ -45,7 +45,6 @@ def calc_otsu(slide):
     hist = slide_bw.hist_find().numpy()
     otsu_val = filters.threshold_otsu(image=None, hist=(hist[0][:, 0], range(256)))
     slide.set('otsu_val', otsu_val)
-    # slide.set('otsu_val', 192)
     return slide
 
 
