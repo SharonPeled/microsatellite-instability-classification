@@ -8,11 +8,17 @@ class Image(Logger):
     def __init__(self, path, **kwargs):
         self.path = path
         self.metadata = kwargs
+        self.metadata['path'] = self.path
         self.img = None
 
-    def get(self, key):
+    def get(self, key, soft=False):
         if key not in self.metadata.keys():
-            return self.img.get(key)
+            try:
+                return self.img.get(key)
+            except Exception as e:
+                if soft:
+                    return None
+                raise e
         return self.metadata[key]
 
     def set(self, key, val):
