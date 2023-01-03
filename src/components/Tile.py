@@ -19,7 +19,7 @@ class Tile(Image):
             os.makedirs(os.path.dirname(path))
         PLI_Image.fromarray(self.img).save(path)
 
-    def add_filename_suffix(self, suffix): #TODO: reconsider this decision
+    def add_filename_suffix(self, suffix):
         """
         Append a suffix to the filename of the tile. The suffix is separated from the rest of the filename
         by an underscore character.

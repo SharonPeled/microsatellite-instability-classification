@@ -50,7 +50,7 @@ class Slide(Image):
         self.set('tile_dir', os.path.join(tiles_dir, self.get('slide_uuid')))
 
     def apply_pipeline(self, pipeline_list, ind, num_slides):
-        if self.get('Done preprocessing', soft=True): # todo add validation to all dataset that slide are finished
+        if self.get('Done preprocessing', soft=True):
             self._log(f"""Slide already processed: {ind+1}/{num_slides}""", importance=1)
             return self
         try:
@@ -92,7 +92,7 @@ class Slide(Image):
         tile_dir = self.get('tile_dir')
         return [Tile(tile_path, **kwargs) for tile_path in sorted(glob(f"{tile_dir}/**/*.jpg", recursive=True))] # all .jpg files
 
-    def get_tile_summary_df(self, processed_tiles_dir, filters):
+    def get_tile_summary_df(self, processed_tiles_dir, suffixes):
         csv_rows = []
         tile_dir = os.path.join(processed_tiles_dir, self.get('slide_uuid'))
         for tile_path in glob(f"{tile_dir}/**/*.jpg", recursive=True):
@@ -101,7 +101,7 @@ class Slide(Image):
             col, row = attrs[:2] # pyvips save it with col_row format
             csv_row_dict['row'] = row
             csv_row_dict['col'] = col
-            filter_suffixes_dict = {f:f in attrs for f in filters}
+            filter_suffixes_dict = {f:f in attrs for f in suffixes}
             csv_row_dict.update(filter_suffixes_dict)
             csv_rows.append(csv_row_dict)
         df = pd.DataFrame(csv_rows)

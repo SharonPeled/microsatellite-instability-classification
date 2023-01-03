@@ -1,13 +1,16 @@
 from ..configs import Configs
 from skimage import color, filters
 import os
+import pyvips
 import numpy as np
 from .pen_filter import pen_percent
-from ..utils import get_filtered_tiles_paths_to_recover
+from ..utils import get_filtered_tiles_paths_to_recover, generate_spatial_filter_mask
 from histomicstk.preprocessing.color_normalization.\
     deconvolution_based_normalization import deconvolution_based_normalization
 from ..components.Tile import Tile
 from ..components.Logger import Logger
+import matplotlib.pyplot as plt
+import matplotlib.colors as colors
 
 
 def load_slide(slide):
@@ -31,7 +34,7 @@ def center_crop(slide, tile_size):
     slide.set('shape', (tile_size * x_tiles, tile_size * y_tiles))
     slide.set('num_x_tiles', x_tiles)
     slide.set('num_y_tiles', y_tiles)
-    return slide.crop(x_tiles * tile_size // 2, y_tiles * tile_size // 2, tile_size * 5, tile_size * 5)
+    return slide.crop(x_tiles * tile_size // 2, y_tiles * tile_size // 2, tile_size * 10, tile_size * 10)
     # return slide.crop(x_margins // 2, y_margins // 2, tile_size * x_tiles, tile_size * y_tiles)
 
 def calc_otsu(slide):
@@ -108,7 +111,7 @@ def filter_pen(tile, color_palette, threshold, suffix, **kwargs):
 def recover_missfiltered_tiles(slide, pen_filter, black_filter, superpixel_size, tile_recovery_suffix, tile_suffixes,
                                processed_tiles_dir):
     filters = tile_suffixes['filters']
-    df = slide.get_tile_summary_df(processed_tiles_dir=processed_tiles_dir, filters=filters)
+    df = slide.get_tile_summary_df(processed_tiles_dir=processed_tiles_dir, suffixes=filters)
     num_unfiltered_tiles = (df[filters].sum(axis=1) == 0).sum() # zero in all filters
     tile_paths_to_recover = set(get_filtered_tiles_paths_to_recover(df, filters, superpixel_size))
     # very few pen/black tiles are probably not a real pen/black tiles
@@ -150,4 +153,43 @@ def macenko_color_norm(tile, ref_img_path, succ_norm_suffix):
 def save_slide_metadata(slide):
     slide.save_metadata()
     return slide
+
+
+def generate_slide_color_grid(slide, tile_suffixes, processed_tiles_dir, suffixes_to_colors_map):
+    suffixes = tile_suffixes['filters'] + [tile_suffixes['recovered']]
+    df = slide.get_tile_summary_df(processed_tiles_dir, suffixes=suffixes)
+    num_rows, num_cols = df['row'].max(), df['col'].max()
+    grid = np.ones((num_rows+1, num_cols+1))
+    for i, suf in enumerate(suffixes, start=1):
+        mask = generate_spatial_filter_mask(df, [suf,])
+        grid[mask==1] = i + 1
+    color_list = [suffixes_to_colors_map['tissue'],] + [suffixes_to_colors_map[suf] for suf in suffixes]
+    norm = colors.Normalize(vmin=1, vmax=len(color_list))
+    cmap = plt.cm.colors.ListedColormap(color_list)
+    color_grid = cmap(norm(grid))
+    patches = [plt.plot([], [], marker="s", color=cmap(i / float(len(color_list))), ls="")[0]
+               for i in range(len(color_list))]
+
+    fig, (ax1, ax2) = plt.subplots(nrows=2, ncols=1, figsize=(10, 10))
+
+    for ax in [ax1, ax2]:
+        ax.set_xticks([])
+        ax.set_yticks([])
+
+    ax1.imshow(color_grid)
+    ax1.legend(patches, ['Tissue'] + suffixes, loc='lower right')
+
+    thumb = pyvips.Image.thumbnail(slide.path, 512)
+    ax2.imshow(thumb)
+
+    plt.subplots_adjust(wspace=0, hspace=0)
+    plt.tight_layout()
+    fig.savefig(os.path.join(os.path.dirname(slide.path), 'thumbnail.png'), bbox_inches='tight', pad_inches=0.5)
+    Logger.log(f"""Thumbnail Saved.""", importance=1)
+    return slide
+
+
+
+
+
 
