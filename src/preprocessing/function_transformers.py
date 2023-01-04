@@ -32,10 +32,11 @@ def center_crop(slide, tile_size):
     x_margins = width - x_tiles * tile_size
     y_margins = height - y_tiles * tile_size
     slide.set('shape', (tile_size * x_tiles, tile_size * y_tiles))
+    slide.set('tile_size', tile_size)
     slide.set('num_x_tiles', x_tiles)
     slide.set('num_y_tiles', y_tiles)
-    # return slide.crop(x_tiles * tile_size // 2, y_tiles * tile_size // 2, tile_size * 10, tile_size * 10)
-    return slide.crop(x_margins // 2, y_margins // 2, tile_size * x_tiles, tile_size * y_tiles)
+    return slide.crop(x_tiles * tile_size // 2, y_tiles * tile_size // 2, tile_size * 15, tile_size * 10)
+    # return slide.crop(x_margins // 2, y_margins // 2, tile_size * x_tiles, tile_size * y_tiles)
 
 
 def calc_otsu(slide):
@@ -79,41 +80,54 @@ def load_tile(tile):
 
 
 def save_processed_tile(tile, processed_tiles_dir):
+    if tile.get('filtered', soft=True):
+        return tile
     tile.save(processed_tiles_dir)
     return tile
 
 
 def filter_otsu(tile, threshold, suffix, **kwargs):
+    if tile.get('filtered', soft=True):
+        return tile
     bw_img = (color.rgb2gray(tile.img)*255)
     filtered_pixels = (bw_img < tile.get('otsu_val')).sum()
     r = filtered_pixels / bw_img.size  # careful, nparray.size take the number of channels into account
     if r < threshold: # classified as background
         tile.add_filename_suffix(suffix)
+        tile.set('filtered', True)
     return tile
 
 
 def filter_black(tile, color_palette, threshold, suffix, **kwargs):
+    if tile.get('filtered', soft=True):
+        return tile
     r, g, b = np.rollaxis(tile.img, -1)
     mask = (r < color_palette['r']) & (g < color_palette['g']) & (b < color_palette['b'])
     if mask.mean() > threshold:
         tile.add_filename_suffix(suffix)
+        tile.set('filtered', True)
     return tile
 
 
 def filter_pen(tile, color_palette, threshold, suffix, **kwargs):
+    if tile.get('filtered', soft=True):
+        return tile
     pen_colors = color_palette.keys()
     max_pen_percent = max([pen_percent(tile, color_palette, color) for color in pen_colors])
     if max_pen_percent > threshold:
         tile.add_filename_suffix(suffix)
+        tile.set('filtered', True)
     return tile
 
 
-def recover_missfiltered_tiles(slide, pen_filter, black_filter, superpixel_size, tile_recovery_suffix, tile_suffixes,
-                               processed_tiles_dir):
+def recover_missfiltered_tiles(slide, pen_filter, black_filter, superpixel_size, tile_suffixes,
+                               fail_norm_suffix, ref_img_path, processed_tiles_dir):
     filters = tile_suffixes['filters']
-    df = slide.get_tile_summary_df(processed_tiles_dir=processed_tiles_dir, suffixes=filters)
+    df = slide.get_tile_summary_df()
+    df = df.assign(**{f: False for f in filters if f not in df.columns}) # adding missing filters as false
     num_unfiltered_tiles = (df[filters].sum(axis=1) == 0).sum() # zero in all filters
-    tile_paths_to_recover = set(get_filtered_tiles_paths_to_recover(df, filters, superpixel_size))
+    tile_paths_to_recover = set(get_filtered_tiles_paths_to_recover(df, filters, fail_norm_suffix, superpixel_size))
+
     # very few pen/black tiles are probably not a real pen/black tiles
     # when tissu is very colorful it can be misinterpreted as pen
     # tissue dark spots can also be misinterpreted as black tiles
@@ -125,13 +139,30 @@ def recover_missfiltered_tiles(slide, pen_filter, black_filter, superpixel_size,
         tile_paths_to_recover.update(df[df[pen_suffix]].tile_path.values)
     if df[black_suffix].sum() / num_unfiltered_tiles < num_unfiltered_tiles * black_filter['min_black_tiles']:
         tile_paths_to_recover.update(df[df[black_suffix]].tile_path.values)
-    Logger.log(f"""{len(tile_paths_to_recover)} recovered for slide {slide}""", importance=1)
+
+    # recovering tiles
+    num_succ_recovered = 0
+    tiles_in_path_out_filename_tuples = []
     for tile_path in tile_paths_to_recover:
-        Tile.recover(tile_path, tile_recovery_suffix)
+        tile = Tile(path=tile_path, slide_uuid=slide.get('slide_uuid'))
+        tile.load()
+        tile = macenko_color_norm(tile, ref_img_path, tile_suffixes['color_normed'], tile_suffixes['failed_color_normed'])
+        if not tile.get('filtered', soft=True):
+            tile.save(processed_tiles_dir)
+            num_succ_recovered += 1
+            continue
+        tiles_in_path_out_filename_tuples.append((tile_path, tile.out_filename))
+    if len(tiles_in_path_out_filename_tuples) == 0:
+        return slide
+    slide.update_recovery_tile_summary_df(tiles_in_path_out_filename_tuples)
+
+    Logger.log(f"""{num_succ_recovered/len(tile_paths_to_recover)} recovered for slide {slide}""", importance=1)
     return slide
 
 
-def macenko_color_norm(tile, ref_img_path, succ_norm_suffix):
+def macenko_color_norm(tile, ref_img_path, succ_norm_suffix, fail_norm_suffix):
+    if tile.get('filtered', soft=True):
+        return tile
     ref_tile = Tile(path=ref_img_path)
     ref_tile.load()
     stain_unmixing_routine_params = {
@@ -147,6 +178,8 @@ def macenko_color_norm(tile, ref_img_path, succ_norm_suffix):
         return normed_tile
     except Exception as e:
         Logger.log(f"""Tile {tile} normalization fail with exception {e}.""")
+        tile.add_filename_suffix(fail_norm_suffix)
+        tile.set('filtered', True)
         return tile
 
 
@@ -155,12 +188,13 @@ def save_slide_metadata(slide):
     return slide
 
 
-def generate_slide_color_grid(slide, tile_suffixes, processed_tiles_dir, suffixes_to_colors_map):
+def generate_slide_color_grid(slide, tile_suffixes, suffixes_to_colors_map):
     suffixes = tile_suffixes['filters'] + [tile_suffixes['recovered']]
-    df = slide.get_tile_summary_df(processed_tiles_dir, suffixes=suffixes)
+    df = slide.get_tile_summary_df()
+    df = df.assign(**{f: False for f in tile_suffixes['filters'] if f not in df.columns}) # adding missing filters as false
     num_rows, num_cols = df['row'].max(), df['col'].max()
     grid = np.ones((num_rows+1, num_cols+1))
-    for i, suf in enumerate(suffixes, start=1):
+    for i, suf in enumerate(tile_suffixes['filters'], start=1):
         mask = generate_spatial_filter_mask(df, [suf,])
         grid[mask==1] = i + 1
     color_list = [suffixes_to_colors_map['tissue'],] + [suffixes_to_colors_map[suf] for suf in suffixes]

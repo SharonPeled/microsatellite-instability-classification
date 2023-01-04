@@ -18,6 +18,7 @@ class Tile(Image):
         if not os.path.exists(os.path.dirname(path)):
             os.makedirs(os.path.dirname(path))
         PLI_Image.fromarray(self.img).save(path)
+        self.set('processed_tile_dir', os.path.dirname(path))
 
     def add_filename_suffix(self, suffix):
         """
@@ -33,15 +34,6 @@ class Tile(Image):
     def get_tile_position(self):
         col, row = self.out_filename[:-4].split('_')[:2]
         return row,col
-
-    @staticmethod
-    def recover(path, tile_recovery_suffix):
-        filename, file_extension = os.path.basename(path).split('.')
-        if tile_recovery_suffix in filename.split('_'):
-            # already recovered
-            return
-        new_name = filename + '_' + tile_recovery_suffix + '.' + file_extension
-        os.rename(path, os,path.join(os.path.dirname(path), new_name))
 
     def __str__(self):
         if self.img is None:
