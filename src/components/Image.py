@@ -1,7 +1,4 @@
-import pyvips
-import numpy as np
 from .Logger import Logger
-import builtins
 
 
 class Image(Logger):

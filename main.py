@@ -7,13 +7,7 @@ from src.configs import Configs
 
 
 # TODO: adding save CDFs graphs
-
-# TODO: Not saving filteres tiles and unnormed tiles.
-# TODO: create a df with summary data on all the tiles (on a slide level) - so I know how to plot the color grid
-# TODO: print at the end how much tissue and how much filtered
-# TODO: recovered show load from tile_dir and not processed_dir and calculate who to recove
-# TODO: the recovered tiles should be color normed and saved
-
+# TODO: adding tile resize ? or in pytorch
 # TODO add tile_processed_dir to metadata
 if __name__ == '__main__':
     Logger.log('Starting preprocessing ..', importance=1)

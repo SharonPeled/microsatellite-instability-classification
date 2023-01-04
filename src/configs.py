@@ -13,7 +13,7 @@ class ConfigsClass:
     ROOT = Path(__file__).parent.parent.resolve()
     LOG_FILE = 'log.txt'
     LOG_IMPORTANCE = 1
-    LOAD_METADATA = True
+    LOAD_METADATA = False
     LOG_FORMAT = {'format': '%(asctime)s  [%(name)s] - %(message)s', 'datefmt':'%d-%m-%y %H:%M:%S'}
     SLIDES_DIR = os.path.join(ROOT, 'data', 'test_slides')
     TILES_DIR = os.path.join(ROOT, 'data', 'test_tiles')
