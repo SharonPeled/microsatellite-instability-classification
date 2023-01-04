@@ -75,8 +75,6 @@ class Slide(Image):
                             tile = pipeline.transform(tile)
                             tiles_in_path_out_filename_tuples.append([tile.path, tile.out_filename])
                             tile_tqdm.update(1)
-                            if tile_ind == 30:
-                                raise Exception('Test')
                     self.save_summary_df(tiles_in_path_out_filename_tuples)
 
                     self._log(f"""Finished processing {len(tiles)} tiles.""", importance=1)
