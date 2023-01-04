@@ -9,6 +9,7 @@ from tqdm import tqdm
 import json
 import traceback
 import datetime
+from ..utils import generate_summary_df_from_filepaths
 
 
 class Slide(Image):
@@ -42,6 +43,7 @@ class Slide(Image):
         self.set("Saving metadata time", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
         with open(self.metadata['metadata_path'], 'w') as file:
             json.dump(self.metadata, file, indent=4)
+        self._log(f"""metadata saved for slide {self}.""", importance=2)
 
     def _get_uuid(self):
         return Path(self.path).parent.name
@@ -59,17 +61,24 @@ class Slide(Image):
                 if resolution == 'slide':
                     self = pipeline.transform(self)
                 elif resolution == 'tile':
+
                     tiles = self.get_tiles(otsu_val=self.get('otsu_val'), slide_uuid=self.get('slide_uuid'))
-                    tile_ind = self.get('tile_ind', soft=True)
-                    tile_ind = 0 if tile_ind is None else tile_ind
+                    tile_ind, tiles_in_path_out_filename_tuples = self.get_previous_tile_place()
+
                     left = len(tiles) - tile_ind
                     self._log(f"""Processed {tile_ind}/{len(tiles)} tiles.""", importance=1)
                     self._log(f"""Processing {len(tiles) - tile_ind} tiles.""", importance=1)
+
                     with tqdm(tiles, desc=f"""Slide {ind+1}/{num_slides} ({int(((ind+1)/num_slides)*100)}%)""",
                               initial=tile_ind,position=0, leave=True) as tile_tqdm:
                         for tile_ind, tile in enumerate(tiles[tile_ind:], start=tile_ind):
-                            pipeline.transform(tile)
+                            tile = pipeline.transform(tile)
+                            tiles_in_path_out_filename_tuples.append([tile.path, tile.out_filename])
                             tile_tqdm.update(1)
+                            if tile_ind == 30:
+                                raise Exception('Test')
+                    self.save_summary_df(tiles_in_path_out_filename_tuples)
+
                     self._log(f"""Finished processing {len(tiles)} tiles.""", importance=1)
                 self.set(f'Finished ({resolution}, {i}).', True)
             self.set('Done preprocessing', True)
@@ -77,10 +86,9 @@ class Slide(Image):
             self._log(f"""Finish processing {self}""", importance=1)
         except Exception as e:
             self._log(f"""Processing interrupt on slide {ind+1}/{num_slides} ({int(((ind+1)/num_slides)*100)}%)""", importance=2)
-            if 'tile_ind' in locals():
-                self.set('tile_ind', tile_ind)
+            if 'tiles_in_path_out_filename_tuples' in locals():
+                self.save_summary_df(tiles_in_path_out_filename_tuples)
             self.save_metadata()
-            self._log(f"""metadata saved for slide {self.get('slide_uuid')}""", importance=2)
             self._log(f"""Exception {e}""", importance=2)
             self._log(f"""Traceback {traceback.format_exc()}""", importance=2)
         return self
@@ -92,23 +100,39 @@ class Slide(Image):
         tile_dir = self.get('tile_dir')
         return [Tile(tile_path, **kwargs) for tile_path in sorted(glob(f"{tile_dir}/**/*.jpg", recursive=True))] # all .jpg files
 
-    def get_tile_summary_df(self, processed_tiles_dir, suffixes):
-        csv_rows = []
-        tile_dir = os.path.join(processed_tiles_dir, self.get('slide_uuid'))
-        for tile_path in glob(f"{tile_dir}/**/*.jpg", recursive=True):
-            csv_row_dict = {'tile_path': tile_path}
-            attrs = os.path.basename(tile_path)[:-4].split('_')
-            col, row = attrs[:2] # pyvips save it with col_row format
-            csv_row_dict['row'] = row
-            csv_row_dict['col'] = col
-            filter_suffixes_dict = {f:f in attrs for f in suffixes}
-            csv_row_dict.update(filter_suffixes_dict)
-            csv_rows.append(csv_row_dict)
-        df = pd.DataFrame(csv_rows)
-        df[['row', 'col']] = df[['row', 'col']].astype(int)
-        df.set_index(['row', 'col'], inplace=True, drop=False)
-        df.fillna(False, inplace=True)
+    def get_previous_tile_place(self):
+        summary_df = self.get_tile_summary_df()
+        if summary_df.empty:
+            return 0, []
+        return len(summary_df), list(zip(summary_df['tile_path'], summary_df['filename']))
+
+    def save_summary_df(self, tiles_in_path_out_filename_tuples):
+        out_path = os.path.join(os.path.dirname(self.path), 'tile_summary_df.csv')
+        df = generate_summary_df_from_filepaths(tiles_in_path_out_filename_tuples)
+        df.to_csv(out_path, index=False)
+        self.set('tile_summary_df_path', out_path)
+        self.log(f"""Summary df saved for slide {self}.""", importance=2)
         return df
+
+    def get_tile_summary_df(self):
+        if not self.get('tile_summary_df_path', soft=True):
+            return pd.DataFrame()
+        df = pd.read_csv(self.get('tile_summary_df_path'))
+        df.set_index(['row', 'col'], inplace=True, drop=False)
+        return df
+    
+    def update_recovery_tile_summary_df(self, tiles_in_path_out_filename_tuples):
+        curr_df = generate_summary_df_from_filepaths(tiles_in_path_out_filename_tuples)
+        upd_df = self.get_tile_summary_df()
+        if upd_df.empty:
+            return
+        curr_df = curr_df[~curr_df.tile_path.isin(upd_df)] # removing overlapping tiles
+        new_df = pd.concat([curr_df, upd_df], axis=0)
+        new_df.fillna(False, inplace=True)
+        new_df.reset_index(drop=True)
+        new_df.to_csv(self.get('tile_summary_df_path'), index=False)
+        self.log(f"""Summary df recovery update for slide {self}.""", importance=2)
+        return new_df
 
     def __str__(self):
         if self.img is None:

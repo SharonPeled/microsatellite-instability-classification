@@ -9,6 +9,6 @@ class LoggingFunctionTransformer(FunctionTransformer, Logger):
 
     def transform(self, *args, **kwargs):
         self._log(f"Starting - args {args}, kwargs {kwargs}", name=self.func.__name__)
-        temp = super().transform(*args, **kwargs)
+        res = super().transform(*args, **kwargs)
         self._log(f"Finished - args {args}, kwargs {kwargs}", name=self.func.__name__)
-        return temp
+        return res

@@ -6,8 +6,15 @@ from src.preprocessing.function_transformers import *
 from src.configs import Configs
 
 
-# TODO: adding save CDFs graphs and pixel images
-# TODO: Not to process filtered tiles, resize
+# TODO: adding save CDFs graphs
+
+# TODO: Not saving filteres tiles and unnormed tiles.
+# TODO: create a df with summary data on all the tiles (on a slide level) - so I know how to plot the color grid
+# TODO: print at the end how much tissue and how much filtered
+# TODO: recovered show load from tile_dir and not processed_dir and calculate who to recove
+# TODO: the recovered tiles should be color normed and saved
+
+# TODO add tile_processed_dir to metadata
 if __name__ == '__main__':
     Logger.log('Starting preprocessing ..', importance=1)
     slide_dataset = SlideDataset(Configs.SLIDES_DIR, load_metadata=Configs.LOAD_METADATA)
@@ -22,12 +29,13 @@ if __name__ == '__main__':
         ])),
         ('tile', Pipeline([
             ('load_tile', LoggingFunctionTransformer(load_tile)),
+            ('filter_otsu', LoggingFunctionTransformer(filter_otsu, kw_args=Configs.OTSU_FILTER)),
             ('filter_black', LoggingFunctionTransformer(filter_black, kw_args=Configs.BLACK_FILTER)),
             ('filter_pen', LoggingFunctionTransformer(filter_pen, kw_args=Configs.PEN_FILTER)),
-            ('filter_otsu', LoggingFunctionTransformer(filter_otsu, kw_args=Configs.OTSU_FILTER)),
             ('macenko_color_norm', LoggingFunctionTransformer(macenko_color_norm,
-                                                              kw_args={'ref_img_path':Configs.COLOR_NORM_REF_IMG,
-                                                                       'succ_norm_suffix': Configs.COLOR_NORMED_SUFFIX})),
+                                                              kw_args={'ref_img_path': Configs.COLOR_NORM_REF_IMG,
+                                                                       'succ_norm_suffix': Configs.COLOR_NORMED_SUFFIX,
+                                                                       'fail_norm_suffix': Configs.FAIL_COLOR_NORMED_SUFFIX})),
             ('save_processed_tile', LoggingFunctionTransformer(save_processed_tile,
                                                                kw_args={'processed_tiles_dir': Configs.PROCESSED_TILES_DIR}))
         ])),
@@ -36,12 +44,12 @@ if __name__ == '__main__':
                                                                       kw_args={'pen_filter': Configs.PEN_FILTER,
                                                                                'black_filter': Configs.BLACK_FILTER,
                                                                                'superpixel_size': Configs.SUPERPIXEL_SIZE,
-                                                                               'tile_recovery_suffix': Configs.TILE_RECOVERY_SUFFIX,
                                                                                'tile_suffixes': Configs.TILE_SUFFIXES,
+                                                                               'fail_norm_suffix': Configs.FAIL_COLOR_NORMED_SUFFIX,
+                                                                               'ref_img_path': Configs.COLOR_NORM_REF_IMG,
                                                                                'processed_tiles_dir': Configs.PROCESSED_TILES_DIR})),
              ('generate_slide_color_grid', LoggingFunctionTransformer(generate_slide_color_grid,
                                                                       kw_args={'tile_suffixes': Configs.TILE_SUFFIXES,
-                                                                               'processed_tiles_dir': Configs.PROCESSED_TILES_DIR,
                                                                                'suffixes_to_colors_map': Configs.SUFFIXES_TO_COLOR_MAP}))
         ])),
     ]
