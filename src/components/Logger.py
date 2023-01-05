@@ -16,13 +16,17 @@ class Logger:
 
     def _log(self, msg, importance=0, name=None, **kwargs):
         if name:
-            logging.getLogger(name).log(msg=msg, level=Logger.LOG_IMPORTANCE_MAP[importance], **kwargs)
+            logger = logging.getLogger(name)
+            logger.log(msg=msg, level=Logger.LOG_IMPORTANCE_MAP[importance], **kwargs)
         else:
-            logging.getLogger(type(self).__name__).log(msg=msg, level=Logger.LOG_IMPORTANCE_MAP[importance], **kwargs)
+            logger = logging.getLogger(type(self).__name__)
+            logger.log(msg=msg, level=Logger.LOG_IMPORTANCE_MAP[importance], **kwargs)
+        Logger.flush_logger(logger)
 
     @staticmethod
     def log(msg, importance=0, **kwargs):
         logging.log(msg=msg, level=Logger.LOG_IMPORTANCE_MAP[importance], **kwargs)
+        Logger.flush_logger(logging.getLogger())
 
     @staticmethod
     def set_default_logger(configs):
@@ -38,6 +42,11 @@ class Logger:
             # Create a stream handler to log to the console
             logging.basicConfig(handlers=[logging.FileHandler(configs.LOG_FILE), logging.StreamHandler()],
                                 level=Logger.LOG_IMPORTANCE_MAP[configs.LOG_IMPORTANCE], **configs.LOG_FORMAT)
+
+    @staticmethod
+    def flush_logger(logger):
+        for handle in logger.handlers:
+            handle.flush()
 
 
 
