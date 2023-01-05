@@ -1,50 +1,25 @@
-from sklearn.pipeline import Pipeline
-from src.components.Dataset import SlideDataset
-from src.components.Logger import Logger
-from src.components.LoggingFunctionTransformer import LoggingFunctionTransformer
-from src.preprocessing.function_transformers import *
-from src.configs import Configs
+import argparse
+from src.preprocessing.pipeline import execute_preprocessing_pipeline
+import signal
 
 
-# TODO: adding save CDFs graphs
-# TODO: adding tile resize ? or in pytorch
-# TODO add tile_processed_dir to metadata
-if __name__ == '__main__':
-    Logger.log('Starting preprocessing ..', importance=1)
-    slide_dataset = SlideDataset(Configs.SLIDES_DIR, load_metadata=Configs.LOAD_METADATA)
-    pipeline_list = [
-        ('slide', Pipeline([
-            ('load_slide', LoggingFunctionTransformer(load_slide)),
-            ('scale_mpp', LoggingFunctionTransformer(resize, kw_args={'target_mpp': Configs.TARGET_MPP})),
-            ('center_crop', LoggingFunctionTransformer(center_crop, kw_args={'tile_size': Configs.TILE_SIZE})),
-            ('calc_otsu', LoggingFunctionTransformer(calc_otsu)),
-            ('save_tiles', LoggingFunctionTransformer(save_tiles, kw_args={'tiles_dir': Configs.TILES_DIR,
-                                                                           'tile_size': Configs.TILE_SIZE}))
-        ])),
-        ('tile', Pipeline([
-            ('load_tile', LoggingFunctionTransformer(load_tile)),
-            ('filter_otsu', LoggingFunctionTransformer(filter_otsu, kw_args=Configs.OTSU_FILTER)),
-            ('filter_black', LoggingFunctionTransformer(filter_black, kw_args=Configs.BLACK_FILTER)),
-            ('filter_pen', LoggingFunctionTransformer(filter_pen, kw_args=Configs.PEN_FILTER)),
-            ('macenko_color_norm', LoggingFunctionTransformer(macenko_color_norm,
-                                                              kw_args={'ref_img_path': Configs.COLOR_NORM_REF_IMG,
-                                                                       'succ_norm_suffix': Configs.COLOR_NORMED_SUFFIX,
-                                                                       'fail_norm_suffix': Configs.FAIL_COLOR_NORMED_SUFFIX})),
-            ('save_processed_tile', LoggingFunctionTransformer(save_processed_tile,
-                                                               kw_args={'processed_tiles_dir': Configs.PROCESSED_TILES_DIR}))
-        ])),
-        ('slide', Pipeline([
-            ('recover_missfiltered_tiles', LoggingFunctionTransformer(recover_missfiltered_tiles,
-                                                                      kw_args={'pen_filter': Configs.PEN_FILTER,
-                                                                               'black_filter': Configs.BLACK_FILTER,
-                                                                               'superpixel_size': Configs.SUPERPIXEL_SIZE,
-                                                                               'tile_suffixes': Configs.TILE_SUFFIXES,
-                                                                               'fail_norm_suffix': Configs.FAIL_COLOR_NORMED_SUFFIX,
-                                                                               'ref_img_path': Configs.COLOR_NORM_REF_IMG,
-                                                                               'processed_tiles_dir': Configs.PROCESSED_TILES_DIR})),
-             ('generate_slide_color_grid', LoggingFunctionTransformer(generate_slide_color_grid,
-                                                                      kw_args={'tile_suffixes': Configs.TILE_SUFFIXES,
-                                                                               'suffixes_to_colors_map': Configs.SUFFIXES_TO_COLOR_MAP}))
-        ])),
-    ]
-    slide_dataset.apply_pipeline(pipeline_list)
+def write_to_file(s, frame_object=None, **kargs):
+   """
+   Signal handler - writes to file and don't stop the program
+   Process still can be killed using: kill -9 <pid>
+   """
+   with open("out.txt", "a") as file:
+      s = f"{str(datetime.datetime.now())}: {str(s)}\n"
+      file.write(s)
+      file.flush()
+
+
+if __name__ == "__main__":
+    catchable_sigs = set(signal.Signals) - {signal.SIGKILL, signal.SIGSTOP}
+    for sig in catchable_sigs:
+        signal.signal(sig, write_to_file)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--preprocess', action='store_true')
+    args = parser.parse_args()
+    if args.preprocess:
+        execute_preprocessing_pipeline()

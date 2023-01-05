@@ -35,8 +35,8 @@ def center_crop(slide, tile_size):
     slide.set('tile_size', tile_size)
     slide.set('num_x_tiles', x_tiles)
     slide.set('num_y_tiles', y_tiles)
-    # return slide.crop(x_tiles * tile_size // 2, y_tiles * tile_size // 2, tile_size * 15, tile_size * 10)
-    return slide.crop(x_margins // 2, y_margins // 2, tile_size * x_tiles, tile_size * y_tiles)
+    return slide.crop(x_tiles * tile_size // 2, y_tiles * tile_size // 2, tile_size * 15, tile_size * 10)
+    # return slide.crop(x_margins // 2, y_margins // 2, tile_size * x_tiles, tile_size * y_tiles)
 
 
 def calc_otsu(slide):
