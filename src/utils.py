@@ -3,6 +3,12 @@ import pandas as pd
 import torch
 import random
 from .components.Logger import Logger
+import datetime
+
+
+def get_time():
+    now = datetime.datetime.now()
+    return now.strftime("%d-%m-%y %H:%M:%S")
 
 
 def set_random_seed(seed):

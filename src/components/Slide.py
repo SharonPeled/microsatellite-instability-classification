@@ -8,8 +8,7 @@ from .Image import Image
 from tqdm import tqdm
 import json
 import traceback
-import datetime
-from ..utils import generate_summary_df_from_filepaths
+from ..utils import generate_summary_df_from_filepaths, get_time
 
 
 class Slide(Image):
@@ -69,12 +68,13 @@ class Slide(Image):
                     self._log(f"""Processed {tile_ind}/{len(tiles)} tiles.""", importance=1)
                     self._log(f"""Processing {len(tiles) - tile_ind} tiles.""", importance=1)
 
-                    with tqdm(tiles, desc=f"""Slide {ind+1}/{num_slides} ({int(((ind+1)/num_slides)*100)}%)""",
-                              initial=tile_ind,position=0, leave=True) as tile_tqdm:
+                    with tqdm(tiles, initial=tile_ind,position=0, leave=True) as tile_tqdm:
                         for tile_ind, tile in enumerate(tiles[tile_ind:], start=tile_ind):
                             tile = pipeline.transform(tile)
                             tiles_in_path_out_filename_tuples.append([tile.path, tile.out_filename])
                             tile_tqdm.update(1)
+                            tile_tqdm.set_description(f"""{str(get_time())}  [Slide] ({ind+1}/{num_slides} {int(((ind+1)/num_slides)*100)}%)""",
+                                                      refresh=True)
                     self.save_summary_df(tiles_in_path_out_filename_tuples)
 
                     self._log(f"""Finished processing {len(tiles)} tiles.""", importance=1)
