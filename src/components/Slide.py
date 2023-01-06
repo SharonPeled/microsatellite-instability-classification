@@ -9,6 +9,7 @@ from tqdm import tqdm
 import json
 import traceback
 from ..utils import generate_summary_df_from_filepaths, get_time
+import datetime
 
 
 class Slide(Image):
@@ -57,27 +58,29 @@ class Slide(Image):
         try:
             self._log(f"""Processing {self}""")
             for i, (resolution, pipeline) in enumerate(pipeline_list):
+
                 if resolution == 'slide':
                     self = pipeline.transform(self)
+
                 elif resolution == 'tile':
-
-                    tiles = self.get_tiles(otsu_val=self.get('otsu_val'), slide_uuid=self.get('slide_uuid'))
                     tile_ind, tiles_in_path_out_filename_tuples = self.get_previous_tile_place()
+                    tile_paths = self.get_tile_paths()
+                    left = len(tile_paths) - tile_ind
+                    self._log(f"""Processed {tile_ind}/{len(tile_paths)} tiles.""", importance=1)
+                    self._log(f"""Processing {len(tile_paths) - tile_ind} tiles.""", importance=1)
 
-                    left = len(tiles) - tile_ind
-                    self._log(f"""Processed {tile_ind}/{len(tiles)} tiles.""", importance=1)
-                    self._log(f"""Processing {len(tiles) - tile_ind} tiles.""", importance=1)
-
-                    with tqdm(tiles, initial=tile_ind,position=0, leave=True) as tile_tqdm:
-                        for tile_ind, tile in enumerate(tiles[tile_ind:], start=tile_ind):
+                    with tqdm(tile_paths, initial=tile_ind,position=0, leave=True) as tile_tqdm:
+                        for tile_ind, tile_path in enumerate(tile_paths[tile_ind:], start=tile_ind):
+                            tile = Tile(tile_path, otsu_val=self.get('otsu_val'), slide_uuid=self.get('slide_uuid'))
                             tile = pipeline.transform(tile)
                             tiles_in_path_out_filename_tuples.append([tile.path, tile.out_filename])
                             tile_tqdm.update(1)
                             tile_tqdm.set_description(f"""{str(get_time())}  [Slide] ({ind+1}/{num_slides} {int(((ind+1)/num_slides)*100)}%)""",
                                                       refresh=True)
-                    self.save_summary_df(tiles_in_path_out_filename_tuples)
 
-                    self._log(f"""Finished processing {len(tiles)} tiles.""", importance=1)
+                    self.save_summary_df(tiles_in_path_out_filename_tuples)
+                    self._log(f"""Finished processing {len(tile_paths)} tiles.""", importance=1)
+
                 self.set(f'Finished ({resolution}, {i}).', True)
             self.set('Done preprocessing', True)
             self.save_metadata()
@@ -91,18 +94,19 @@ class Slide(Image):
             self._log(f"""Traceback {traceback.format_exc()}""", importance=2)
         return self
 
-    def get_tiles(self, **kwargs):
-        if not self.get('tile_dir', soft=True):
-            raise Exception("""You have to tile the image before applying a pipeline over tiles. 
-                                tile_dir is None.""")
-        tile_dir = self.get('tile_dir')
-        return [Tile(tile_path, **kwargs) for tile_path in sorted(glob(f"{tile_dir}/**/*.jpg", recursive=True))] # all .jpg files
-
     def get_previous_tile_place(self):
         summary_df = self.get_tile_summary_df()
         if summary_df.empty:
             return 0, []
         return len(summary_df), list(zip(summary_df['tile_path'], summary_df['filename']))
+
+    def get_tile_paths(self):
+        if not self.get('tile_dir', soft=True):
+            raise Exception("""You have to tile the image before applying a pipeline over tiles. 
+                                tile_dir is None.""")
+        tile_dir = self.get('tile_dir')
+        tile_paths = sorted(glob(f"{tile_dir}/**/*.jpg", recursive=True))  # all .jpg files
+        return tile_paths
 
     def save_summary_df(self, tiles_in_path_out_filename_tuples):
         out_path = os.path.join(os.path.dirname(self.path), 'tile_summary_df.csv')
