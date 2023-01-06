@@ -30,7 +30,7 @@ def pen_percent(tile, pen_color_palette, pen_color):
     else:
         raise Exception(f"Error: pen_color='{pen_color}' not supported")
 
-    percentage = mask.mean() / 255.0
+    percentage = mask.mean()
 
     return percentage
 

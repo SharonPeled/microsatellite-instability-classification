@@ -112,6 +112,9 @@ class Slide(Image):
         out_path = os.path.join(os.path.dirname(self.path), 'tile_summary_df.csv')
         df = generate_summary_df_from_filepaths(tiles_in_path_out_filename_tuples)
         df.to_csv(out_path, index=False)
+        # adding percentages of each filter of metadata
+        for k,v in df.select_dtypes(include='bool').apply(lambda x: [x.mean(), x.sum()]).items():
+            self.set(k, list(v))
         self.set('tile_summary_df_path', out_path)
         self.log(f"""Summary df saved for slide {self}.""", importance=2)
         return df
