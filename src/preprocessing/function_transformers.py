@@ -153,9 +153,9 @@ def recover_missfiltered_tiles(slide, pen_filter, black_filter, superpixel_size,
         tile.load()
         tile = macenko_color_norm(tile, ref_img_path, tile_suffixes['color_normed'], tile_suffixes['failed_color_normed'])
         if tile.get('filtered', soft=True):
-            tile.save(processed_tiles_dir)
-            num_succ_recovered += 1
             continue
+        tile.save(processed_tiles_dir)
+        num_succ_recovered += 1
         tiles_in_path_out_filename_tuples.append((tile_path, tile.out_filename))
     slide.update_recovery_tile_summary_df(tiles_in_path_out_filename_tuples)
 
