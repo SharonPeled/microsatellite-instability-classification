@@ -129,8 +129,9 @@ def recover_missfiltered_tiles(slide, pen_filter, black_filter, superpixel_size,
     df = slide.get_tile_summary_df()
     df = df.assign(**{f: False for f in filters if f not in df.columns}) # adding missing filters as false
     num_unfiltered_tiles = (df[filters].sum(axis=1) == 0).sum() # zero in all filters
-    tile_paths_to_recover = set(get_filtered_tiles_paths_to_recover(df, [f for f in filters if f != tile_suffixes['background']],
-                                                                    superpixel_size))
+    # tile_paths_to_recover = set(get_filtered_tiles_paths_to_recover(df, [f for f in filters if f != tile_suffixes['background']],
+    #                                                                 superpixel_size))
+    tile_paths_to_recover = set()
 
     # very few pen/black tiles are probably not a real pen/black tiles
     # when tissu is very colorful it can be misinterpreted as pen
