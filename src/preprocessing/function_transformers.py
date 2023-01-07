@@ -159,7 +159,7 @@ def recover_missfiltered_tiles(slide, pen_filter, black_filter, superpixel_size,
         tiles_in_path_out_filename_tuples.append((tile_path, tile.out_filename))
     slide.update_recovery_tile_summary_df(tiles_in_path_out_filename_tuples)
 
-    Logger.log(f"""{num_succ_recovered/len(tile_paths_to_recover)} recovered for slide {slide}""", importance=1)
+    Logger.log(f"""{num_succ_recovered} recovered for slide {slide}""", importance=1)
     return slide
 
 

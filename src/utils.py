@@ -52,7 +52,6 @@ def get_filtered_tiles_paths_to_recover(df, filters, superpixel_size):
 
 def generate_summary_df_from_filepaths(tiles_in_path_out_filename_tuples):
     if len(tiles_in_path_out_filename_tuples) == 0:
-        Logger.log("""Warning - summary df with 0 rows.""", importance=2)
         return pd.DataFrame()
     csv_rows = []
     for tile_path, put_filename in tiles_in_path_out_filename_tuples:
