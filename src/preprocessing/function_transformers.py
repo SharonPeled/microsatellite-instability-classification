@@ -154,6 +154,7 @@ def recover_missfiltered_tiles(slide, pen_filter, black_filter, superpixel_size,
         tile = macenko_color_norm(tile, ref_img_path, tile_suffixes['color_normed'], tile_suffixes['failed_color_normed'])
         if tile.get('filtered', soft=True):
             continue
+        tile.add_filename_suffix(tile_suffixes['recovered'])
         tile.save(processed_tiles_dir)
         num_succ_recovered += 1
         tiles_in_path_out_filename_tuples.append((tile_path, tile.out_filename))
@@ -197,7 +198,7 @@ def generate_slide_color_grid(slide, tile_suffixes, suffixes_to_colors_map):
     df = df.assign(**{f: False for f in tile_suffixes['filters'] if f not in df.columns}) # adding missing filters as false
     num_rows, num_cols = df['row'].max(), df['col'].max()
     grid = np.ones((num_rows+1, num_cols+1))
-    for i, suf in enumerate(tile_suffixes['filters'], start=1):
+    for i, suf in enumerate(suffixes, start=1):
         mask = generate_spatial_filter_mask(df, [suf,])
         grid[mask==1] = i + 1
     color_list = [suffixes_to_colors_map['tissue'],] + [suffixes_to_colors_map[suf] for suf in suffixes]
