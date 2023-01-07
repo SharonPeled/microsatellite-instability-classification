@@ -180,7 +180,7 @@ def macenko_color_norm(tile, ref_img_path, succ_norm_suffix, fail_norm_suffix):
         Logger.log(f"""Tile {normed_tile} successfully normed.""")
         return normed_tile
     except Exception as e:
-        Logger.log(f"""Tile {tile} normalization fail with exception {e}.""")
+        Logger.log(f"""Tile {tile} normalization fail with exception {e}.""", importance=2)
         tile.add_filename_suffix(fail_norm_suffix)
         tile.set('filtered', True)
         return tile
