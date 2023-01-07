@@ -8,7 +8,6 @@ from ..configs import Configs
 # TODO: adding tile resize ? or in pytorch
 # TODO add tile_processed_dir to metadata
 
-# TODO: check that the tile dir is without _files - to be tested
 # TODO: check the 5% peb percentage recovery condition - to be tested
 
 # TODO: check the recovery - go through all df and try and find recovery
@@ -43,7 +42,6 @@ def execute_preprocessing_pipeline():
                                                                                'black_filter': Configs.BLACK_FILTER,
                                                                                'superpixel_size': Configs.SUPERPIXEL_SIZE,
                                                                                'tile_suffixes': Configs.TILE_SUFFIXES,
-                                                                               'fail_norm_suffix': Configs.FAIL_COLOR_NORMED_SUFFIX,
                                                                                'ref_img_path': Configs.COLOR_NORM_REF_IMG,
                                                                                'processed_tiles_dir': Configs.PROCESSED_TILES_DIR})),
              ('generate_slide_color_grid', LoggingFunctionTransformer(generate_slide_color_grid,

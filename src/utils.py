@@ -32,7 +32,7 @@ def generate_spatial_filter_mask(df, filters):
     return mask
 
 
-def get_filtered_tiles_paths_to_recover(df, filters, fail_norm_suffix, superpixel_size):
+def get_filtered_tiles_paths_to_recover(df, filters, superpixel_size):
     """
     Identify tiles that their surroundings wasn't filtered (square with radius superpixel_size).
     Usually, insignificant tiles come in big groups (background, pen, black spots..), therefore if tile isn't
@@ -45,9 +45,6 @@ def get_filtered_tiles_paths_to_recover(df, filters, fail_norm_suffix, superpixe
         row_min, row_max = max(0, i-superpixel_size), min(i+1+superpixel_size, height)
         col_min, col_max = max(0,j-superpixel_size), min(j+1+superpixel_size, width)
         if (mask[row_min:row_max, col_min:col_max]).sum() == 1:
-            if df.loc[(i,j)][fail_norm_suffix]:
-                continue
-            # normalization was successful
             # filtered tile is surrounded with tissue - recovering
             tile_paths_to_recover.append(df.loc[(i,j)].tile_path)
     return tile_paths_to_recover

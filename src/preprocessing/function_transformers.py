@@ -124,12 +124,13 @@ def filter_pen(tile, color_palette, threshold, suffix, **kwargs):
 
 
 def recover_missfiltered_tiles(slide, pen_filter, black_filter, superpixel_size, tile_suffixes,
-                               fail_norm_suffix, ref_img_path, processed_tiles_dir):
+                               ref_img_path, processed_tiles_dir):
     filters = tile_suffixes['filters']
     df = slide.get_tile_summary_df()
     df = df.assign(**{f: False for f in filters if f not in df.columns}) # adding missing filters as false
     num_unfiltered_tiles = (df[filters].sum(axis=1) == 0).sum() # zero in all filters
-    tile_paths_to_recover = set(get_filtered_tiles_paths_to_recover(df, filters, fail_norm_suffix, superpixel_size))
+    tile_paths_to_recover = set(get_filtered_tiles_paths_to_recover(df, [f for f in filters if f != tile_suffixes['background']],
+                                                                    superpixel_size))
 
     # very few pen/black tiles are probably not a real pen/black tiles
     # when tissu is very colorful it can be misinterpreted as pen
@@ -151,13 +152,11 @@ def recover_missfiltered_tiles(slide, pen_filter, black_filter, superpixel_size,
         tile = Tile(path=tile_path, slide_uuid=slide.get('slide_uuid'))
         tile.load()
         tile = macenko_color_norm(tile, ref_img_path, tile_suffixes['color_normed'], tile_suffixes['failed_color_normed'])
-        if not tile.get('filtered', soft=True):
+        if tile.get('filtered', soft=True):
             tile.save(processed_tiles_dir)
             num_succ_recovered += 1
             continue
         tiles_in_path_out_filename_tuples.append((tile_path, tile.out_filename))
-    if len(tiles_in_path_out_filename_tuples) == 0:
-        return slide
     slide.update_recovery_tile_summary_df(tiles_in_path_out_filename_tuples)
 
     Logger.log(f"""{num_succ_recovered/len(tile_paths_to_recover)} recovered for slide {slide}""", importance=1)
