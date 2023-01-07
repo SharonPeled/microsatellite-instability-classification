@@ -195,7 +195,7 @@ def save_slide_metadata(slide):
 def generate_slide_color_grid(slide, tile_suffixes, suffixes_to_colors_map):
     suffixes = tile_suffixes['filters'] + [tile_suffixes['recovered']]
     df = slide.get_tile_summary_df()
-    df = df.assign(**{f: False for f in tile_suffixes['filters'] if f not in df.columns}) # adding missing filters as false
+    df = df.assign(**{f: False for f in suffixes if f not in df.columns}) # adding missing filters as false
     num_rows, num_cols = df['row'].max(), df['col'].max()
     grid = np.ones((num_rows+1, num_cols+1))
     for i, suf in enumerate(suffixes, start=1):
