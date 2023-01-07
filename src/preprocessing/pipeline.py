@@ -5,9 +5,14 @@ from .function_transformers import *
 from ..configs import Configs
 
 
-# TODO: adding save CDFs graphs
 # TODO: adding tile resize ? or in pytorch
 # TODO add tile_processed_dir to metadata
+
+# TODO: check that the tile dir is without _files - to be tested
+# TODO: check the 5% peb percentage recovery condition - to be tested
+
+# TODO: check the recovery - go through all df and try and find recovery
+
 def execute_preprocessing_pipeline():
     Logger.log('Starting preprocessing ..', importance=1)
     slide_dataset = SlideDataset(Configs.SLIDES_DIR, load_metadata=Configs.LOAD_METADATA)

@@ -127,17 +127,16 @@ class Slide(Image):
         return df
     
     def update_recovery_tile_summary_df(self, tiles_in_path_out_filename_tuples):
-        curr_df = generate_summary_df_from_filepaths(tiles_in_path_out_filename_tuples)
-        upd_df = self.get_tile_summary_df()
+        upd_df = generate_summary_df_from_filepaths(tiles_in_path_out_filename_tuples)
         if upd_df.empty:
             return
-        curr_df = curr_df[~curr_df.tile_path.isin(upd_df)] # removing overlapping tiles
-        new_df = pd.concat([curr_df, upd_df], axis=0)
+        curr_df = self.get_tile_summary_df()
+        non_overlap_curr_df = curr_df[~curr_df.tile_path.isin(upd_df.tile_path)] # removing overlapping tiles
+        new_df = pd.concat([non_overlap_curr_df, upd_df], axis=0)
         new_df.fillna(False, inplace=True)
         new_df.reset_index(drop=True)
         new_df.to_csv(self.get('tile_summary_df_path'), index=False)
         self.log(f"""Summary df recovery update for slide {self}.""", importance=2)
-        return new_df
 
     def __str__(self):
         if self.img is None:
