@@ -2,6 +2,9 @@ import argparse
 from src.preprocessing.pipeline import execute_preprocessing_pipeline
 import signal
 import datetime
+import matplotlib
+matplotlib.use('agg')
+
 
 def write_to_file(s, frame_object=None, **kargs):
    """
