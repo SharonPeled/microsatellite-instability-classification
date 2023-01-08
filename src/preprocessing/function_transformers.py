@@ -142,8 +142,8 @@ def recover_missfiltered_tiles(slide, pen_filter, black_filter, superpixel_size,
     black_suffix = black_filter['suffix']
     if df[pen_suffix].sum() < num_unfiltered_tiles * pen_filter['min_pen_tiles']:
         tile_paths_to_recover.update(df[df[pen_suffix]].tile_path.values)
-    if df[black_suffix].sum() < num_unfiltered_tiles * black_filter['min_black_tiles']:
-        tile_paths_to_recover.update(df[df[black_suffix]].tile_path.values)
+    # if df[black_suffix].sum() < num_unfiltered_tiles * black_filter['min_black_tiles']:
+    #     tile_paths_to_recover.update(df[df[black_suffix]].tile_path.values)
 
     # recovering tiles
     Logger.log(f"""Attempting to recover {len(tile_paths_to_recover)} tiles for slide {slide}""", importance=1)
