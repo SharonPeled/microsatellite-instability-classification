@@ -56,7 +56,7 @@ class Slide(Image):
             self._log(f"""Slide already processed: {ind+1}/{num_slides}""", importance=1)
             return self
         try:
-            self._log(f"""Processing {self}""")
+            self._log(f"""Processing {self}""", importance=1)
             for i, (resolution, pipeline) in enumerate(pipeline_list):
 
                 if resolution == 'slide':

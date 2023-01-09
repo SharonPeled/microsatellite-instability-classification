@@ -8,9 +8,16 @@ from ..configs import Configs
 # TODO: adding tile resize ? or in pytorch
 # TODO add tile_processed_dir to metadata
 
-# TODO: check the 5% peb percentage recovery condition - to be tested
+# TODO: not saving all tiles
+"""
+The idea - slide pipeline remains the same. NOT SAVING ALL TILES. Iterating over tiles using pyvips crop.
+the cropped tile is a pyvips object and all tile pipeline should based on pyvips operations.
+Finally, saving processed tile as usuall.
+"""
 
-# TODO: check the recovery - go through all df and try and find recovery
+
+# TODO: try to multi thread
+# TODO: learn about slurm
 
 def execute_preprocessing_pipeline():
     Logger.log('Starting preprocessing ..', importance=1)
