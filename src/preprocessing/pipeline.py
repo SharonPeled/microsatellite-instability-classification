@@ -10,9 +10,15 @@ from ..configs import Configs
 # TODO: handle the MAG - not resizing, adding mag to metadata
 
 # TODO: otsu approx on small image!!
+# TODO: change to resize but only for tissue..
+# TODO: fix recover to not load from tile dir
+# TODO: deciding on resizing strategy - in addition to calc otsu on small - figureing out the bg on small
+# TODO: remove deprecated code
+# TODO: documenting all the tricks
 
 # TODO: try to multi thread
 # TODO: learn about slurm
+
 
 def execute_preprocessing_pipeline():
     Logger.log('Starting preprocessing ..', log_importance=1)

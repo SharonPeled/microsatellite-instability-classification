@@ -6,9 +6,14 @@ from PIL import Image as PLI_Image
 
 
 class Tile(Image):
-    def __init__(self, path=None, img=None, slide_uuid=None, **kwargs):
+    def __init__(self, path=None, img=None, slide_uuid=None, out_filename=None, **kwargs):
         super().__init__(path, img, slide_uuid=slide_uuid, **kwargs)
-        self.out_filename = os.path.basename(self.path)
+        if path is None and out_filename is None:
+            raise Exception("Tile must have valid path or valid out_filename, they both None.")
+        if path is None:
+            self.out_filename = out_filename
+        else:
+            self.out_filename = os.path.basename(self.path)
 
     def load(self):
         if self.img is None:

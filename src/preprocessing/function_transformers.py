@@ -48,7 +48,7 @@ def center_crop(slide, tile_size):
 def calc_otsu(slide):
     if slide.get('otsu_val', soft=True) is not None:
         return slide
-    slide_bw = slide.colourspace("b-w") # operation on a single channel
+    slide_bw = slide.colourspace("b-w")
     hist = slide_bw.hist_find().numpy()
     otsu_val = filters.threshold_otsu(image=None, hist=(hist[0][:, 0], range(256)))
     slide.set('otsu_val', otsu_val)
@@ -143,9 +143,9 @@ def recover_missfiltered_tiles(slide, pen_filter, black_filter, superpixel_size,
     # in this case, recover all tiles from that category
     # empirical observation only
     pen_suffix = pen_filter['suffix']
-    black_suffix = black_filter['suffix']
     if df[pen_suffix].sum() < num_unfiltered_tiles * pen_filter['min_pen_tiles']:
         tile_paths_to_recover.update(df[df[pen_suffix]].tile_path.values)
+    # black_suffix = black_filter['suffix']
     # if df[black_suffix].sum() < num_unfiltered_tiles * black_filter['min_black_tiles']:
     #     tile_paths_to_recover.update(df[df[black_suffix]].tile_path.values)
 
