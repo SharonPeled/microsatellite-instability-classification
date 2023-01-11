@@ -71,7 +71,7 @@ class Slide(Image):
 
                     with tqdm(tile_coords, initial=tile_ind,position=0, leave=True) as tile_tqdm:
                         for tile_ind, (x,y) in enumerate(tile_coords[tile_ind:], start=tile_ind):
-                            tile_img = self.img.crop(x*tile_size, y*tile_size, tile_size, tile_size)
+                            tile_img = self.img.crop(y*tile_size, x*tile_size, tile_size, tile_size)
                             tile = Tile(path=f"{x}_{y}.jpg", img=tile_img, otsu_val=self.get('otsu_val'), slide_uuid=self.get('slide_uuid'))
                             tile = pipeline.transform(tile)
                             tiles_in_path_out_filename_tuples.append([tile.path, tile.out_filename])
