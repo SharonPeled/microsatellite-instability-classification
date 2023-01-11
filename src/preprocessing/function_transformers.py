@@ -4,7 +4,7 @@ import os
 import pyvips
 import numpy as np
 from .pen_filter import pen_percent
-from ..utils import get_filtered_tiles_paths_to_recover, generate_spatial_filter_mask
+from ..utils import generate_spatial_filter_mask
 from histomicstk.preprocessing.color_normalization.\
     deconvolution_based_normalization import deconvolution_based_normalization
 from ..components.Tile import Tile
@@ -27,25 +27,28 @@ def resize(slide, target_mpp):
 def center_crop(slide, tile_size):
     width = slide.width
     height = slide.height
-    x_tiles = width // tile_size
-    y_tiles = height // tile_size
-    x_margins = width - x_tiles * tile_size
-    y_margins = height - y_tiles * tile_size
+    x_tiles = height // tile_size
+    y_tiles = width // tile_size
+    x_margins = height - x_tiles * tile_size
+    y_margins = width - y_tiles * tile_size
     slide.set('shape', (tile_size * x_tiles, tile_size * y_tiles))
     slide.set('tile_size', tile_size)
     slide.set('num_x_tiles', x_tiles)
     slide.set('num_y_tiles', y_tiles)
     slide.set('num_tiles', x_tiles*y_tiles)
     # return slide.crop(x_tiles * tile_size // 2, y_tiles * tile_size // 2, tile_size * 15, tile_size * 10)
-    # return slide.crop(x_tiles * tile_size // 2 - tile_size * 15, y_tiles * tile_size // 2, tile_size * 5,
-    #                      tile_size * 5)
-    return slide.crop(x_margins // 2, y_margins // 2, tile_size * x_tiles, tile_size * y_tiles)
+    # t = 5
+    # slide.set('num_x_tiles', t)
+    # slide.set('num_y_tiles', t)
+    # slide.set('num_tiles', t*t)
+    # return slide.crop(width*0.5, height*0.5, tile_size * t, tile_size * t)
+    return slide.crop(y_margins // 2, x_margins // 2, tile_size * y_tiles, tile_size * x_tiles)
 
 
 def calc_otsu(slide):
     if slide.get('otsu_val', soft=True) is not None:
         return slide
-    slide_bw = slide.colourspace("b-w")
+    slide_bw = slide.colourspace("b-w") # operation on a single channel
     hist = slide_bw.hist_find().numpy()
     otsu_val = filters.threshold_otsu(image=None, hist=(hist[0][:, 0], range(256)))
     slide.set('otsu_val', otsu_val)
@@ -82,14 +85,15 @@ def load_tile(tile):
     return tile
 
 
-def save_processed_tile(tile, processed_tiles_dir):
+def save_processed_tile(tile, processed_tiles_dir, tissue_suffix):
     if tile.get('filtered', soft=True):
         return tile
+    tile.add_filename_suffix(tissue_suffix)
     tile.save(processed_tiles_dir)
     return tile
 
 
-def filter_otsu(tile, threshold, suffix, **kwargs):
+def filter_otsu(tile, threshold, suffix):
     if tile.get('filtered', soft=True):
         return tile
     bw_img = (color.rgb2gray(tile.img)*255)
@@ -146,7 +150,7 @@ def recover_missfiltered_tiles(slide, pen_filter, black_filter, superpixel_size,
     #     tile_paths_to_recover.update(df[df[black_suffix]].tile_path.values)
 
     # recovering tiles
-    Logger.log(f"""Attempting to recover {len(tile_paths_to_recover)} tiles for slide {slide}""", importance=1)
+    Logger.log(f"""Attempting to recover {len(tile_paths_to_recover)} tiles for slide {slide}""", log_importance=1)
     num_succ_recovered = 0
     tiles_in_path_out_filename_tuples = []
     for tile_path in tile_paths_to_recover:
@@ -161,7 +165,7 @@ def recover_missfiltered_tiles(slide, pen_filter, black_filter, superpixel_size,
         tiles_in_path_out_filename_tuples.append((tile_path, tile.out_filename))
     slide.update_recovery_tile_summary_df(tiles_in_path_out_filename_tuples)
 
-    Logger.log(f"""{num_succ_recovered} recovered for slide {slide}""", importance=1)
+    Logger.log(f"""{num_succ_recovered} recovered for slide {slide}""", log_importance=1)
     return slide
 
 
@@ -182,7 +186,7 @@ def macenko_color_norm(tile, ref_img_path, succ_norm_suffix, fail_norm_suffix):
         Logger.log(f"""Tile {normed_tile} successfully normed.""")
         return normed_tile
     except Exception as e:
-        Logger.log(f"""Tile {tile} normalization fail with exception {e}.""", importance=2)
+        Logger.log(f"""Tile {tile} normalization fail with exception {e}.""", log_importance=2)
         tile.add_filename_suffix(fail_norm_suffix)
         tile.set('filtered', True)
         return tile
@@ -224,7 +228,7 @@ def generate_slide_color_grid(slide, tile_suffixes, suffixes_to_colors_map):
     plt.subplots_adjust(wspace=0, hspace=0)
     plt.tight_layout()
     fig.savefig(os.path.join(os.path.dirname(slide.path), 'thumbnail.png'), bbox_inches='tight', pad_inches=0.5)
-    Logger.log(f"""Thumbnail Saved.""", importance=1)
+    Logger.log(f"""Thumbnail Saved.""", log_importance=1)
     return slide
 
 

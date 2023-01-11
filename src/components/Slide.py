@@ -19,7 +19,7 @@ class Slide(Image):
         :param path: if slide_uuid=None then path directory name must be uuid of the slide, as in the gdc-client format
         :param tiles_dir: directory for storing all tiles from all slides
         """
-        super().__init__(path, slide_uuid=slide_uuid, **kwargs)
+        super().__init__(path=path, slide_uuid=slide_uuid, **kwargs)
         if slide_uuid is None:
             self.set('slide_uuid', self._get_uuid())
         self.set('metadata_path', os.path.join(os.path.dirname(self.path), 'metadata.json'))
@@ -43,7 +43,7 @@ class Slide(Image):
         self.set("Saving metadata time", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
         with open(self.metadata['metadata_path'], 'w') as file:
             json.dump(self.metadata, file, indent=4)
-        self._log(f"""metadata saved for slide {self}.""", importance=2)
+        self._log(f"""metadata saved for slide {self}.""", log_importance=2)
 
     def _get_uuid(self):
         return Path(self.path).parent.name
@@ -53,25 +53,27 @@ class Slide(Image):
 
     def apply_pipeline(self, pipeline_list, ind, num_slides):
         if self.get('Done preprocessing', soft=True):
-            self._log(f"""Slide already processed: {ind+1}/{num_slides}""", importance=1)
+            self._log(f"""Slide already processed: {ind+1}/{num_slides}""", log_importance=1)
             return self
         try:
-            self._log(f"""Processing {self}""", importance=1)
+            self._log(f"""Processing {self}""", log_importance=1)
             for i, (resolution, pipeline) in enumerate(pipeline_list):
 
                 if resolution == 'slide':
                     self = pipeline.transform(self)
 
                 elif resolution == 'tile':
+                    tile_size = self.get('tile_size')
                     tile_ind, tiles_in_path_out_filename_tuples = self.get_previous_tile_place()
-                    tile_paths = self.get_tile_paths()
-                    left = len(tile_paths) - tile_ind
-                    self._log(f"""Processed {tile_ind}/{len(tile_paths)} tiles.""", importance=1)
-                    self._log(f"""Processing {len(tile_paths) - tile_ind} tiles.""", importance=1)
+                    tile_coords = self.get_tile_coordinates()
+                    left = len(tile_coords) - tile_ind
+                    self._log(f"""Processed {tile_ind}/{len(tile_coords)} tiles.""", log_importance=1)
+                    self._log(f"""Processing {len(tile_coords) - tile_ind} tiles.""", log_importance=1)
 
-                    with tqdm(tile_paths, initial=tile_ind,position=0, leave=True) as tile_tqdm:
-                        for tile_ind, tile_path in enumerate(tile_paths[tile_ind:], start=tile_ind):
-                            tile = Tile(tile_path, otsu_val=self.get('otsu_val'), slide_uuid=self.get('slide_uuid'))
+                    with tqdm(tile_coords, initial=tile_ind,position=0, leave=True) as tile_tqdm:
+                        for tile_ind, (x,y) in enumerate(tile_coords[tile_ind:], start=tile_ind):
+                            tile_img = self.img.crop(x*tile_size, y*tile_size, tile_size, tile_size)
+                            tile = Tile(path=f"{x}_{y}.jpg", img=tile_img, otsu_val=self.get('otsu_val'), slide_uuid=self.get('slide_uuid'))
                             tile = pipeline.transform(tile)
                             tiles_in_path_out_filename_tuples.append([tile.path, tile.out_filename])
                             tile_tqdm.update(1)
@@ -79,19 +81,19 @@ class Slide(Image):
                                                       refresh=True)
 
                     self.save_summary_df(tiles_in_path_out_filename_tuples)
-                    self._log(f"""Finished processing {len(tile_paths)} tiles.""", importance=1)
+                    self._log(f"""Finished processing {len(tile_coords)} tiles.""", log_importance=1)
 
                 self.set(f'Finished ({resolution}, {i}).', True)
             self.set('Done preprocessing', True)
             self.save_metadata()
-            self._log(f"""Finish processing {self}""", importance=1)
+            self._log(f"""Finish processing {self}""", log_importance=1)
         except Exception as e:
-            self._log(f"""Processing interrupt on slide {ind+1}/{num_slides} ({int(((ind+1)/num_slides)*100)}%)""", importance=2)
+            self._log(f"""Processing interrupt on slide {ind+1}/{num_slides} ({int(((ind+1)/num_slides)*100)}%)""", log_importance=2)
             if 'tiles_in_path_out_filename_tuples' in locals():
                 self.save_summary_df(tiles_in_path_out_filename_tuples)
             self.save_metadata()
-            self._log(f"""Exception {e}""", importance=2)
-            self._log(f"""Traceback {traceback.format_exc()}""", importance=2)
+            self._log(f"""Exception {e}""", log_importance=2)
+            self._log(f"""Traceback {traceback.format_exc()}""", log_importance=2)
         return self
 
     def get_previous_tile_place(self):
@@ -100,23 +102,23 @@ class Slide(Image):
             return 0, []
         return len(summary_df), list(zip(summary_df['tile_path'], summary_df['filename']))
 
-    def get_tile_paths(self):
-        if not self.get('tile_dir', soft=True):
-            raise Exception("""You have to tile the image before applying a pipeline over tiles. 
-                                tile_dir is None.""")
-        tile_dir = self.get('tile_dir')
-        tile_paths = sorted(glob(f"{tile_dir}/**/*.jpg", recursive=True))  # all .jpg files
-        return tile_paths
+    def get_tile_coordinates(self):
+        num_x_tiles = self.get('num_x_tiles')
+        num_y_tiles = self.get('num_y_tiles')
+        return [(x,y) for x in range(num_x_tiles) for y in range(num_y_tiles)]
 
     def save_summary_df(self, tiles_in_path_out_filename_tuples):
         out_path = os.path.join(os.path.dirname(self.path), 'tile_summary_df.csv')
         df = generate_summary_df_from_filepaths(tiles_in_path_out_filename_tuples)
         df.to_csv(out_path, index=False)
         # adding percentages of each filter of metadata
-        for k,v in df.select_dtypes(include='bool').apply(lambda x: [x.mean(), x.sum()]).items():
-            self.set(k, list(v))
+        tile_value_counts = {k:list(v)
+                             for k,v in df.select_dtypes(include='bool').apply(lambda x: [x.mean(), x.sum()]).items()}
+        for k,v in tile_value_counts.items():
+            self.set(k, v)
+        self._log(f"Tiles value counts: {tile_value_counts}", log_importance=1)
         self.set('tile_summary_df_path', out_path)
-        self.log(f"""Summary df saved for slide {self}.""", importance=2)
+        self.log(f"""Summary df saved for slide {self}.""", log_importance=2)
         return df
 
     def get_tile_summary_df(self):
@@ -136,7 +138,7 @@ class Slide(Image):
         new_df.fillna(False, inplace=True)
         new_df.reset_index(drop=True)
         new_df.to_csv(self.get('tile_summary_df_path'), index=False)
-        self.log(f"""Summary df recovery update for slide {self}.""", importance=2)
+        self.log(f"""Summary df recovery update for slide {self}.""", log_importance=2)
 
     def __str__(self):
         if self.img is None:

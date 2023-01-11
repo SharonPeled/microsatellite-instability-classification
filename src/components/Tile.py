@@ -6,12 +6,15 @@ from PIL import Image as PLI_Image
 
 
 class Tile(Image):
-    def __init__(self, path, slide_uuid=None, **kwargs):
-        super().__init__(path, slide_uuid=slide_uuid, **kwargs)
+    def __init__(self, path=None, img=None, slide_uuid=None, **kwargs):
+        super().__init__(path, img, slide_uuid=slide_uuid, **kwargs)
         self.out_filename = os.path.basename(self.path)
 
     def load(self):
-        self.img = pyvips.Image.new_from_file(self.path).numpy()
+        if self.img is None:
+            self.img = pyvips.Image.new_from_file(self.path).numpy()
+        else:
+            self.img = self.img.numpy()[:,:,:-1]
 
     def save(self, processed_tiles_dir):
         path = os.path.join(processed_tiles_dir, self.get('slide_uuid'), self.out_filename)
@@ -36,7 +39,7 @@ class Tile(Image):
         return row,col
 
     def __str__(self):
-        if self.img is None:
+        if not isinstance(self.img, np.ndarray):
             return f"""<{type(self).__name__} - uuid:{self.get('slide_uuid')} Not loaded.>"""
         return f"""<{type(self).__name__} - {self.out_filename} shape:{self.img.shape}, uuid:{self.get('slide_uuid')}>"""
 

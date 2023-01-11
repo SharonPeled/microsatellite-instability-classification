@@ -2,11 +2,13 @@ from .Logger import Logger
 
 
 class Image(Logger):
-    def __init__(self, path, **kwargs):
+    def __init__(self, path=None, img=None, **kwargs):
+        if path is None and img is None:
+            raise Exception("Image must have valid path or valid img, they both None.")
         self.path = path
         self.metadata = kwargs
         self.metadata['path'] = self.path
-        self.img = None
+        self.img = img
 
     def get(self, key, soft=False):
         if key not in self.metadata.keys():
