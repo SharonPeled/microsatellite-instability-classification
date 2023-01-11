@@ -6,13 +6,6 @@ from ..configs import Configs
 
 
 
-# TODO add tile_processed_dir to metadata
-
-"""
-The idea - slide pipeline remains the same. NOT SAVING ALL TILES. Iterating over tiles using pyvips crop.
-the cropped tile is a pyvips object and all tile pipeline should based on pyvips operations.
-Finally, saving processed tile as usuall.
-"""
 
 # TODO: handle the MAG - not resizing, adding mag to metadata
 

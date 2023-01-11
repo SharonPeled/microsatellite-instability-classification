@@ -1,5 +1,4 @@
 import pandas as pd
-from glob import glob
 from pathlib import Path
 import os
 from .Tile import Tile
@@ -81,6 +80,8 @@ class Slide(Image):
                                                       refresh=True)
 
                     self.save_summary_df(tiles_in_path_out_filename_tuples)
+                    if pipeline.steps[-1][0] == 'save_processed_tile':
+                        self.set('processed_tiles_dir', pipeline.steps[-1][1].kw_args['processed_tiles_dir'])
                     self._log(f"""Finished processing {len(tile_coords)} tiles.""", log_importance=1)
 
                 self.set(f'Finished ({resolution}, {i}).', True)
