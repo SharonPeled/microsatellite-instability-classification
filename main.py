@@ -17,9 +17,10 @@ def write_to_file(s, frame_object=None, **kargs):
       file.flush()
 
 
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--preprocess', action='store_true')
+    parser.add_argument('--thumbnail-only', action='store_true')
     parser.add_argument('--suppress-signals', action='store_true')
     args = parser.parse_args()
     if args.suppress_signals:
@@ -27,4 +28,13 @@ if __name__ == "__main__":
         for sig in catchable_sigs:
             signal.signal(sig, write_to_file)
     if args.preprocess:
-        execute_preprocessing_pipeline()
+        execute_preprocessing_pipeline(with_tiling=True)
+        return
+    if args.thumbnail_only:
+        execute_preprocessing_pipeline(with_tiling=False)
+
+
+if __name__ == "__main__":
+    main()
+
+

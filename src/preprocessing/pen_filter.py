@@ -2,8 +2,7 @@ import numpy as np
 
 
 # Ref https://github.com/lucasrla/wsi-tile-cleanup/blob/master/wsi_tile_cleanup/filters/pens.py
-def pen_percent(tile, pen_color_palette, pen_color):
-    r, g, b = np.rollaxis(tile.img, -1)
+def get_pen_mask(r, g, b, pen_color_palette, pen_color):
     thresholds = pen_color_palette[pen_color]
 
     if pen_color == "red":
@@ -30,9 +29,7 @@ def pen_percent(tile, pen_color_palette, pen_color):
     else:
         raise Exception(f"Error: pen_color='{pen_color}' not supported")
 
-    percentage = mask.mean()
-
-    return percentage
+    return mask
 
 
 def get_pen_color_palette():

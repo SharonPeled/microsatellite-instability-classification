@@ -15,6 +15,7 @@ class Logger:
                      2: logging.CRITICAL}
 
     def _log(self, msg, log_importance=0, name=None, **kwargs):
+        msg = Logger.add_importance_level_to_msg(msg, log_importance)
         if name:
             logger = logging.getLogger(name)
             logger.log(msg=msg, level=Logger.LOG_IMPORTANCE_MAP[log_importance], **kwargs)
@@ -25,6 +26,7 @@ class Logger:
 
     @staticmethod
     def log(msg, log_importance=0, **kwargs):
+        msg = Logger.add_importance_level_to_msg(msg, log_importance)
         logging.log(msg=msg, level=Logger.LOG_IMPORTANCE_MAP[log_importance], **kwargs)
         Logger.flush_logger(logging.getLogger())
 
@@ -42,6 +44,10 @@ class Logger:
             # Create a stream handler to log to the console
             logging.basicConfig(handlers=[logging.FileHandler(configs.LOG_FILE), logging.StreamHandler()],
                                 level=Logger.LOG_IMPORTANCE_MAP[configs.LOG_IMPORTANCE], **configs.LOG_FORMAT)
+
+    @staticmethod
+    def add_importance_level_to_msg(msg, log_importance):
+        return f"[{log_importance}] {msg}"
 
     @staticmethod
     def flush_logger(logger):

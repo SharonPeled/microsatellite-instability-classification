@@ -4,6 +4,11 @@ import torch
 import random
 from .components.Logger import Logger
 import datetime
+from scipy.signal import convolve2d
+
+
+def conv2d(array, kernel, stride):
+    return convolve2d(array, kernel[::-1, ::-1], mode='valid')[::stride, ::stride]
 
 
 def get_time():
@@ -17,54 +22,32 @@ def set_random_seed(seed):
     torch.manual_seed(seed)
 
 
-def generate_spatial_filter_mask(df, filters):
+def center_crop_from_tile_size(height, width, tile_size):
+    x_tiles = height // tile_size
+    y_tiles = width // tile_size
+    x_margins = height - x_tiles * tile_size
+    y_margins = width - y_tiles * tile_size
+    return y_margins // 2, x_margins // 2, tile_size * y_tiles, tile_size * x_tiles, y_tiles, x_tiles
+
+
+def center_crop_from_shape(height, width, new_height, new_width):
+    x_margins = height - new_height
+    y_margins = width - new_width
+    return y_margins // 2, x_margins // 2, new_width, new_height
+
+
+def generate_spatial_filter_mask(df, shape, attr):
     """
-    Generates a mask for filtered tiles.
+    Generates a mask for <attr> tiles.
     The array has shape (squeezed) of the original thumbnail, such that each cell represent the tile in that position.
     :param df: Dataframe with row,col columns tile position in thumbnail
-    :param filters: Filter columns names in df
-    :return: Array where each cell is 1 if a tile was filtered by one of the filters and 0 otherwise
+    :param shape: mask shape
+    :param attr: attr column name in df
+    :return: Array where each cell is 1 if a tile was is <attr> and 0 otherwise
     """
-    num_rows, num_cols = df['row'].max(), df['col'].max()
-    mask = np.zeros((num_rows+1, num_cols+1))
-    filter_inds = df[(df[filters] == True).any(axis=1)][['row', 'col']]
-    mask[filter_inds['row'].values, filter_inds['col'].values] = 1
+    mask = np.zeros(shape)
+    tuple_inds = df[df[attr]==True].index
+    rows_inds = [t[0] for t in tuple_inds]
+    cols_inds = [t[1] for t in tuple_inds]
+    mask[rows_inds, cols_inds] = 1
     return mask
-
-
-def get_filtered_tiles_paths_to_recover(df, filters, superpixel_size):
-    """
-    Identify tiles that their surroundings wasn't filtered (square with radius superpixel_size).
-    Usually, insignificant tiles come in big groups (background, pen, black spots..), therefore if tile isn't
-    part a big filtered section then returns it to valid state.
-    """
-    mask = generate_spatial_filter_mask(df, filters)
-    tile_paths_to_recover = []
-    height, width = mask.shape
-    for (i, j) in np.argwhere(mask==1):
-        row_min, row_max = max(0, i-superpixel_size), min(i+1+superpixel_size, height)
-        col_min, col_max = max(0,j-superpixel_size), min(j+1+superpixel_size, width)
-        if (mask[row_min:row_max, col_min:col_max]).sum() == 1:
-            # filtered tile is surrounded with tissue - recovering
-            tile_paths_to_recover.append(df.loc[(i,j)].tile_path)
-    return tile_paths_to_recover
-
-
-def generate_summary_df_from_filepaths(tiles_in_path_out_filename_tuples):
-    if len(tiles_in_path_out_filename_tuples) == 0:
-        return pd.DataFrame()
-    csv_rows = []
-    for tile_path, put_filename in tiles_in_path_out_filename_tuples:
-        csv_row_dict = {}
-        csv_row_dict['tile_path'] = tile_path
-        csv_row_dict['filename'] = put_filename
-        attrs = put_filename[:-4].split('_')
-        col, row = attrs[:2]  # pyvips save it with col_row format
-        csv_row_dict['row'] = row
-        csv_row_dict['col'] = col
-        csv_row_dict.update({attr: True for attr in attrs[2:]})
-        csv_rows.append(csv_row_dict)
-    df = pd.DataFrame(csv_rows)
-    df[['row', 'col']] = df[['row', 'col']].astype(int)
-    df.fillna(False, inplace=True)
-    return df

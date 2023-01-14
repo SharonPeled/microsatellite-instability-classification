@@ -25,7 +25,7 @@ class Image(Logger):
 
     @classmethod
     def from_img(cls, img_obj, new_img_attr):
-        new_img_obj = cls(img_obj.path)
+        new_img_obj = cls(img_obj.path, img_obj.img)
         new_img_obj.__dict__.update({k: v for k, v in img_obj.__dict__.items() if k != "img"})
         new_img_obj.img = new_img_attr
         return new_img_obj

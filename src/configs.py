@@ -17,28 +17,22 @@ class ConfigsClass:
     LOG_FORMAT = {'format': '%(asctime)s  [%(name)s] - %(message)s', 'datefmt':'%d-%m-%y %H:%M:%S'}
     SLIDES_DIR = os.path.join(ROOT, 'data', 'test_slides')
     PROCESSED_TILES_DIR = os.path.join(ROOT, 'data', 'test_processed_tiles')
-    TILE_SIZE = 512
-    TARGET_MPP = 0.5
-    MPP_ATTRIBUTE = 'aperio.MPP'
-    OTSU_FILTER = {'threshold': 0.3, 'suffix': 'Background'}  # tile with less than threshold percent tissue is filtered
-    BLACK_FILTER = {'threshold': 0.5, 'suffix': 'Black', 'min_black_tiles': 0.05,
+    TILE_SIZE = 512  # should be divisible by downsample of reduced image, the easiest way is to set to be a power of 2
+    REDUCED_LEVEL_TO_MEMORY = [3, 2]  # attempting to load according to order
+    TARGET_MAG_POWER = 20
+    MAG_ATTR = 'openslide.objective-power'
+    OTSU_FILTER = {'threshold': 0.3, 'attr_name': 'Background'}  # tile with less than threshold percent tissue is filtered
+    BLACK_FILTER = {'threshold': 0.5, 'attr_name': 'Black',
                     'color_palette': {'r': 100, 'g':100, 'b':100}}  # tile with more than threshold percent black is filtered
-    PEN_FILTER = {'threshold': 0.7, 'suffix': 'Pen', 'min_pen_tiles': 0.05,
+    PEN_FILTER = {'threshold': 0.7, 'attr_name': 'Pen', 'attr_name_not_filtered': 'Pen_not_filtered', 'min_pen_tiles': 0.05,
                   'color_palette': get_pen_color_palette()}  # tile with more than threshold percent pen is filtered
-    SUPERPIXEL_SIZE = 2
-    TISSUE_SUFFIX = 'Tissue'
-    TILE_RECOVERY_SUFFIX = 'Recovered'
-    COLOR_NORMED_SUFFIX = 'Normed'
-    FAIL_COLOR_NORMED_SUFFIX = 'Normed_Fail'
-    TILE_SUFFIXES = {'filters': [OTSU_FILTER['suffix'], BLACK_FILTER['suffix'], PEN_FILTER['suffix'], FAIL_COLOR_NORMED_SUFFIX],
-                     'color_normed': COLOR_NORMED_SUFFIX,
-                     'failed_color_normed': FAIL_COLOR_NORMED_SUFFIX,
-                     'recovered': TILE_RECOVERY_SUFFIX,
-                     'background': OTSU_FILTER['suffix'],
-                     'tissue': TISSUE_SUFFIX}
+    TISSUE_ATTR = 'Tissue'
+    COLOR_NORM_SUCC = 'Normalized'
+    COLOR_NORM_FAIL = 'Normalizing_Fail'
     COLOR_NORM_REF_IMG = os.path.join(ROOT, 'src', 'preprocessing', 'color_norm_reference_image.png')
-    SUFFIXES_TO_COLOR_MAP = {'tissue': 'pink', OTSU_FILTER['suffix']: 'white', BLACK_FILTER['suffix']: 'grey',
-                             PEN_FILTER['suffix']: 'green', TILE_RECOVERY_SUFFIX:'blue', FAIL_COLOR_NORMED_SUFFIX: 'yellow'}
+    ATTRS_TO_COLOR_MAP = {TISSUE_ATTR: 'pink', OTSU_FILTER['attr_name']: 'white', BLACK_FILTER['attr_name']: 'grey',
+                          PEN_FILTER['attr_name']: 'green', PEN_FILTER['attr_name_not_filtered']: 'blue',
+                          COLOR_NORM_FAIL: 'yellow'}
 
     def __init__(self):
         Logger.set_default_logger(self)
