@@ -57,6 +57,7 @@ def generate_spatial_filter_mask(df, shape, attr):
 
 
 def bring_files(folder_in, file_extension, folder_out):
+    os.makedirs(folder_out)
     filepaths = glob(f"{folder_in}/**/*.{file_extension}", recursive=True)
     for i, filepath in enumerate(filepaths):
         basename = os.path.basename(filepath)
