@@ -169,14 +169,21 @@ def macenko_color_norm(tile, ref_img_path, succ_norm_attr, fail_norm_attr):
 
 
 def generate_slide_color_grid(slide, attrs_to_colors_map):
-    attrs, color_list = attrs_to_colors_map.keys(), attrs_to_colors_map.values()
-    df = slide.summary_df.assign(**{a: False for a in attrs if a not in slide.summary_df.columns})  # adding missing attrs as false
+    df = slide.summary_df.assign(**{a: False for a in attrs_to_colors_map.keys() if a not in slide.summary_df.columns})  # adding missing attrs as false
     grid = np.ones((slide.get('num_x_tiles'), slide.get('num_y_tiles')))
-    for i, attr in enumerate(attrs, start=1):
+    color_list = []
+    attrs = []
+    i = 1
+    for attr in attrs_to_colors_map.keys():
         mask = generate_spatial_filter_mask(df, grid.shape, attr)
-        grid[mask == 1] = i + 1
-    norm = colors.Normalize(vmin=1, vmax=len(color_list))
+        if mask.sum() == 0:
+            continue
+        color_list.append(attrs_to_colors_map[attr])
+        attrs.append(attr)
+        grid[mask == 1] = i
+        i += 1
     cmap = plt.cm.colors.ListedColormap(color_list)
+    norm = colors.Normalize(vmin=1, vmax=len(color_list))
     color_grid = cmap(norm(grid))
     patches = [plt.plot([], [], marker="s", color=cmap(i / float(len(color_list))), ls="")[0]
                for i in range(len(color_list))]
