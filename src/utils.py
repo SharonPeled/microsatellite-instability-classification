@@ -60,6 +60,6 @@ def bring_files(folder_in, file_extension, folder_out):
     filepaths = glob(f"{folder_in}/**/*.{file_extension}", recursive=True)
     for i, filepath in enumerate(filepaths):
         basename = os.path.basename(filepath)
-        parent_dir = os.path.dirname(filepath)
+        parent_dir = os.path.basename(os.path.dirname(filepath))
         shutil.copyfile(filepath, os.path.join(folder_out, f"{i}_{parent_dir}_{basename}"))
 
