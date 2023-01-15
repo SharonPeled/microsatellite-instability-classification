@@ -5,6 +5,9 @@ import random
 from .components.Logger import Logger
 import datetime
 from scipy.signal import convolve2d
+from glob import glob
+import shutil
+import os
 
 
 def conv2d(array, kernel, stride):
@@ -51,3 +54,12 @@ def generate_spatial_filter_mask(df, shape, attr):
     cols_inds = [t[1] for t in tuple_inds]
     mask[rows_inds, cols_inds] = 1
     return mask
+
+
+def bring_files(folder_in, file_extension, folder_out):
+    filepaths = glob(f"{folder_in}/**/*.{file_extension}", recursive=True)
+    for i, filepath in enumerate(filepaths):
+        basename = os.path.basename(filepath)
+        parent_dir = os.path.dirname(filepath)
+        shutil.copyfile(filepath, os.path.join(folder_out, f"{i}_{parent_dir}_{basename}"))
+

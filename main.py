@@ -1,7 +1,9 @@
 import argparse
 from src.preprocessing.pipeline import execute_preprocessing_pipeline
+from src.utils import bring_files
 import signal
 import datetime
+from src.configs import Configs
 import matplotlib
 matplotlib.use('agg')
 
@@ -22,6 +24,7 @@ def main():
     parser.add_argument('--preprocess', action='store_true')
     parser.add_argument('--thumbnail-only', action='store_true')
     parser.add_argument('--suppress-signals', action='store_true')
+    parser.add_argument('--bring-thumbnails', type=str)
     args = parser.parse_args()
     if args.suppress_signals:
         catchable_sigs = set(signal.Signals) - {signal.SIGKILL, signal.SIGSTOP}
@@ -29,9 +32,10 @@ def main():
             signal.signal(sig, write_to_file)
     if args.preprocess:
         execute_preprocessing_pipeline(with_tiling=True)
-        return
     if args.thumbnail_only:
         execute_preprocessing_pipeline(with_tiling=False)
+    if args.bring_thumbnails:
+        bring_files(Configs.SLIDES_DIR, 'png', args.bring_thumbnails)
 
 
 if __name__ == "__main__":
