@@ -4,6 +4,7 @@ from pathlib import Path
 from .preprocessing.pen_filter import get_pen_color_palette
 from .utils import set_random_seed
 from .components.Logger import Logger
+import torch
 
 
 @dataclass
@@ -12,8 +13,9 @@ class ConfigsClass:
     VERBOSE = 3 # 1 logs to LOG_FILE, 2 logs to console, 3 logs to both to file and console
     ROOT = Path(__file__).parent.parent.resolve()
     LOG_FILE = 'log.txt'
-    LOG_IMPORTANCE = 1
+    LOG_IMPORTANCE = 0
     LOAD_METADATA = False
+    DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
     LOG_FORMAT = {'format': '%(asctime)s  [%(name)s] - %(message)s', 'datefmt':'%d-%m-%y %H:%M:%S'}
     SLIDES_DIR = os.path.join(ROOT, 'data', 'test_slides')
     PROCESSED_TILES_DIR = os.path.join(ROOT, 'data', 'test_processed_tiles')

@@ -4,14 +4,20 @@ import torch
 import random
 from .components.Logger import Logger
 import datetime
-from scipy.signal import convolve2d
 from glob import glob
 import shutil
 import os
+from torch.nn.functional import conv2d
 
 
-def conv2d(array, kernel, stride):
-    return convolve2d(array, kernel[::-1, ::-1], mode='valid')[::stride, ::stride]
+def conv2d_to_device(img_np, kernel_size, stride, device):
+    if len(img_np.shape) == 2:
+        new_shape = (1, 1, *img_np.shape)
+    elif len(img_np.shape) == 3:
+        new_shape = (1, *img_np.shape)
+    img_t = torch.from_numpy(img_np).to(device).reshape(new_shape)
+    return conv2d(img_t.float(), torch.ones((1, 1, kernel_size, kernel_size), device=device).float(),
+                  stride=kernel_size).squeeze().cpu().numpy()
 
 
 def get_time():

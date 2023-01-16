@@ -6,7 +6,8 @@ import time
 
 
 class SlideDataset(Dataset, Logger):
-    def __init__(self, slides_dir, load_metadata=True):
+    def __init__(self, slides_dir, device, load_metadata=True):
+        self.device = device
         self.slides_dir = slides_dir
         self.slide_paths = sorted(glob(f"{slides_dir}/**/*.svs", recursive=True))  # all .svs files
         self.slides = None
@@ -18,7 +19,7 @@ class SlideDataset(Dataset, Logger):
         processed_slides = []
         for ind, path in enumerate(self.slide_paths):
             beg = time.time()
-            slide = Slide(path, load_metadata=self.load_metadata)
+            slide = Slide(path, load_metadata=self.load_metadata, device=self.device)
             slide = slide.apply_pipeline(pipeline, ind, len(self.slide_paths))
             processed_slides.append(slide)
             self.log(f"Total Processing time for slide {slide}: {int(time.time()-beg)} seconds.", log_importance=1)

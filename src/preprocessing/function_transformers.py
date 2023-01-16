@@ -1,10 +1,9 @@
-from ..configs import Configs
 from skimage import color, filters
 import os
 import pyvips
 import numpy as np
 from .pen_filter import get_pen_mask
-from ..utils import generate_spatial_filter_mask, center_crop_from_shape, center_crop_from_tile_size, conv2d
+from ..utils import generate_spatial_filter_mask, center_crop_from_shape, center_crop_from_tile_size, conv2d_to_device
 from histomicstk.preprocessing.color_normalization.\
     deconvolution_based_normalization import deconvolution_based_normalization
 from ..components.Tile import Tile
@@ -32,11 +31,10 @@ def center_crop_reduced_image(slide, tile_size, tissue_attr):
     if not tile_size % downsample == 0:
         raise Exception(f"Tile size {tile_size} is not divisible by downsample {downsample}.")
     tile_size_r = tile_size // downsample
-    img_r_height, img_r_width, _ = slide.img_r.shape
-    y_margins, x_margins, cropped_width, cropped_height, y_tiles, x_tiles = center_crop_from_tile_size(img_r_height,
-                                                                                                       img_r_width,
+    y_margins, x_margins, cropped_width, cropped_height, y_tiles, x_tiles = center_crop_from_tile_size(slide.img_r.height,
+                                                                                                       slide.img_r.width,
                                                                                                        tile_size_r)
-    slide.img_r = slide.img_r[x_margins:cropped_height+x_margins, y_margins:cropped_width+y_margins, :]
+    slide.img_r = slide.img_r.crop(y_margins, x_margins, cropped_width, cropped_height)
     slide.set('tile_size', tile_size)
     slide.set('tile_size_r', tile_size_r)
     slide.set('num_x_tiles', x_tiles)
@@ -63,39 +61,42 @@ def center_crop(slide):
     cropped_width = cropped_width_r * slide.get_downsample()
     y_margins, x_margins, cropped_width, cropped_height = center_crop_from_shape(slide.height, slide.width,
                                                                                  cropped_height, cropped_width)
-    t = {k:slide.get(k) for k in slide.get_fields()}
     slide.set('shape', (cropped_height, cropped_height))
     return slide.crop(y_margins, x_margins, cropped_width, cropped_height)
 
 
 def filter_otsu_reduced_image(slide, threshold, attr_name):
-    imr_r_bw = color.rgb2gray(slide.img_r)
-    otsu_val = filters.threshold_otsu(image=imr_r_bw)
+    img_r_bw = slide.img_r.colourspace("b-w")
+    hist = img_r_bw.hist_find().numpy()
+    otsu_val = filters.threshold_otsu(image=None, hist=(hist.squeeze(), range(256)))
     slide.set('otsu_val', otsu_val)
     tile_size_r = slide.get('tile_size_r')
-    tile_background_fracs = conv2d(imr_r_bw < otsu_val, np.ones((tile_size_r,tile_size_r)), tile_size_r) /\
-                            (tile_size_r**2)
-    slide.add_attribute_summary_df(np.argwhere(tile_background_fracs < threshold), attr_name, True, False, is_tissue_filter=True)
+    mask = img_r_bw.numpy() < otsu_val
+    tile_background_pixel_sum = conv2d_to_device(mask, tile_size_r, tile_size_r, slide.device)
+    tile_background_fracs = tile_background_pixel_sum / (tile_size_r**2)
+    slide.add_attribute_summary_df(np.argwhere(tile_background_fracs < threshold), attr_name,
+                                   True, False, is_tissue_filter=True)
     return slide
 
 
 def filter_black_reduced_image(slide, color_palette, threshold, attr_name):
-    r, g, b = np.rollaxis(slide.img_r, -1)
+    r, g, b = np.rollaxis(slide.img_r.numpy(), -1)
     mask = (r < color_palette['r']) & (g < color_palette['g']) & (b < color_palette['b'])
     tile_size_r = slide.get('tile_size_r')
-    tile_black_fracs = conv2d(mask, np.ones((tile_size_r, tile_size_r)), tile_size_r) / (
-                tile_size_r ** 2)
-    slide.add_attribute_summary_df(np.argwhere(tile_black_fracs > threshold), attr_name, True, False, is_tissue_filter=True)
+    tile_black_pixel_sum = conv2d_to_device(mask, tile_size_r, tile_size_r, slide.device)
+    tile_black_fracs = tile_black_pixel_sum / (tile_size_r**2)
+    slide.add_attribute_summary_df(np.argwhere(tile_black_fracs > threshold), attr_name, True, False,
+                                   is_tissue_filter=True)
     return slide
 
 
 def filter_pen_reduced_image(slide, color_palette, threshold, attr_name, min_pen_tiles, attr_name_not_filtered):
-    r, g, b = np.rollaxis(slide.img_r, -1)
+    r, g, b = np.rollaxis(slide.img_r.numpy(), -1)
     pen_colors = color_palette.keys()
     mask = sum([get_pen_mask(r, g, b, color_palette, color) for color in pen_colors]) > 0
     tile_size_r = slide.get('tile_size_r')
-    tile_pen_fracs = conv2d(mask, np.ones((tile_size_r, tile_size_r)), tile_size_r) / (
-                tile_size_r ** 2)
+    tile_pen_pixel_sum = conv2d_to_device(mask, tile_size_r, tile_size_r, slide.device)
+    tile_pen_fracs = tile_pen_pixel_sum / (tile_size_r**2)
     tile_pen_mask = tile_pen_fracs > threshold
     # Empirical observation: it is commonly found that pen tiles tend to appear in large
     # amounts (when pen circle the tissue).

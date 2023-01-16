@@ -2,10 +2,13 @@ from .Logger import Logger
 
 
 class Image(Logger):
-    def __init__(self, path=None, img=None, **kwargs):
+    def __init__(self, path=None, img=None, device=None, **kwargs):
         if path is None and img is None:
             raise Exception("Image must have valid path or valid img, they both None.")
+        if device is None:
+            raise Exception("Device is None.")
         self.path = path
+        self.device = device
         self.metadata = kwargs
         self.metadata['path'] = self.path
         self.img = img
@@ -25,7 +28,7 @@ class Image(Logger):
 
     @classmethod
     def from_img(cls, img_obj, new_img_attr):
-        new_img_obj = cls(img_obj.path, img_obj.img)
+        new_img_obj = cls(img_obj.path, img_obj.img, device=img_obj.device)
         new_img_obj.__dict__.update({k: v for k, v in img_obj.__dict__.items() if k != "img"})
         new_img_obj.img = new_img_attr
         return new_img_obj

@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 from pathlib import Path
 import os
@@ -13,13 +14,13 @@ from collections import defaultdict
 
 
 class Slide(Image):
-    def __init__(self, path, slide_uuid=None, load_metadata=True, **kwargs):
+    def __init__(self, path, slide_uuid=None, load_metadata=True, device=None, **kwargs):
         """
         :param slide_uuid:
         :param path: if slide_uuid=None then path directory name must be uuid of the slide, as in the gdc-client format
         :param tiles_dir: directory for storing all tiles from all slides
         """
-        super().__init__(path=path, slide_uuid=slide_uuid, **kwargs)
+        super().__init__(path=path, slide_uuid=slide_uuid, device=device, **kwargs)
         if slide_uuid is None:
             self.set('slide_uuid', self._get_uuid())
         self.set('metadata_path', os.path.join(os.path.dirname(self.path), 'metadata.json'))
@@ -46,9 +47,9 @@ class Slide(Image):
             raise Exception(f"Loading level {load_level} failed.")
 
     def load_level_to_memory(self):
-        self.img_r = self.img_r.numpy()  # w * h format
-        self.img_r = self.img_r[:, :, :3]  # from RGBA to RGB
-        height_r, width_r, _ = self.img_r.shape
+        self.img_r = self.img_r.extract_band(0, n=3)  # removing alpha channel
+        self.img_r.write_to_memory()
+        height_r, width_r = self.img_r.height, self.img_r.width
         width_ratio, height_ratio = int(self.width / width_r), int(self.height / height_r)
         if int(self.width / width_r) != int(self.height / height_r):
             raise Exception(f"""The lower level of slide is downsampled inconsistently across axis.

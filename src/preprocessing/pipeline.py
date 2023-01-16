@@ -19,7 +19,7 @@ from ..configs import Configs
 
 def execute_preprocessing_pipeline(with_tiling):
     Logger.log('Starting preprocessing ..', log_importance=1)
-    slide_dataset = SlideDataset(Configs.SLIDES_DIR, load_metadata=Configs.LOAD_METADATA)
+    slide_dataset = SlideDataset(Configs.SLIDES_DIR, load_metadata=Configs.LOAD_METADATA, device=Configs.DEVICE)
 
     pipeline_list = [
         ('slide', Pipeline([
