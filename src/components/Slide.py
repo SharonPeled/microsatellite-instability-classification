@@ -1,4 +1,3 @@
-import numpy as np
 import pandas as pd
 from pathlib import Path
 import os
@@ -11,6 +10,8 @@ import traceback
 from ..utils import get_time
 import datetime
 from collections import defaultdict
+from torchvision import transforms
+import torchstain
 
 
 class Slide(Image):
@@ -30,6 +31,7 @@ class Slide(Image):
         self.img_r_level = None
         self.summary_df = pd.DataFrame()
         self.downsample = None
+        self.color_normalizer = None
 
     def load(self, load_level=None):
         self.img = pyvips.Image.new_from_file(self.path).extract_band(0, n=3) # removing alpha channel
@@ -117,7 +119,8 @@ class Slide(Image):
                         for x, y in tiles_inds:
                             tile_img = self.img.crop(y*tile_size, x*tile_size, tile_size, tile_size)
                             tile = Tile(path=f"{x}_{y}.jpg", img=tile_img, slide_uuid=self.get('slide_uuid'),
-                                        device=self.device).add_filename_suffix(self.get('tissue_attr'))
+                                        device=self.device, color_normalizer=self.color_normalizer)
+                            tile.add_filename_suffix(self.get('tissue_attr'))
                             tile = pipeline.transform(tile)
                             norm_result = tile.get('norm_result', soft=True)
                             if norm_result is not None:
@@ -171,3 +174,13 @@ class Slide(Image):
         shape = (self.img.height, self.img.width, self.img.bands)
         otsu_val = self.get('otsu_val',soft=True)
         return f"""<{type(self).__name__} - shape:{shape}, otsu_val:{otsu_val}, uuid:{self.get('slide_uuid')}>"""
+
+    def fit_color_normalizer(self, ref_img_path):
+        ref_img = pyvips.Image.new_from_file(ref_img_path)
+        T = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Lambda(lambda x: x * 255)
+        ])
+        torch_normalizer = torchstain.normalizers.MacenkoNormalizer(backend='torch')
+        torch_normalizer.fit(T(ref_img.numpy()))
+        self.color_normalizer = torch_normalizer

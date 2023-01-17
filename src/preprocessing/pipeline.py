@@ -41,7 +41,9 @@ def execute_preprocessing_pipeline(with_tiling):
             ('generate_slide_color_grid', LoggingFunctionTransformer(generate_slide_color_grid,
                                                                      kw_args={'attrs_to_colors_map': Configs.ATTRS_TO_COLOR_MAP})),
             ('unload_reduced_image', LoggingFunctionTransformer(unload_reduced_image)),
-            ('center_crop', LoggingFunctionTransformer(center_crop))
+            ('center_crop', LoggingFunctionTransformer(center_crop)),
+            ('fit_color_normalizer', LoggingFunctionTransformer(fit_color_normalizer,
+                                                                kw_args={'ref_img_path': Configs.COLOR_NORM_REF_IMG}))
         ]))]
 
     if with_tiling:
@@ -49,8 +51,7 @@ def execute_preprocessing_pipeline(with_tiling):
             ('tile', Pipeline([
                 ('load_tile', LoggingFunctionTransformer(load_tile)),
                 ('macenko_color_norm', LoggingFunctionTransformer(macenko_color_norm,
-                                                                  kw_args={'ref_img_path': Configs.COLOR_NORM_REF_IMG,
-                                                                           'succ_norm_attr': Configs.COLOR_NORM_SUCC,
+                                                                  kw_args={'succ_norm_attr': Configs.COLOR_NORM_SUCC,
                                                                            'fail_norm_attr': Configs.COLOR_NORM_FAIL})),
                 ('save_processed_tile', LoggingFunctionTransformer(save_processed_tile,
                                                                    kw_args={'processed_tiles_dir': Configs.PROCESSED_TILES_DIR,

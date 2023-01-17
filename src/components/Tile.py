@@ -6,8 +6,8 @@ from PIL import Image as PLI_Image
 
 
 class Tile(Image):
-    def __init__(self, path, img=None, slide_uuid=None, **kwargs):
-        super().__init__(path, img, slide_uuid=slide_uuid, **kwargs)
+    def __init__(self, path, img=None, slide_uuid=None, device=None, **kwargs):
+        super().__init__(path, img, slide_uuid=slide_uuid, device=device, **kwargs)
         self.out_filename = os.path.basename(self.path)
 
     def load(self):

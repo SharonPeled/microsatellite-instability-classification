@@ -1,19 +1,16 @@
-from skimage import color, filters
+from skimage import filters
 import os
 import pyvips
 import numpy as np
 from .pen_filter import get_pen_mask
 from ..utils import generate_spatial_filter_mask, center_crop_from_shape, center_crop_from_tile_size, conv2d_to_device
-from histomicstk.preprocessing.color_normalization.\
-    deconvolution_based_normalization import deconvolution_based_normalization
 from ..components.Tile import Tile
 from ..components.Logger import Logger
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
-import torchstain
+import warnings
 import torch
 from torchvision import transforms
-import warnings
 warnings.filterwarnings("ignore", category=UserWarning, module="torchstain")
 
 
@@ -115,6 +112,11 @@ def filter_pen_reduced_image(slide, color_palette, threshold, attr_name, min_pen
     return slide
 
 
+def fit_color_normalizer(slide, ref_img_path):
+    slide.fit_color_normalizer(ref_img_path)
+    return slide
+
+
 def save_tiles(slide, tiles_dir, tile_size):
     """
     saves tiles to RGB (3 channels), even if the original image is RGBA.
@@ -152,17 +154,13 @@ def save_processed_tile(tile, processed_tiles_dir, fail_norm_attr):
     return tile
 
 
-def macenko_color_norm(tile, ref_img_path, succ_norm_attr, fail_norm_attr):
-    ref_tile = Tile(path=ref_img_path, device=tile.device)
-    ref_tile.load()
-    T = transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Lambda(lambda x: x * 255)
-    ])
-    torch_normalizer = torchstain.normalizers.MacenkoNormalizer(backend='torch')
-    torch_normalizer.fit(T(ref_tile.img.numpy()))
+def macenko_color_norm(tile, succ_norm_attr, fail_norm_attr):
     try:
-        normed_img, _, _ = torch_normalizer.normalize(I=T(tile.img.numpy()), stains=True)
+        T = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Lambda(lambda x: x * 255)
+        ])
+        normed_img, _, _ = tile.get('color_normalizer').normalize(I=T(tile.numpy()), stains=True)
         normed_tile = Tile.from_img(tile, pyvips.Image.new_from_array(normed_img.numpy()))
         normed_tile.add_filename_suffix(succ_norm_attr)
         Logger.log(f"""Tile {normed_tile} successfully normed.""")
