@@ -13,12 +13,12 @@ class ConfigsClass:
     VERBOSE = 3 # 1 logs to LOG_FILE, 2 logs to console, 3 logs to both to file and console
     ROOT = Path(__file__).parent.parent.resolve()
     LOG_FILE = 'log.txt'
-    LOG_IMPORTANCE = 0
+    LOG_IMPORTANCE = 1
     LOAD_METADATA = False
     DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
     LOG_FORMAT = {'format': '%(asctime)s  [%(name)s] - %(message)s', 'datefmt':'%d-%m-%y %H:%M:%S'}
-    SLIDES_DIR = os.path.join(ROOT, 'data', 'test_slides')
-    PROCESSED_TILES_DIR = os.path.join(ROOT, 'data', 'test_processed_tiles')
+    SLIDES_DIR = os.path.join(ROOT, 'data', 'slides')
+    PROCESSED_TILES_DIR = os.path.join(ROOT, 'data', 'processed_tiles')
     TILE_SIZE = 512  # should be divisible by downsample of reduced image, the easiest way is to set to be a power of 2
     REDUCED_LEVEL_TO_MEMORY = [3, 2]  # attempting to load according to order
     TARGET_MAG_POWER = 20

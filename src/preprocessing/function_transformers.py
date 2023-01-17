@@ -10,6 +10,11 @@ from ..components.Tile import Tile
 from ..components.Logger import Logger
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
+import torchstain
+import torch
+from torchvision import transforms
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning, module="torchstain")
 
 
 def load_slide(slide, load_level=None):
@@ -148,16 +153,17 @@ def save_processed_tile(tile, processed_tiles_dir, fail_norm_attr):
 
 
 def macenko_color_norm(tile, ref_img_path, succ_norm_attr, fail_norm_attr):
-    ref_tile = Tile(path=ref_img_path)
+    ref_tile = Tile(path=ref_img_path, device=tile.device)
     ref_tile.load()
-    stain_unmixing_routine_params = {
-        'stains': ['H&E'],
-        'stain_unmixing_method': 'macenko_pca',
-    }
+    T = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Lambda(lambda x: x * 255)
+    ])
+    torch_normalizer = torchstain.normalizers.MacenkoNormalizer(backend='torch')
+    torch_normalizer.fit(T(ref_tile.img.numpy()))
     try:
-        normed_img = deconvolution_based_normalization(im_src=tile.img, im_target=ref_tile.img,
-                                                       stain_unmixing_routine_params=stain_unmixing_routine_params)
-        normed_tile = Tile.from_img(tile, normed_img)
+        normed_img, _, _ = torch_normalizer.normalize(I=T(tile.img.numpy()), stains=True)
+        normed_tile = Tile.from_img(tile, pyvips.Image.new_from_array(normed_img.numpy()))
         normed_tile.add_filename_suffix(succ_norm_attr)
         Logger.log(f"""Tile {normed_tile} successfully normed.""")
         tile.set('norm_result', (True, succ_norm_attr))

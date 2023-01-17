@@ -32,22 +32,21 @@ class Slide(Image):
         self.downsample = None
 
     def load(self, load_level=None):
-        self.img = pyvips.Image.new_from_file(self.path)
+        self.img = pyvips.Image.new_from_file(self.path).extract_band(0, n=3) # removing alpha channel
         if isinstance(load_level, int):
             if int(self.img.get('openslide.level-count')) - 1 >= load_level:
-                self.img_r = pyvips.Image.new_from_file(self.path, level=load_level)
+                self.img_r = pyvips.Image.new_from_file(self.path, level=load_level).extract_band(0, n=3) # removing alpha channel
                 self.img_r_level = int(load_level)
         if isinstance(load_level, list):
             for level in load_level:
                 if int(self.img.get('openslide.level-count')) - 1 >= level:
-                    self.img_r = pyvips.Image.new_from_file(self.path, level=level)
+                    self.img_r = pyvips.Image.new_from_file(self.path, level=level).extract_band(0, n=3) # removing alpha channel
                     self.img_r_level = int(level)
                     break
         if load_level is not None and self.img_r is None:
             raise Exception(f"Loading level {load_level} failed.")
 
     def load_level_to_memory(self):
-        self.img_r = self.img_r.extract_band(0, n=3)  # removing alpha channel
         self.img_r.write_to_memory()
         height_r, width_r = self.img_r.height, self.img_r.width
         width_ratio, height_ratio = int(self.width / width_r), int(self.height / height_r)
@@ -117,7 +116,8 @@ class Slide(Image):
                         tile_inds_by_norm_res = defaultdict(lambda: [])
                         for x, y in tiles_inds:
                             tile_img = self.img.crop(y*tile_size, x*tile_size, tile_size, tile_size)
-                            tile = Tile(path=f"{x}_{y}.jpg", img=tile_img, slide_uuid=self.get('slide_uuid'))
+                            tile = Tile(path=f"{x}_{y}.jpg", img=tile_img, slide_uuid=self.get('slide_uuid'),
+                                        device=self.device).add_filename_suffix(self.get('tissue_attr'))
                             tile = pipeline.transform(tile)
                             norm_result = tile.get('norm_result', soft=True)
                             if norm_result is not None:

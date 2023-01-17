@@ -12,15 +12,14 @@ class Tile(Image):
 
     def load(self):
         if self.img is None:
-            self.img = pyvips.Image.new_from_file(self.path).numpy()
-        else:
-            self.img = self.img.numpy()[:, :, :3]
+            self.img = pyvips.Image.new_from_file(self.path)
+        self.img.write_to_memory()
 
     def save(self, processed_tiles_dir):
         path = os.path.join(processed_tiles_dir, self.get('slide_uuid'), self.out_filename)
         if not os.path.exists(os.path.dirname(path)):
             os.makedirs(os.path.dirname(path))
-        PLI_Image.fromarray(self.img).save(path)
+        self.img.write_to_file(path)
         self.set('processed_tile_dir', os.path.dirname(path))
 
     def add_filename_suffix(self, suffix):
@@ -33,6 +32,7 @@ class Tile(Image):
         filename, file_extension = self.out_filename.split('.')
         filename += '_' + suffix
         self.out_filename = filename + '.' + file_extension
+        return self
 
     def get_tile_position(self):
         col, row = self.out_filename[:-4].split('_')[:2]

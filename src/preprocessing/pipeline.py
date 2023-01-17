@@ -11,9 +11,12 @@ from ..configs import Configs
 
 # TODO: documenting all the tricks
 
-# TODO: fine tuned the thresholds
+# TODO: fine tuned the thresholds (more strict)
+# TODO: finished optimizing the tiling process
 
 # TODO: try to multi thread
+
+
 # TODO: learn about slurm
 
 
