@@ -2,16 +2,16 @@ import pandas as pd
 from pathlib import Path
 import os
 from .Tile import Tile
+from .Logger import Logger
 import pyvips
 from .Image import Image
-from tqdm import tqdm
 import json
 import traceback
-from ..utils import get_time
 import datetime
 from collections import defaultdict
 from torchvision import transforms
 import torchstain
+import time
 
 
 class Slide(Image):
@@ -114,20 +114,20 @@ class Slide(Image):
                     tiles_inds = self.get_tissue_indexes()
                     self._log(f"""Processing {len(tiles_inds)} tissue tiles.""", log_importance=1)
 
-                    with tqdm(tiles_inds, position=0, leave=True) as tile_tqdm:
-                        tile_inds_by_norm_res = defaultdict(lambda: [])
-                        for x, y in tiles_inds:
-                            tile_img = self.img.crop(y*tile_size, x*tile_size, tile_size, tile_size)
-                            tile = Tile(path=f"{x}_{y}.jpg", img=tile_img, slide_uuid=self.get('slide_uuid'),
-                                        device=self.device, color_normalizer=self.color_normalizer)
-                            tile.add_filename_suffix(self.get('tissue_attr'))
-                            tile = pipeline.transform(tile)
-                            norm_result = tile.get('norm_result', soft=True)
-                            if norm_result is not None:
-                                tile_inds_by_norm_res[tile.get('norm_result', soft=True)].append((x, y))
-                            tile_tqdm.update(1)
-                            tile_tqdm.set_description(f"""{str(get_time())}  [Slide] ({ind+1}/{num_slides} {int(((ind+1)/num_slides)*100)}%)""",
-                                                      refresh=True)
+                    tile_inds_by_norm_res = defaultdict(lambda: [])
+                    beg = time.time()
+                    for i, (x, y) in enumerate(tiles_inds):
+                        tile_img = self.img.crop(y*tile_size, x*tile_size, tile_size, tile_size)
+                        tile = Tile(path=f"{x}_{y}.jpg", img=tile_img, slide_uuid=self.get('slide_uuid'),
+                                    device=self.device, color_normalizer=self.color_normalizer)
+                        tile.add_filename_suffix(self.get('tissue_attr'))
+                        tile = pipeline.transform(tile)
+                        norm_result = tile.get('norm_result', soft=True)
+                        if norm_result is not None:
+                            tile_inds_by_norm_res[tile.get('norm_result', soft=True)].append((x, y))
+                        if i % Logger.TILE_PROGRESS_LOG_FREQ == 0:
+                            avg_iter_per_second = round((i+1)/(time.time()-beg), 1)
+                            self._log(f"""[Slide] ({ind+1}/{num_slides}) {int(((i+1)/len(tiles_inds))*100)}% {avg_iter_per_second} it/s.""", log_importance=1)
 
                     for (res, attr_name), tiles_inds in tile_inds_by_norm_res:
                         is_tissue_filter = not res  # if res is False - norm fail and it is a filter

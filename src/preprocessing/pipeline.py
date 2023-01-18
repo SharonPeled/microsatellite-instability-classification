@@ -3,6 +3,7 @@ from ..components.Dataset import SlideDataset
 from ..components.LoggingFunctionTransformer import LoggingFunctionTransformer
 from .function_transformers import *
 from ..configs import Configs
+from ..components.ParallelProcessingManager import ParallelProcessingManager
 
 
 
@@ -12,17 +13,20 @@ from ..configs import Configs
 # TODO: documenting all the tricks
 
 # TODO: fine tuned the thresholds (more strict)
-# TODO: finished optimizing the tiling process
-
-# TODO: try to multi thread
-
 
 # TODO: learn about slurm
 
 
-def execute_preprocessing_pipeline(with_tiling):
+def execute_preprocessing_pipeline(with_tiling, num_processes):
     Logger.log('Starting preprocessing ..', log_importance=1)
-    slide_dataset = SlideDataset(Configs.SLIDES_DIR, load_metadata=Configs.LOAD_METADATA, device=Configs.DEVICE)
+    process_manager = ParallelProcessingManager(num_processes=num_processes,
+                                                verbose=Configs.VERBOSE,
+                                                log_importance=Configs.LOG_IMPORTANCE,
+                                                log_format=Configs.LOG_FORMAT,
+                                                random_seed=Configs.RANDOM_SEED,
+                                                tile_progress_log_freq=Configs.TILE_PROGRESS_LOG_FREQ)
+    slide_dataset = SlideDataset(Configs.SLIDES_DIR, load_metadata=Configs.LOAD_METADATA, device=Configs.DEVICE,
+                                 slide_log_file=Configs.SLIDE_LOG_FILE)
 
     pipeline_list = [
         ('slide', Pipeline([
@@ -58,4 +62,4 @@ def execute_preprocessing_pipeline(with_tiling):
                                                                             'fail_norm_attr': Configs.COLOR_NORM_FAIL}))
             ]))
         )
-    slide_dataset.apply_pipeline(pipeline_list)
+    slide_dataset.apply_pipeline(pipeline_list, process_manager)

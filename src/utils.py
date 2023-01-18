@@ -10,14 +10,21 @@ import os
 from torch.nn.functional import conv2d
 
 
+def set_global_configs(verbose, log_file, log_importance, log_format, random_seed, tile_progress_log_freq):
+    Logger.set_default_logger(verbose, log_file, log_importance, log_format, tile_progress_log_freq)
+    set_random_seed(random_seed)
+
+
 def conv2d_to_device(img_np, kernel_size, stride, device):
     if len(img_np.shape) == 2:
         new_shape = (1, 1, *img_np.shape)
     elif len(img_np.shape) == 3:
         new_shape = (1, *img_np.shape)
+    else:
+        raise Exception(f"conv2d: Invalid shape {img_np.shape}")
     img_t = torch.from_numpy(img_np).to(device).reshape(new_shape)
     return conv2d(img_t.float(), torch.ones((1, 1, kernel_size, kernel_size), device=device).float(),
-                  stride=kernel_size).squeeze().cpu().numpy()
+                  stride=stride).squeeze().cpu().numpy()
 
 
 def get_time():
@@ -62,11 +69,21 @@ def generate_spatial_filter_mask(df, shape, attr):
     return mask
 
 
-def bring_files(folder_in, file_extension, folder_out):
+def bring_files(folder_in, file_format, folder_out):
     os.makedirs(folder_out)
-    filepaths = glob(f"{folder_in}/**/*.{file_extension}", recursive=True)
+    filepaths = glob(f"{folder_in}/**/{file_format}", recursive=True)
     for i, filepath in enumerate(filepaths):
         basename = os.path.basename(filepath)
         parent_dir = os.path.basename(os.path.dirname(filepath))
         shutil.copyfile(filepath, os.path.join(folder_out, f"{i}_{parent_dir}_{basename}"))
+
+
+def bring_joined_log_file(folder_in, file_format, filepath_out):
+    os.makedirs(filepath_out)
+    filepaths = glob(f"{folder_in}/**/{file_format}", recursive=True)
+    sep_line = f"\n{'-'*100}\n"
+    with open(filepath_out, 'w') as outfile:
+        for filepath in filepaths:
+            with open(filepath, 'r') as infile:
+                outfile.write(infile.read() + sep_line)
 

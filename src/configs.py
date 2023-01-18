@@ -2,21 +2,23 @@ from dataclasses import dataclass
 import os
 from pathlib import Path
 from .preprocessing.pen_filter import get_pen_color_palette
-from .utils import set_random_seed
-from .components.Logger import Logger
+from .utils import set_global_configs
 import torch
 
 
 @dataclass
 class ConfigsClass:
     RANDOM_SEED = 123
-    VERBOSE = 3 # 1 logs to LOG_FILE, 2 logs to console, 3 logs to both to file and console
+    VERBOSE = 3  # 1 logs to LOG_FILE, 2 logs to console, 3 logs to both to file and console
     ROOT = Path(__file__).parent.parent.resolve()
-    LOG_FILE = 'log.txt'
-    LOG_IMPORTANCE = 1
+    PROGRAM_LOG_FILE = 'log.txt'  # slide level log is in the slide dir. Use --bring-slide-logs to get all slide logs.
+    SLIDE_LOG_FILE = "log.txt"  # slide level log
+    TILE_PROGRESS_LOG_FREQ = 20  # report progress every process of 10 tiles
+    LOG_IMPORTANCE = 1  # 0 (all), 1 or 2 (only high importance logs)
     LOAD_METADATA = False
     DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
-    LOG_FORMAT = {'format': '%(asctime)s  [%(name)s] - %(message)s', 'datefmt':'%d-%m-%y %H:%M:%S'}
+    LOG_FORMAT = {'format': '%(process)d  %(asctime)s  [%(name)s] - %(message)s', 'datefmt':'%d-%m-%y %H:%M:%S'}
+    # Assuming TCGA folder structure, where each slide is in a separate dir and the dir is named after the slide ID
     SLIDES_DIR = os.path.join(ROOT, 'data', 'slides')
     PROCESSED_TILES_DIR = os.path.join(ROOT, 'data', 'processed_tiles')
     TILE_SIZE = 512  # should be divisible by downsample of reduced image, the easiest way is to set to be a power of 2
@@ -37,8 +39,12 @@ class ConfigsClass:
                           COLOR_NORM_FAIL: 'yellow'}
 
     def __init__(self):
-        Logger.set_default_logger(self)
-        set_random_seed(self.RANDOM_SEED)
+        set_global_configs(verbose=self.VERBOSE,
+                           log_file=self.PROGRAM_LOG_FILE,
+                           log_importance=self.LOG_IMPORTANCE,
+                           log_format=self.LOG_FORMAT,
+                           random_seed=self.RANDOM_SEED,
+                           tile_progress_log_freq=self.TILE_PROGRESS_LOG_FREQ)
 
 
 Configs = ConfigsClass()
