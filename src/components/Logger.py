@@ -35,16 +35,14 @@ class Logger:
     def set_default_logger(verbose, log_file, log_importance, log_format, tile_progress_log_freq):
         Logger.TILE_PROGRESS_LOG_FREQ = tile_progress_log_freq
         if verbose == 1:
-            logging.basicConfig(handlers=[logging.FileHandler(log_file), ],
+            logging.basicConfig(handlers=[logging.FileHandler(log_file, 'w'), ],
                                 level=Logger.LOG_IMPORTANCE_MAP[log_importance],
                                 **log_format)
         elif verbose == 2:
-            # Create a stream handler to log to the console
             logging.basicConfig(handlers=[logging.StreamHandler(), ], level=Logger.LOG_IMPORTANCE_MAP[log_importance],
                                 **log_format)
         elif verbose == 3:
-            # Create a stream handler to log to the console
-            logging.basicConfig(handlers=[logging.FileHandler(log_file), logging.StreamHandler()],
+            logging.basicConfig(handlers=[logging.FileHandler(log_file, 'w'), logging.StreamHandler()],
                                 level=Logger.LOG_IMPORTANCE_MAP[log_importance], **log_format)
 
     @staticmethod
