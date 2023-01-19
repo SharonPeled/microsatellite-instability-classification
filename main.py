@@ -22,7 +22,7 @@ def write_to_file(s, frame_object=None, **kargs):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--preprocess', action='store_true')
-    parser.add_argument('--thumbnail-only', action='store_true')
+    parser.add_argument('--thumbnails-only', action='store_true')
     parser.add_argument('--suppress-signals', action='store_true')
     parser.add_argument('--bring-thumbnails', type=str)
     parser.add_argument('--bring-slide-logs', type=str)
@@ -34,7 +34,7 @@ def main():
             signal.signal(sig, write_to_file)
     if args.preprocess:
         execute_preprocessing_pipeline(with_tiling=True, num_processes=args.num_processes)
-    if args.thumbnail_only:
+    if args.thumbnails_only:
         execute_preprocessing_pipeline(with_tiling=False, num_processes=args.num_processes)
     if args.bring_thumbnails:
         bring_files(Configs.SLIDES_DIR, '*.png', args.bring_thumbnails)
