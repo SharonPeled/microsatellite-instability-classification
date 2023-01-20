@@ -31,7 +31,6 @@ class SlideDataset(Dataset, Logger):
         slide = slide.apply_pipeline(pipeline, ind, len(self.slide_paths))
         self.log(f"[Slide ({ind}/{len(self.slide_paths)})] Total Processing time: {int(time.time() - beg)} seconds.",
                  log_importance=2)
-        return slide
 
     def __len__(self):
         return len(self.slides)

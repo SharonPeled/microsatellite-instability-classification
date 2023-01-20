@@ -70,7 +70,8 @@ def generate_spatial_filter_mask(df, shape, attr):
 
 
 def bring_files(folder_in, file_format, folder_out):
-    os.makedirs(folder_out)
+    if not os.path.exists(folder_out):
+        os.makedirs(folder_out)
     filepaths = glob(f"{folder_in}/**/{file_format}", recursive=True)
     for i, filepath in enumerate(filepaths):
         basename = os.path.basename(filepath)
@@ -79,7 +80,8 @@ def bring_files(folder_in, file_format, folder_out):
 
 
 def bring_joined_log_file(folder_in, file_format, filepath_out):
-    os.makedirs(filepath_out)
+    if not os.path.exists(os.path.dirname(filepath_out)):
+        os.makedirs(filepath_out)
     filepaths = glob(f"{folder_in}/**/{file_format}", recursive=True)
     sep_line = f"\n{'-'*100}\n"
     with open(filepath_out, 'w') as outfile:

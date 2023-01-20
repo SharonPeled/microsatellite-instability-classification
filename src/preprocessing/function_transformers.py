@@ -208,6 +208,7 @@ def generate_slide_color_grid(slide, attrs_to_colors_map):
     plt.subplots_adjust(wspace=0, hspace=0)
     plt.tight_layout()
     fig.savefig(os.path.join(os.path.dirname(slide.path), 'thumbnail.png'), bbox_inches='tight', pad_inches=0.5)
+    plt.close(fig)
     Logger.log(f"""Thumbnail Saved.""", log_importance=1)
     return slide
 

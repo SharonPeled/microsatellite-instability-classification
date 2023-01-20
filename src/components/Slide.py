@@ -22,6 +22,9 @@ class Slide(Image):
         :param tiles_dir: directory for storing all tiles from all slides
         """
         super().__init__(path=path, slide_uuid=slide_uuid, device=device, **kwargs)
+        if not 'openslide.objective-power' in pyvips.Image.new_from_file(path).get_fields():
+            self._log(f"Corrupt Slide {self.img}", log_importance=2)
+            raise Exception(f"Corrupt Slide {self.img}")
         if slide_uuid is None:
             self.set('slide_uuid', self._get_uuid())
         self.set('metadata_path', os.path.join(os.path.dirname(self.path), 'metadata.json'))
