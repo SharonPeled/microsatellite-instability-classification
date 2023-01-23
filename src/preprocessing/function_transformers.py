@@ -1,57 +1,142 @@
-from ..configs import Configs
-from skimage import color, filters
+from skimage import filters
 import os
 import pyvips
 import numpy as np
-from .pen_filter import pen_percent
-from ..utils import generate_spatial_filter_mask
-from histomicstk.preprocessing.color_normalization.\
-    deconvolution_based_normalization import deconvolution_based_normalization
+from .pen_filter import get_pen_mask
+from ..utils import generate_spatial_filter_mask, center_crop_from_shape, center_crop_from_tile_size, conv2d_to_device
 from ..components.Tile import Tile
 from ..components.Logger import Logger
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
+import warnings
+from torchvision import transforms
+warnings.filterwarnings("ignore", category=UserWarning, module="torchstain")
 
 
-def load_slide(slide):
-    slide.load()
+def load_slide(slide, load_level=None):
+    slide.load(load_level)
     return slide
 
 
-def resize(slide, target_mpp):
-    slide_mpp = float(slide.get(Configs.MPP_ATTRIBUTE))
-    scale = slide_mpp / target_mpp
+def resize(slide, target_mag_power, mag_attr):
+    slide_mag_power = int(slide.get(mag_attr))
+    scale = target_mag_power / slide_mag_power
+    if scale > 1:
+        Logger.log(f"Slide magnification power ({slide_mag_power}) is less then target ({target_mag_power}).",
+                   importace=2)
     return slide.resize(scale)
 
 
-def center_crop(slide, tile_size):
-    width = slide.width
-    height = slide.height
-    x_tiles = height // tile_size
-    y_tiles = width // tile_size
-    x_margins = height - x_tiles * tile_size
-    y_margins = width - y_tiles * tile_size
-    slide.set('shape', (tile_size * x_tiles, tile_size * y_tiles))
+def center_crop_reduced_image(slide, tile_size, tissue_attr):
+    downsample = slide.get_downsample()
+    if not tile_size % downsample == 0:
+        raise Exception(f"Tile size {tile_size} is not divisible by downsample {downsample}.")
+    tile_size_r = tile_size // downsample
+    y_margins, x_margins, cropped_width, cropped_height, y_tiles, x_tiles = center_crop_from_tile_size(
+        slide.img_r.height,
+        slide.img_r.width,
+        tile_size_r)
+    slide.img_r = slide.img_r.crop(y_margins, x_margins, cropped_width, cropped_height)
     slide.set('tile_size', tile_size)
+    slide.set('tile_size_r', tile_size_r)
     slide.set('num_x_tiles', x_tiles)
     slide.set('num_y_tiles', y_tiles)
-    slide.set('num_tiles', x_tiles*y_tiles)
-    # return slide.crop(x_tiles * tile_size // 2, y_tiles * tile_size // 2, tile_size * 15, tile_size * 10)
-    # t = 5
-    # slide.set('num_x_tiles', t)
-    # slide.set('num_y_tiles', t)
-    # slide.set('num_tiles', t*t)
-    # return slide.crop(width*0.5, height*0.5, tile_size * t, tile_size * t)
-    return slide.crop(y_margins // 2, x_margins // 2, tile_size * y_tiles, tile_size * x_tiles)
+    slide.set('num_tiles', x_tiles * y_tiles)
+    slide.set('reduced_shape', (cropped_height, cropped_width))
+    slide.init_tiles_summary_df(tissue_attr)
+    return slide
 
 
-def calc_otsu(slide):
-    if slide.get('otsu_val', soft=True) is not None:
-        return slide
-    slide_bw = slide.colourspace("b-w")
-    hist = slide_bw.hist_find().numpy()
-    otsu_val = filters.threshold_otsu(image=None, hist=(hist[0][:, 0], range(256)))
+def load_reduced_image_to_memory(slide):
+    slide.load_level_to_memory()
+    return slide
+
+
+def unload_reduced_image(slide):
+    slide.unload_level_from_memory()
+    return slide
+
+
+def center_crop(slide):
+    cropped_height_r, cropped_width_r = slide.get('reduced_shape')
+    cropped_height = cropped_height_r * slide.get_downsample()
+    cropped_width = cropped_width_r * slide.get_downsample()
+    y_margins, x_margins, cropped_width, cropped_height = center_crop_from_shape(slide.height, slide.width,
+                                                                                 cropped_height, cropped_width)
+    slide.set('shape', (cropped_height, cropped_height))
+    return slide.crop(y_margins, x_margins, cropped_width, cropped_height)
+
+
+def filter_otsu_reduced_image(slide, color_palette, reduced_img_factor):
+    h, s, v = np.rollaxis(slide.img_r.sRGB2HSV().numpy(), -1)
+    img_r_bw = slide.img_r.colourspace("b-w")
+    hist = img_r_bw.hist_find().numpy()
+    otsu_val = filters.threshold_otsu(image=None, hist=(hist.squeeze(), range(256)))
     slide.set('otsu_val', otsu_val)
+    tile_size_r = slide.get('tile_size_r')
+    img_r_bw_np = img_r_bw.numpy()
+    mask = (img_r_bw_np < otsu_val) | ((img_r_bw_np < otsu_val*color_palette['otsu_val_factor']) & (s > color_palette['s']))
+    tile_foreground_pixel_sum = conv2d_to_device(mask, tile_size_r, tile_size_r, slide.device)
+    tile_background_fracs = 1 - (tile_foreground_pixel_sum / (tile_size_r ** 2))
+    tile_background_fracs *= reduced_img_factor
+    return tile_background_fracs
+
+
+def filter_black_reduced_image(slide, color_palette):
+    h,s,v = np.rollaxis(slide.img_r.sRGB2HSV().numpy(), -1)
+    mask = (v < color_palette[0]['v']) | ((v < color_palette[1]['v']) & (s < color_palette[1]['s']))
+    tile_size_r = slide.get('tile_size_r')
+    tile_black_pixel_sum = conv2d_to_device(mask, tile_size_r, tile_size_r, slide.device)
+    tile_black_fracs = tile_black_pixel_sum / (tile_size_r ** 2)
+    return tile_black_fracs
+
+
+def filter_pen_reduced_image(slide, color_palette):
+    r, g, b = np.rollaxis(slide.img_r.numpy(), -1)
+    pen_colors = color_palette.keys()
+    pen_masks = [get_pen_mask(r, g, b, color_palette, color) for color in pen_colors]
+    mask = sum(pen_masks) > 0
+    tile_size_r = slide.get('tile_size_r')
+    tile_pen_pixel_sum = conv2d_to_device(mask, tile_size_r, tile_size_r, slide.device)
+    tile_pen_fracs = tile_pen_pixel_sum / (tile_size_r ** 2)
+    return tile_pen_fracs
+
+
+def filter_non_tissue_tiles(slide, non_tissue_threshold, otsu_filter, black_filter, pen_filter):
+    tile_background_fracs = filter_otsu_reduced_image(slide, **otsu_filter)
+    tile_black_fracs = filter_black_reduced_image(slide, **black_filter)
+    tile_pen_fracs = filter_pen_reduced_image(slide, **pen_filter)
+    filters_array_list = [tile_background_fracs, tile_black_fracs, tile_pen_fracs]
+    num_filtered_per_filter = list(map(lambda f: f.sum(), filters_array_list))
+    # empirical observation: it is commonly found that pen tiles tend to appear in large
+    # amounts (when pen circles the tissue).
+    # Few individual pen tiles are unlikely to be present. In case a few pen tiles is found it may be
+    # a colorful tissue misinterpreted as a pen tile.
+    # therefore, if the number of pen tiles is too low, it may be best to not filter them at all.
+    if (num_filtered_per_filter[-1] / (tile_pen_fracs.size - sum(num_filtered_per_filter[:-1]))) < pen_filter['min_pen_tiles']:
+        filters_array_list = [tile_background_fracs, tile_black_fracs]
+    tile_non_tissue_fracs_sum = sum(filters_array_list)
+    tile_non_tissue_fracs_max = np.maximum.reduce(filters_array_list)
+    filtered_tile_inds = np.argwhere(tile_non_tissue_fracs_sum > non_tissue_threshold)
+    # for coloring - splitting filtered tiles into the most significant filter
+    filtered_tile_array_inds = tuple(np.array(filtered_tile_inds).T)
+    bg_tile_inds = filtered_tile_inds[tile_non_tissue_fracs_max[filtered_tile_array_inds] ==
+                                      tile_background_fracs[filtered_tile_array_inds]]
+    black_tile_inds = filtered_tile_inds[tile_non_tissue_fracs_max[filtered_tile_array_inds] ==
+                                         tile_black_fracs[filtered_tile_array_inds]]
+    pen_tile_inds = filtered_tile_inds[tile_non_tissue_fracs_max[filtered_tile_array_inds] ==
+                                       tile_pen_fracs[filtered_tile_array_inds]]
+    slide.add_attribute_summary_df(bg_tile_inds, otsu_filter['attr_name'],
+                                   True, False, is_tissue_filter=True)
+    slide.add_attribute_summary_df(black_tile_inds, black_filter['attr_name'],
+                                   True, False, is_tissue_filter=True)
+    slide.add_attribute_summary_df(pen_tile_inds, pen_filter['attr_name'],
+                                   True, False, is_tissue_filter=True)
+    return slide
+
+
+def fit_color_normalizer(slide, ref_img_path):
+    slide.fit_color_normalizer(ref_img_path)
     return slide
 
 
@@ -85,130 +170,49 @@ def load_tile(tile):
     return tile
 
 
-def save_processed_tile(tile, processed_tiles_dir, tissue_suffix):
-    if tile.get('filtered', soft=True):
+def save_processed_tile(tile, processed_tiles_dir, fail_norm_attr):
+    if tile.get('norm_result', soft=True) is None or tile.get('norm_result', soft=True) == fail_norm_attr:
         return tile
-    tile.add_filename_suffix(tissue_suffix)
     tile.save(processed_tiles_dir)
     return tile
 
 
-def filter_otsu(tile, threshold, suffix):
-    if tile.get('filtered', soft=True):
-        return tile
-    bw_img = (color.rgb2gray(tile.img)*255)
-    filtered_pixels = (bw_img < tile.get('otsu_val')).sum()
-    r = filtered_pixels / bw_img.size  # careful, nparray.size take the number of channels into account
-    if r < threshold: # classified as background
-        tile.add_filename_suffix(suffix)
-        tile.set('filtered', True)
-    return tile
-
-
-def filter_black(tile, color_palette, threshold, suffix, **kwargs):
-    if tile.get('filtered', soft=True):
-        return tile
-    r, g, b = np.rollaxis(tile.img, -1)
-    mask = (r < color_palette['r']) & (g < color_palette['g']) & (b < color_palette['b'])
-    if mask.mean() > threshold:
-        tile.add_filename_suffix(suffix)
-        tile.set('filtered', True)
-    return tile
-
-
-def filter_pen(tile, color_palette, threshold, suffix, **kwargs):
-    if tile.get('filtered', soft=True):
-        return tile
-    pen_colors = color_palette.keys()
-    max_pen_percent = max([pen_percent(tile, color_palette, color) for color in pen_colors])
-    if max_pen_percent > threshold:
-        tile.add_filename_suffix(suffix)
-        tile.set('filtered', True)
-    return tile
-
-
-def recover_missfiltered_tiles(slide, pen_filter, black_filter, superpixel_size, tile_suffixes,
-                               ref_img_path, processed_tiles_dir):
-    filters = tile_suffixes['filters']
-    df = slide.get_tile_summary_df()
-    df = df.assign(**{f: False for f in filters if f not in df.columns}) # adding missing filters as false
-    num_unfiltered_tiles = (df[filters].sum(axis=1) == 0).sum() # zero in all filters
-    # tile_paths_to_recover = set(get_filtered_tiles_paths_to_recover(df, [f for f in filters if f != tile_suffixes['background']],
-    #                                                                 superpixel_size))
-    tile_paths_to_recover = set()
-
-    # very few pen/black tiles are probably not a real pen/black tiles
-    # when tissu is very colorful it can be misinterpreted as pen
-    # tissue dark spots can also be misinterpreted as black tiles
-    # in this case, recover all tiles from that category
-    # empirical observation only
-    pen_suffix = pen_filter['suffix']
-    if df[pen_suffix].sum() < num_unfiltered_tiles * pen_filter['min_pen_tiles']:
-        tile_paths_to_recover.update(df[df[pen_suffix]].tile_path.values)
-    # black_suffix = black_filter['suffix']
-    # if df[black_suffix].sum() < num_unfiltered_tiles * black_filter['min_black_tiles']:
-    #     tile_paths_to_recover.update(df[df[black_suffix]].tile_path.values)
-
-    # recovering tiles
-    Logger.log(f"""Attempting to recover {len(tile_paths_to_recover)} tiles for slide {slide}""", log_importance=1)
-    num_succ_recovered = 0
-    tiles_in_path_out_filename_tuples = []
-    for tile_path in tile_paths_to_recover:
-        tile = Tile(path=tile_path, slide_uuid=slide.get('slide_uuid'))
-        tile.load()
-        tile = macenko_color_norm(tile, ref_img_path, tile_suffixes['color_normed'], tile_suffixes['failed_color_normed'])
-        if tile.get('filtered', soft=True):
-            continue
-        tile.add_filename_suffix(tile_suffixes['recovered'])
-        tile.save(processed_tiles_dir)
-        num_succ_recovered += 1
-        tiles_in_path_out_filename_tuples.append((tile_path, tile.out_filename))
-    slide.update_recovery_tile_summary_df(tiles_in_path_out_filename_tuples)
-
-    Logger.log(f"""{num_succ_recovered} recovered for slide {slide}""", log_importance=1)
-    return slide
-
-
-def macenko_color_norm(tile, ref_img_path, succ_norm_suffix, fail_norm_suffix):
-    if tile.get('filtered', soft=True):
-        return tile
-    ref_tile = Tile(path=ref_img_path)
-    ref_tile.load()
-    stain_unmixing_routine_params = {
-        'stains': ['H&E'],
-        'stain_unmixing_method': 'macenko_pca',
-    }
+def macenko_color_norm(tile, succ_norm_attr, fail_norm_attr):
     try:
-        normed_img = deconvolution_based_normalization(im_src=tile.img, im_target=ref_tile.img,
-                                                       stain_unmixing_routine_params=stain_unmixing_routine_params)
-        normed_tile = Tile.from_img(tile, normed_img)
-        normed_tile.add_filename_suffix(succ_norm_suffix)
+        T = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Lambda(lambda x: x * 255)
+        ])
+        normed_img, _, _ = tile.get('color_normalizer').normalize(I=T(tile.numpy()), stains=True)
+        normed_tile = Tile.from_img(tile, pyvips.Image.new_from_array(normed_img.numpy()))
+        normed_tile.add_filename_suffix(succ_norm_attr)
         Logger.log(f"""Tile {normed_tile} successfully normed.""")
+        tile.set('norm_result', (True, succ_norm_attr))
         return normed_tile
     except Exception as e:
         Logger.log(f"""Tile {tile} normalization fail with exception {e}.""", log_importance=2)
-        tile.add_filename_suffix(fail_norm_suffix)
-        tile.set('filtered', True)
+        tile.add_filename_suffix(fail_norm_attr)
+        tile.set('norm_result', (False, fail_norm_attr))
         return tile
 
 
-def save_slide_metadata(slide):
-    slide.save_metadata()
-    return slide
-
-
-def generate_slide_color_grid(slide, tile_suffixes, suffixes_to_colors_map):
-    suffixes = tile_suffixes['filters'] + [tile_suffixes['recovered']]
-    df = slide.get_tile_summary_df()
-    df = df.assign(**{f: False for f in suffixes if f not in df.columns}) # adding missing filters as false
-    num_rows, num_cols = df['row'].max(), df['col'].max()
-    grid = np.ones((num_rows+1, num_cols+1))
-    for i, suf in enumerate(suffixes, start=1):
-        mask = generate_spatial_filter_mask(df, [suf,])
-        grid[mask==1] = i + 1
-    color_list = [suffixes_to_colors_map['tissue'],] + [suffixes_to_colors_map[suf] for suf in suffixes]
-    norm = colors.Normalize(vmin=1, vmax=len(color_list))
+def generate_slide_color_grid(slide, attrs_to_colors_map):
+    df = slide.summary_df.assign(**{a: False for a in attrs_to_colors_map.keys() if
+                                    a not in slide.summary_df.columns})  # adding missing attrs as false
+    grid = np.ones((slide.get('num_x_tiles'), slide.get('num_y_tiles')))
+    color_list = []
+    attrs = []
+    i = 1
+    for attr in attrs_to_colors_map.keys():
+        mask = generate_spatial_filter_mask(df, grid.shape, attr)
+        if mask.sum() == 0:
+            continue
+        color_list.append(attrs_to_colors_map[attr])
+        attrs.append(attr)
+        grid[mask == 1] = i
+        i += 1
     cmap = plt.cm.colors.ListedColormap(color_list)
+    norm = colors.Normalize(vmin=1, vmax=len(color_list))
     color_grid = cmap(norm(grid))
     patches = [plt.plot([], [], marker="s", color=cmap(i / float(len(color_list))), ls="")[0]
                for i in range(len(color_list))]
@@ -220,7 +224,7 @@ def generate_slide_color_grid(slide, tile_suffixes, suffixes_to_colors_map):
         ax.set_yticks([])
 
     ax1.imshow(color_grid)
-    ax1.legend(patches, ['Tissue'] + suffixes, loc='lower right')
+    ax1.legend(patches, attrs, loc='lower right')
 
     thumb = pyvips.Image.thumbnail(slide.path, 512)
     ax2.imshow(thumb)
@@ -228,11 +232,6 @@ def generate_slide_color_grid(slide, tile_suffixes, suffixes_to_colors_map):
     plt.subplots_adjust(wspace=0, hspace=0)
     plt.tight_layout()
     fig.savefig(os.path.join(os.path.dirname(slide.path), 'thumbnail.png'), bbox_inches='tight', pad_inches=0.5)
+    plt.close(fig)
     Logger.log(f"""Thumbnail Saved.""", log_importance=1)
     return slide
-
-
-
-
-
-
