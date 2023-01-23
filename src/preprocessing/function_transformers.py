@@ -67,7 +67,7 @@ def center_crop(slide):
     return slide.crop(y_margins, x_margins, cropped_width, cropped_height)
 
 
-def filter_otsu_reduced_image(slide, color_palette, reduced_img_factor):
+def filter_otsu_reduced_image(slide, color_palette, reduced_img_factor, **kwargs):
     h, s, v = np.rollaxis(slide.img_r.sRGB2HSV().numpy(), -1)
     img_r_bw = slide.img_r.colourspace("b-w")
     hist = img_r_bw.hist_find().numpy()
@@ -82,7 +82,7 @@ def filter_otsu_reduced_image(slide, color_palette, reduced_img_factor):
     return tile_background_fracs
 
 
-def filter_black_reduced_image(slide, color_palette):
+def filter_black_reduced_image(slide, color_palette, **kwargs):
     h,s,v = np.rollaxis(slide.img_r.sRGB2HSV().numpy(), -1)
     mask = (v < color_palette[0]['v']) | ((v < color_palette[1]['v']) & (s < color_palette[1]['s']))
     tile_size_r = slide.get('tile_size_r')
@@ -91,7 +91,7 @@ def filter_black_reduced_image(slide, color_palette):
     return tile_black_fracs
 
 
-def filter_pen_reduced_image(slide, color_palette):
+def filter_pen_reduced_image(slide, color_palette, **kwargs):
     r, g, b = np.rollaxis(slide.img_r.numpy(), -1)
     pen_colors = color_palette.keys()
     pen_masks = [get_pen_mask(r, g, b, color_palette, color) for color in pen_colors]
