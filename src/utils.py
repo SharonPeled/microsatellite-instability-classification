@@ -1,5 +1,4 @@
 import numpy as np
-import pandas as pd
 import torch
 import random
 from .components.Logger import Logger
@@ -88,4 +87,25 @@ def bring_joined_log_file(folder_in, file_format, filepath_out):
         for filepath in filepaths:
             with open(filepath, 'r') as infile:
                 outfile.write(infile.read() + sep_line)
+
+
+def delete_all_artifacts(configs):
+    remove_artifact(os.path.join(configs.ROOT, configs.PROGRAM_LOG_FILE))
+    remove_artifact(configs.PROCESSED_TILES_DIR)
+    slide_paths = sorted(glob(f"{configs.SLIDES_DIR}/**/*.svs", recursive=True))  # all .svs files
+    for path in slide_paths:
+        slide_dir = os.path.dirname(path)
+        remove_artifact(os.path.join(slide_dir, configs.SLIDE_LOG_FILE))
+        remove_artifact(os.path.join(slide_dir, 'metadata.json'))
+        remove_artifact(os.path.join(slide_dir, 'thumbnail.png'))
+
+
+def remove_artifact(path):
+    if os.path.exists(path):
+        if os.path.isfile(path):
+            os.remove(path)
+        else:
+            shutil.rmtree(path)
+
+
 

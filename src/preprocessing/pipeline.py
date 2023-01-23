@@ -6,17 +6,6 @@ from ..configs import Configs
 from ..components.ParallelProcessingManager import ParallelProcessingManager
 
 
-
-
-
-
-# TODO: documenting all the tricks
-
-# TODO: fine tuned the thresholds (more strict)
-
-# TODO: learn about slurm
-
-
 def execute_preprocessing_pipeline(with_tiling, num_processes):
     Logger.log('Starting preprocessing ..', log_importance=1)
     process_manager = ParallelProcessingManager(num_processes=num_processes,
@@ -38,10 +27,12 @@ def execute_preprocessing_pipeline(with_tiling, num_processes):
             ('center_crop_reduced_image', LoggingFunctionTransformer(center_crop_reduced_image,
                                                                      kw_args={'tile_size': Configs.TILE_SIZE,
                                                                               'tissue_attr': Configs.TISSUE_ATTR})),
-            ('filter_otsu_reduced_image', LoggingFunctionTransformer(filter_otsu_reduced_image,
-                                                                     kw_args=Configs.OTSU_FILTER)),
-            ('filter_black_reduced_image', LoggingFunctionTransformer(filter_black_reduced_image, kw_args=Configs.BLACK_FILTER)),
-            ('filter_pen_reduced_image', LoggingFunctionTransformer(filter_pen_reduced_image, kw_args=Configs.PEN_FILTER)),
+            ('filter_non_tissue_tiles',
+             LoggingFunctionTransformer(filter_non_tissue_tiles,
+                                        kw_args={'non_tissue_threshold': Configs.TILE_NON_TISSUE_THRESHOLD,
+                                                 'otsu_filter': Configs.OTSU_FILTER,
+                                                 'black_filter': Configs.BLACK_FILTER,
+                                                 'pen_filter': Configs.PEN_FILTER})),
             ('generate_slide_color_grid', LoggingFunctionTransformer(generate_slide_color_grid,
                                                                      kw_args={'attrs_to_colors_map': Configs.ATTRS_TO_COLOR_MAP})),
             ('unload_reduced_image', LoggingFunctionTransformer(unload_reduced_image)),

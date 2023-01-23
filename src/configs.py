@@ -13,7 +13,7 @@ class ConfigsClass:
     ROOT = Path(__file__).parent.parent.resolve()
     PROGRAM_LOG_FILE = 'log.txt'  # slide level log is in the slide dir. Use --bring-slide-logs to get all slide logs.
     SLIDE_LOG_FILE = "log.txt"  # slide level log
-    TILE_PROGRESS_LOG_FREQ = 20  # report progress every process of 10 tiles
+    TILE_PROGRESS_LOG_FREQ = 20  # report progress every process of x tiles (convenient for multiprocessing)
     LOG_IMPORTANCE = 1  # 0 (all), 1 or 2 (only high importance logs)
     LOAD_METADATA = False
     DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -25,11 +25,12 @@ class ConfigsClass:
     REDUCED_LEVEL_TO_MEMORY = [3, 2]  # attempting to load according to order
     TARGET_MAG_POWER = 20
     MAG_ATTR = 'openslide.objective-power'
-    OTSU_FILTER = {'threshold': 0.3, 'attr_name': 'Background'}  # tile with less than threshold percent tissue is filtered
-    BLACK_FILTER = {'threshold': 0.5, 'attr_name': 'Black',
-                    'color_palette': {'r': 100, 'g':100, 'b':100}}  # tile with more than threshold percent black is filtered
-    PEN_FILTER = {'threshold': 0.7, 'attr_name': 'Pen', 'attr_name_not_filtered': 'Pen_not_filtered', 'min_pen_tiles': 0.05,
-                  'color_palette': get_pen_color_palette()}  # tile with more than threshold percent pen is filtered
+    TILE_NON_TISSUE_THRESHOLD = 0.5  # tiles with more non tissue percent than threshold are filtered
+    OTSU_FILTER = {'reduced_img_factor': 0.8, 'attr_name': 'Background',
+                   'color_palette': {'s': 10, 'otsu_val_factor': 1.1}}
+    BLACK_FILTER = {'attr_name': 'Black', 'color_palette': [{'v': 50}, {'v': 200, 's': 25}]}
+    PEN_FILTER = {'attr_name': 'Pen', 'attr_name_not_filtered': 'Pen_not_filtered', 'min_pen_tiles': 0.025,
+                  'color_palette': get_pen_color_palette()}
     TISSUE_ATTR = 'Tissue'
     COLOR_NORM_SUCC = 'Normalized'
     COLOR_NORM_FAIL = 'Normalizing_Fail'

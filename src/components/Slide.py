@@ -24,7 +24,7 @@ class Slide(Image):
         super().__init__(path=path, slide_uuid=slide_uuid, device=device, **kwargs)
         if not 'openslide.objective-power' in pyvips.Image.new_from_file(path).get_fields():
             self._log(f"Corrupt Slide {self.img}", log_importance=2)
-            raise Exception(f"Corrupt Slide {self.img}")
+            raise Exception(f"Corrupt Slide {self.path}")
         if slide_uuid is None:
             self.set('slide_uuid', self._get_uuid())
         self.set('metadata_path', os.path.join(os.path.dirname(self.path), 'metadata.json'))
@@ -175,7 +175,7 @@ class Slide(Image):
         if self.img is None:
             return f"""<{type(self).__name__} - uuid:{self.get('slide_uuid')} Not loaded.>"""
         shape = (self.img.height, self.img.width, self.img.bands)
-        otsu_val = self.get('otsu_val',soft=True)
+        otsu_val = self.get('otsu_val', soft=True)
         return f"""<{type(self).__name__} - shape:{shape}, otsu_val:{otsu_val}, uuid:{self.get('slide_uuid')}>"""
 
     def fit_color_normalizer(self, ref_img_path):
