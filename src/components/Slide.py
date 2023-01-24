@@ -130,7 +130,7 @@ class Slide(Image):
                             tile_inds_by_norm_res[tile.get('norm_result', soft=False)].append((x, y))
                         if i % Logger.TILE_PROGRESS_LOG_FREQ == 0:
                             avg_iter_per_second = round((i+1)/(time.time()-beg), 1)
-                            self._log(f"""[Slide] ({ind+1}/{num_slides}) {int((ind+1/num_slides)*100)}%  [Tile] ({i+1}/{len(tiles_inds)}) {int(((i+1)/len(tiles_inds))*100)}% {avg_iter_per_second} it/s.""", log_importance=1)
+                            self._log(f"""[Slide] ({ind+1}/{num_slides}) {int(((ind+1)/num_slides)*100)}%  [Tile] ({i+1}/{len(tiles_inds)}) {int(((i+1)/len(tiles_inds))*100)}% {avg_iter_per_second} it/s.""", log_importance=1)
 
                     for (res, attr_name), norm_tile_inds in tile_inds_by_norm_res.items():
                         is_tissue_filter = not res  # if res is False - norm fail and it is a filter
