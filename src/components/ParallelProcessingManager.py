@@ -22,11 +22,16 @@ class ParallelProcessingManager(Logger):
         func must accept parameters as args (no keyword arguments).
         param: log_file_generator - for each execution, set a log file.
         """
-        with Pool(processes=self.num_processes) as pool:
-            job_param_generator = ((func, log_file, self.verbose, self.log_format, self.log_importance,
+        if self.num_processes == 1:
+            for args, log_file in zip(param_generator, log_file_generator):
+                _job(func, log_file, self.verbose, self.log_format, self.log_importance,
                                               self.random_seed, self.tile_progress_log_freq, *args)
-                                for args, log_file in zip(param_generator, log_file_generator))
-            return pool.starmap(_job, job_param_generator, chunksize=1)
+        else:
+            with Pool(processes=self.num_processes) as pool:
+                job_param_generator = ((func, log_file, self.verbose, self.log_format, self.log_importance,
+                                                  self.random_seed, self.tile_progress_log_freq, *args)
+                                    for args, log_file in zip(param_generator, log_file_generator))
+                return pool.starmap(_job, job_param_generator, chunksize=1)
 
 
 def _job(job_func, log_file, verbose, log_format, log_importance, random_seed, tile_progress_log_freq, *args):
