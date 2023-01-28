@@ -1,7 +1,8 @@
 /sandbox/
 /data/*
 !/data/*.txt
-notebooks
+/notebooks/*
+!/notebooks/*.ipynb
 .ipynb_checkpoints
 /.idea/
 **/__pycache__/
