@@ -13,9 +13,9 @@ class ConfigsClass:
     ROOT = Path(__file__).parent.parent.resolve()
     PROGRAM_LOG_FILE = 'log.txt'  # slide level log is in the slide dir. Use --bring-slide-logs to get all slide logs.
     SLIDE_LOG_FILE = "log.txt"  # slide level log
-    TILE_PROGRESS_LOG_FREQ = 20  # report progress every process of x tiles (convenient for multiprocessing)
+    TILE_PROGRESS_LOG_FREQ = 100  # report progress every process of x tiles (convenient for multiprocessing)
     LOG_IMPORTANCE = 1  # 0 (all), 1 or 2 (only high importance logs)
-    LOAD_METADATA = False
+    LOAD_METADATA = True
     DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
     LOG_FORMAT = {'format': '%(process)d  %(asctime)s  [%(name)s] - %(message)s', 'datefmt':'%d-%m-%y %H:%M:%S'}
     # Assuming TCGA folder structure, where each slide is in a separate dir and the dir is named after the slide ID
