@@ -79,7 +79,7 @@ def bring_files(folder_in, file_format, folder_out):
 
 
 def bring_joined_log_file(folder_in, file_format, filepath_out):
-    if not os.path.exists(os.path.dirname(filepath_out)):
+    if os.path.isdir(os.path.dirname(filepath_out)) and not os.path.exists(os.path.dirname(filepath_out)):
         os.makedirs(os.path.dirname(filepath_out))
     filepaths = glob(f"{folder_in}/**/{file_format}", recursive=True)
     sep_line = f"\n{'-'*100}\n"
