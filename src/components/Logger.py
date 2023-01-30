@@ -32,17 +32,17 @@ class Logger:
         Logger.flush_logger(logging.getLogger())
 
     @staticmethod
-    def set_default_logger(verbose, log_file, log_importance, log_format, tile_progress_log_freq):
+    def set_default_logger(verbose, log_file_args, log_importance, log_format, tile_progress_log_freq):
         Logger.TILE_PROGRESS_LOG_FREQ = tile_progress_log_freq
         if verbose == 1:
-            logging.basicConfig(handlers=[logging.FileHandler(log_file, 'w'), ],
+            logging.basicConfig(handlers=[logging.FileHandler(*log_file_args), ],
                                 level=Logger.LOG_IMPORTANCE_MAP[log_importance],
                                 **log_format)
         elif verbose == 2:
             logging.basicConfig(handlers=[logging.StreamHandler(), ], level=Logger.LOG_IMPORTANCE_MAP[log_importance],
                                 **log_format)
         elif verbose == 3:
-            logging.basicConfig(handlers=[logging.FileHandler(log_file, 'w'), logging.StreamHandler()],
+            logging.basicConfig(handlers=[logging.FileHandler(*log_file_args), logging.StreamHandler()],
                                 level=Logger.LOG_IMPORTANCE_MAP[log_importance], **log_format)
 
     @staticmethod

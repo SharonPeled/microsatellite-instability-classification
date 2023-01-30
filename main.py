@@ -43,7 +43,7 @@ def main():
     if args.bring_thumbnails:
         bring_files(Configs.SLIDES_DIR, '*.png', args.bring_thumbnails)
     if args.bring_slide_logs:
-        bring_joined_log_file(Configs.SLIDES_DIR, Configs.SLIDE_LOG_FILE, args.bring_slide_logs)
+        bring_joined_log_file(Configs.SLIDES_DIR, Configs.PROGRAM_LOG_FILE_ARGS[0], args.bring_slide_logs)
 
 
 if __name__ == "__main__":
