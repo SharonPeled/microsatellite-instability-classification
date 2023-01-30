@@ -1,5 +1,5 @@
 from sklearn.pipeline import Pipeline
-from ..components.Dataset import SlideDataset
+from ..components.SlideDataset import SlideDataset
 from ..components.LoggingFunctionTransformer import LoggingFunctionTransformer
 from .function_transformers import *
 from ..configs import Configs
@@ -15,7 +15,7 @@ def execute_preprocessing_pipeline(with_tiling, num_processes):
                                                 random_seed=Configs.RANDOM_SEED,
                                                 tile_progress_log_freq=Configs.TILE_PROGRESS_LOG_FREQ)
     slide_dataset = SlideDataset(Configs.SLIDES_DIR, load_metadata=Configs.LOAD_METADATA, device=Configs.DEVICE,
-                                 slide_log_file=Configs.SLIDE_LOG_FILE)
+                                 slide_log_file_args=Configs.PROGRAM_LOG_FILE_ARGS)
 
     pipeline_list = [
         ('slide', Pipeline([

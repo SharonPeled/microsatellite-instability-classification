@@ -9,8 +9,8 @@ import os
 from torch.nn.functional import conv2d
 
 
-def set_global_configs(verbose, log_file, log_importance, log_format, random_seed, tile_progress_log_freq):
-    Logger.set_default_logger(verbose, log_file, log_importance, log_format, tile_progress_log_freq)
+def set_global_configs(verbose, log_file_args, log_importance, log_format, random_seed, tile_progress_log_freq):
+    Logger.set_default_logger(verbose, log_file_args, log_importance, log_format, tile_progress_log_freq)
     set_random_seed(random_seed)
 
 
@@ -80,7 +80,7 @@ def bring_files(folder_in, file_format, folder_out):
 
 def bring_joined_log_file(folder_in, file_format, filepath_out):
     if not os.path.exists(os.path.dirname(filepath_out)):
-        os.makedirs(filepath_out)
+        os.makedirs(os.path.basename(filepath_out))
     filepaths = glob(f"{folder_in}/**/{file_format}", recursive=True)
     sep_line = f"\n{'-'*100}\n"
     with open(filepath_out, 'w') as outfile:
@@ -95,7 +95,7 @@ def delete_all_artifacts(configs):
     slide_paths = sorted(glob(f"{configs.SLIDES_DIR}/**/*.svs", recursive=True))  # all .svs files
     for path in slide_paths:
         slide_dir = os.path.dirname(path)
-        remove_artifact(os.path.join(slide_dir, configs.SLIDE_LOG_FILE))
+        remove_artifact(os.path.join(slide_dir, configs.PROGRAM_LOG_FILE_ARGS[0]))
         remove_artifact(os.path.join(slide_dir, 'metadata.json'))
         remove_artifact(os.path.join(slide_dir, 'thumbnail.png'))
 

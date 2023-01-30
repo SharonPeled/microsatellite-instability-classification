@@ -8,9 +8,7 @@ from ..components.Tile import Tile
 from ..components.Logger import Logger
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
-import warnings
 from torchvision import transforms
-warnings.filterwarnings("ignore", category=UserWarning, module="torchstain")
 
 
 def load_slide(slide, load_level=None):
@@ -183,7 +181,7 @@ def macenko_color_norm(tile, succ_norm_attr, fail_norm_attr):
             transforms.ToTensor(),
             transforms.Lambda(lambda x: x * 255)
         ])
-        normed_img, _, _ = tile.get('color_normalizer').normalize(I=T(tile.numpy()), stains=True)
+        normed_img, _, _ = tile.get('color_normalizer').normalize(I=T(tile.numpy()), stains=False)
         normed_tile = Tile.from_img(tile, pyvips.Image.new_from_array(normed_img.numpy()))
         normed_tile.add_filename_suffix(succ_norm_attr)
         Logger.log(f"""Tile {normed_tile} successfully normed.""")
