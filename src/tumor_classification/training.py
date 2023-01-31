@@ -67,7 +67,6 @@ def train():
     trainer = pl.Trainer(devices=Configs.TUMOR_NUM_DEVICES, accelerator=Configs.TUMOR_DEVICE,
                          deterministic=True,
                          check_val_every_n_epoch=1,
-                         default_root_dir=Configs.TUMOR_LOG_DIR,
                          enable_checkpointing=True,
                          logger=logger,
                          num_sanity_val_steps=2,

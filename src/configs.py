@@ -12,8 +12,7 @@ warnings.filterwarnings("ignore", category=UserWarning, module="torchstain")
 class GeneralConfigs:
     RANDOM_SEED = 123
     VERBOSE = 3  # 1 logs to LOG_FILE, 2 logs to console, 3 logs to both to file and console
-    # ROOT = Path(__file__).parent.parent.resolve()
-    ROOT = '/home/sharonpe/microsatellite-instability-classification'
+    ROOT = Path(__file__).parent.parent.resolve()
     PROGRAM_LOG_FILE_ARGS = ['log.txt', 'a+']  # slide level log is in the slide dir. Use --bring-slide-logs to get all slide logs.
     LOG_IMPORTANCE = 1  # 0 (all), 1 or 2 (only high importance logs)
     LOG_FORMAT = {'format': '%(process)d  %(asctime)s  [%(name)s] - %(message)s', 'datefmt':'%d-%m-%y %H:%M:%S'}
@@ -49,7 +48,7 @@ class PreprocessingConfigs:
 
 @dataclass
 class TumorClassificationConfigs:
-    TUMOR_EXPERIMENT = 'tumor_classifier_V2'
+    TUMOR_EXPERIMENT = os.path.join(GeneralConfigs.ROOT, 'models', 'tumor_classifier_V2')
     TUMOR_TRAINED_MODEL_PATH = os.path.join(GeneralConfigs.ROOT, 'models', 'tumor_classifier_V2.ckpt')
     TUMOR_LOG_DIR = os.path.join(GeneralConfigs.ROOT, 'models')
     TUMOR_LABELED_TILES_DIR = os.path.join(GeneralConfigs.ROOT, 'data', 'tumor_labeled_tiles')

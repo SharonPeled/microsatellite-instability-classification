@@ -62,10 +62,10 @@ class TumorClassifier(pl.LightningModule):
         y = (torch.concat([out["y"] for out in outputs]) == self.tumor_class_ind).int().cpu().numpy()
         precision, recall, f1, _ = precision_recall_fscore_support(y, y_pred, average='binary')
         auc = roc_auc_score(y, tumor_prob)
-        self.log(f"{dataset_str}_precision", precision)
-        self.log(f"{dataset_str}_recall", recall)
-        self.log(f"{dataset_str}_f1", f1)
-        self.log(f"{dataset_str}_auc", auc)
+        self.log(f"{dataset_str}_precision", precision, sync_dist=True)
+        self.log(f"{dataset_str}_recall", recall, sync_dist=True)
+        self.log(f"{dataset_str}_f1", f1, sync_dist=True)
+        self.log(f"{dataset_str}_auc", auc, sync_dist=True)
 
     def validation_epoch_end(self, outputs):
         self.log_epoch_level_metrics(outputs, dataset_str='valid')
