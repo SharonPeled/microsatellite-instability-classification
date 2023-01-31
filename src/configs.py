@@ -12,7 +12,8 @@ warnings.filterwarnings("ignore", category=UserWarning, module="torchstain")
 class GeneralConfigs:
     RANDOM_SEED = 123
     VERBOSE = 3  # 1 logs to LOG_FILE, 2 logs to console, 3 logs to both to file and console
-    ROOT = Path(__file__).parent.parent.resolve()
+    # ROOT = Path(__file__).parent.parent.resolve()
+    ROOT = '/home/sharonpe/microsatellite-instability-classification'
     PROGRAM_LOG_FILE_ARGS = ['log.txt', 'a+']  # slide level log is in the slide dir. Use --bring-slide-logs to get all slide logs.
     LOG_IMPORTANCE = 1  # 0 (all), 1 or 2 (only high importance logs)
     LOG_FORMAT = {'format': '%(process)d  %(asctime)s  [%(name)s] - %(message)s', 'datefmt':'%d-%m-%y %H:%M:%S'}
@@ -47,7 +48,28 @@ class PreprocessingConfigs:
 
 
 @dataclass
-class ConfigsClass(GeneralConfigs, PreprocessingConfigs):
+class TumorClassificationConfigs:
+    TUMOR_EXPERIMENT = 'tumor_classifier_V2'
+    TUMOR_TRAINED_MODEL_PATH = os.path.join(GeneralConfigs.ROOT, 'models', 'tumor_classifier_V2.ckpt')
+    TUMOR_LOG_DIR = os.path.join(GeneralConfigs.ROOT, 'models')
+    TUMOR_LABELED_TILES_DIR = os.path.join(GeneralConfigs.ROOT, 'data', 'tumor_labeled_tiles')
+    TUMOR_CLASS = 'TUMSTU'
+    NON_TUMOR_CLASSES = ['STRMUS', 'ADIMUC']
+    TUMOR_TEST_SIZE = 0.2
+    TUMOR_VALID_SIZE = 0.1
+    TUMOR_TRAINING_BATCH_SIZE = 16
+    TUMOR_TRAINING_NUM_WORKERS = 16
+    TUMOR_NUM_CLASSES = 3
+    TUMOR_CLASS_TO_IND = {'ADIMUC': 0, 'STRMUS': 1, 'TUMSTU': 2}  # alphabetical order as in ImageFolder
+    TUMOR_IND = TUMOR_CLASS_TO_IND['TUMSTU']
+    TUMOR_INIT_LR = 1e-4
+    TUMOR_NUM_EPOCHS = 10
+    TUMOR_NUM_DEVICES = 2
+    TUMOR_DEVICE = 'gpu'
+
+
+@dataclass
+class ConfigsClass(GeneralConfigs, PreprocessingConfigs, TumorClassificationConfigs):
     def __init__(self):
         set_global_configs(verbose=self.VERBOSE,
                            log_file_args=self.PROGRAM_LOG_FILE_ARGS,
