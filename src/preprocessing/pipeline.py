@@ -14,7 +14,8 @@ def execute_preprocessing_pipeline(with_tiling, num_processes):
                                                 log_format=Configs.LOG_FORMAT,
                                                 random_seed=Configs.RANDOM_SEED,
                                                 tile_progress_log_freq=Configs.TILE_PROGRESS_LOG_FREQ)
-    slide_dataset = SlideDataset(Configs.SLIDES_DIR, load_metadata=Configs.LOAD_METADATA, device=Configs.DEVICE,
+    slide_dataset = SlideDataset(Configs.SLIDES_DIR, load_metadata=Configs.LOAD_METADATA,
+                                 device=Configs.Configs.PREPROCESSING_DEVICE,
                                  slide_log_file_args=Configs.PROGRAM_LOG_FILE_ARGS)
 
     pipeline_list = [

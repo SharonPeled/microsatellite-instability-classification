@@ -23,7 +23,7 @@ class PreprocessingConfigs:
     SLIDE_LOG_FILE_ARGS = ['log.txt', 'w']  # slide level log
     TILE_PROGRESS_LOG_FREQ = 100  # report progress every process of x tiles (convenient for multiprocessing)
     LOAD_METADATA = True
-    DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
+    PREPROCESSING_DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
     # Assuming TCGA folder structure, where each slide is in a separate dir and the dir is named after the slide ID
     SLIDES_DIR = os.path.join(GeneralConfigs.ROOT, 'data', 'slides')
     PROCESSED_TILES_DIR = os.path.join(GeneralConfigs.ROOT, 'data', 'processed_tiles')
@@ -49,7 +49,8 @@ class PreprocessingConfigs:
 @dataclass
 class TumorClassificationConfigs:
     TUMOR_EXPERIMENT = os.path.join(GeneralConfigs.ROOT, 'models', 'tumor_classifier_V2')
-    TUMOR_TRAINED_MODEL_PATH = os.path.join(GeneralConfigs.ROOT, 'models', 'tumor_classifier_V2.ckpt')
+    TUMOR_TRAINED_MODEL_PATH = os.path.join(GeneralConfigs.ROOT, 'models',
+                                            'tumor_classifier_resnet50_10_epochs_V1.ckpt')
     TUMOR_LOG_DIR = os.path.join(GeneralConfigs.ROOT, 'models')
     TUMOR_LABELED_TILES_DIR = os.path.join(GeneralConfigs.ROOT, 'data', 'tumor_labeled_tiles')
     TUMOR_CLASS = 'TUMSTU'
@@ -65,6 +66,9 @@ class TumorClassificationConfigs:
     TUMOR_NUM_EPOCHS = 10
     TUMOR_NUM_DEVICES = 2
     TUMOR_DEVICE = 'gpu'
+    TUMOR_PREDICT_OUTPUT_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'tumor_tiles_pred')
+    TUMOR_INFERENCE_BATCH_SIZE = 64
+    TUMOR_INFERENCE_NUM_WORKERS = 32
 
 
 @dataclass

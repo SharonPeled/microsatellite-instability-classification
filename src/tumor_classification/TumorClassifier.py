@@ -74,4 +74,4 @@ class TumorClassifier(pl.LightningModule):
         self.log_epoch_level_metrics(outputs, dataset_str='test')
 
     def predict_step(self, batch, batch_idx, dataloader_idx=0):
-        return self(batch)
+        return self.forward(batch)
