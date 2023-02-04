@@ -12,7 +12,7 @@ class TileDataset(Dataset, Logger):
         self.transform = transform
         tile_paths = glob(f"{processed_tiles_dir}/**/*Tissue_Normalized.jpg", recursive=True)
         self.df = pd.DataFrame(tile_paths, columns=['tile_path'])
-        self.df['slide_uuid'] = self.df.tile_path.apply(lambda p: os.path.dirname(p))
+        self.df['slide_uuid'] = self.df.tile_path.apply(lambda p: os.path.basename(os.path.dirname(p)))
         self.log(f"""Created with {len(self.df)} tiles.""", log_importance=1)
 
     def join_metadata(self, df_pred, inds):
