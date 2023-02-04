@@ -102,6 +102,8 @@ def delete_all_artifacts(configs):
         remove_artifact(os.path.join(slide_dir, 'metadata.json'))
         remove_artifact(os.path.join(slide_dir, 'thumbnail.png'))
         remove_artifact(os.path.join(slide_dir, 'tumor_thumbnail.png'))
+        remove_artifact(os.path.join(slide_dir, 'summary_df.csv'))
+        remove_artifact(os.path.join(slide_dir, 'summary_df_pred_merged.csv'))
 
 
 def remove_artifact(path):
