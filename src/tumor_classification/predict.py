@@ -49,8 +49,8 @@ def predict():
     ])
     dataset = TileDataset(Configs.PROCESSED_TILES_DIR, transform=transform)
     dataloader = DataLoader(dataset, shuffle=False, batch_size=Configs.TUMOR_INFERENCE_BATCH_SIZE,
-                            num_workers=Configs.TUMOR_INFERENCE_NUM_WORKERS,
-                            collate_fn=my_collate)
+                            num_workers=Configs.TUMOR_INFERENCE_NUM_WORKERS)
+                            # collate_fn=my_collate)
     model = TumorClassifier.load_from_checkpoint(Configs.TUMOR_TRAINED_MODEL_PATH)
     pred_writer = CustomWriter(output_dir=Configs.TUMOR_PREDICT_OUTPUT_PATH,
                                write_interval="epoch", class_to_index=Configs.TUMOR_CLASS_TO_IND, dataset=dataset)
