@@ -4,7 +4,7 @@ from torchvision import transforms
 from .Logger import Logger
 
 
-class MacenkoNormalizerTransform(object, Logger):
+class MacenkoNormalizerTransform(object):
     def __init__(self, ref_path):
         ref_img = Image.open(ref_path)
         T = transforms.Compose([
@@ -18,5 +18,5 @@ class MacenkoNormalizerTransform(object, Logger):
         try:
             return self.torch_normalizer.normalize(x * 255, stains=False)[0].permute(2, 0, 1) / 255.0
         except Exception as e:
-            self.log(f"Failed to normalize tile: {e}.", log_importance=2)
+            Logger.log(f"Failed to normalize tile: {e}.", log_importance=2)
             return x
