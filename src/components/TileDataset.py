@@ -23,7 +23,11 @@ class TileDataset(Dataset, Logger):
         path = self.df['tile_path'][index]
         img = Image.open(path)
         if self.transform:
-            img = self.transform(img)
+            try:
+                 return self.transform(img)
+            except:
+                self.log(f"Failed to load transform tile: {path}.", log_importance=2)
+                return None
         return img
 
     def __len__(self):
