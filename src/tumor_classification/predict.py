@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-
+from ..components.MacenkoNormalizerTransform import MacenkoNormalizerTransform
 from ..components.TileDataset import TileDataset
 from torch.utils.data import DataLoader
 from ..configs import Configs
@@ -37,7 +37,7 @@ def predict():
         transforms.Resize(224),
         transforms.CenterCrop(224),
         transforms.ToTensor(),
-        # MacenkoNormalizerTransform(Configs.COLOR_NORM_REF_IMG),  # already norm
+        MacenkoNormalizerTransform(Configs.COLOR_NORM_REF_IMG),  # already norm
         transforms.Normalize([0.485, 0.456, 0.406],
                              [0.229, 0.224, 0.225])
     ])
