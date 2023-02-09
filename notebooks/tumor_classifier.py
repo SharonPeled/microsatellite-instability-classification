@@ -15,7 +15,7 @@ class TileDataset(Dataset):
         x, y = self.subset[index]
         if self.transform:
             x = self.transform(x)
-        return x, y
+        return x, 'jhvjkjhv'
         
     def __len__(self):
         return len(self.subset)
