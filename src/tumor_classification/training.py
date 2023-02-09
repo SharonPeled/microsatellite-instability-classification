@@ -43,7 +43,8 @@ def train():
                                                                               Configs.RANDOM_SEED,
                                                                               train_transform,
                                                                               valid_transform)
-    Logger.log(f"""Created tumor classification datasets: {len(train_dataset)}, {len(valid_dataset)}, {len(test_dataset)}""")
+    Logger.log(f"""Created tumor classification datasets: {len(train_dataset)}, {len(valid_dataset)}, {len(test_dataset)}""",
+               log_importance=1)
 
     train_loader = DataLoader(train_dataset, batch_size=Configs.TUMOR_TRAINING_BATCH_SIZE, shuffle=True,
                               num_workers=Configs.TUMOR_TRAINING_NUM_WORKERS)
@@ -54,6 +55,7 @@ def train():
 
     model = TumorClassifier(Configs.TUMOR_NUM_CLASSES, Configs.TUMOR_IND, Configs.TUMOR_INIT_LR)
     logger = TensorBoardLogger(Configs.TUMOR_EXPERIMENT)
+    Logger.log("Starting Training.", log_importance=1)
     trainer = pl.Trainer(devices=Configs.TUMOR_NUM_DEVICES, accelerator=Configs.TUMOR_DEVICE,
                          deterministic=True,
                          check_val_every_n_epoch=1,
@@ -62,9 +64,12 @@ def train():
                          num_sanity_val_steps=2,
                          max_epochs=Configs.TUMOR_NUM_EPOCHS)
     trainer.fit(model, train_loader, valid_loader, ckpt_path=None)
+    Logger.log("Done Training.", log_importance=1)
+    Logger.log("Starting Test.", log_importance=1)
     trainer.test(model, dataloaders=test_loader)
+    Logger.log("Saving checkpoint.", log_importance=1)
     trainer.save_checkpoint(Configs.TUMOR_TRAINED_MODEL_PATH)
-
+    Logger.log(f"Done, trained model save in {Configs.TUMOR_TRAINED_MODEL_PATH}.", log_importance=1)
 
 
 

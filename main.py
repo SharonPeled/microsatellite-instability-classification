@@ -49,10 +49,6 @@ def main():
         execute_preprocessing_pipeline(with_tiling=True, num_processes=args.num_processes)
     if args.thumbnails_only:
         execute_preprocessing_pipeline(with_tiling=False, num_processes=args.num_processes)
-    if args.bring_thumbnails:
-        bring_files(Configs.SLIDES_DIR, 'thumbnail.png', args.bring_thumbnails)
-    if args.bring_tumor_thumbnails:
-        bring_files(Configs.SLIDES_DIR, 'tumor_thumbnail.png', args.bring_tumor_thumbnails)
     if args.bring_slide_logs:
         bring_joined_log_file(Configs.SLIDES_DIR, Configs.PROGRAM_LOG_FILE_ARGS[0], args.bring_slide_logs)
     if args.train_tumor_classifier:
@@ -65,6 +61,10 @@ def main():
                                            tumor_class_name=Configs.TUMOR_CLASS)
         generate_thumbnails_with_tumor_classification(df_tumor_pred=df_tumor_pred,
                                                       slides_dir=Configs.SLIDES_DIR)
+    if args.bring_thumbnails:
+        bring_files(Configs.SLIDES_DIR, 'thumbnail.png', args.bring_thumbnails)
+    if args.bring_tumor_thumbnails:
+        bring_files(Configs.SLIDES_DIR, 'tumor_thumbnail.png', args.bring_tumor_thumbnails)
 
 
 if __name__ == "__main__":
