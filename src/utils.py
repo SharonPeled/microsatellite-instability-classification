@@ -12,6 +12,11 @@ import matplotlib.pyplot as plt
 import pyvips
 
 
+def get_comet_api_key(path):
+    with open(path, 'r') as file:
+        return file.readline()
+
+
 def set_global_configs(verbose, log_file_args, log_importance, log_format, random_seed, tile_progress_log_freq):
     Logger.set_default_logger(verbose, log_file_args, log_importance, log_format, tile_progress_log_freq)
     set_random_seed(random_seed)
