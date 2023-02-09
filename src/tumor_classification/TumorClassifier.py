@@ -46,12 +46,12 @@ class TumorClassifier(pl.LightningModule):
 
     def validation_step(self, batch, batch_idx):
         val_loss, scores, y = self.general_loop(batch, batch_idx)
-        self.log("val_loss", val_loss, on_step=False, on_epoch=True)
+        self.log("val_loss", val_loss, on_step=False, on_epoch=True, sync_dist=True)
         return {"scores": scores, "y": y}
 
     def test_step(self, batch, batch_idx):
         test_loss, scores, y = self.general_loop(batch, batch_idx)
-        self.log("test_loss", test_loss, on_step=False, on_epoch=True)
+        self.log("test_loss", test_loss, on_step=False, on_epoch=True, sync_dist=True)
         return {"scores": scores, "y": y}
 
     def log_epoch_level_metrics(self, outputs, dataset_str):
@@ -62,10 +62,10 @@ class TumorClassifier(pl.LightningModule):
         y = (torch.concat([out["y"] for out in outputs]) == self.tumor_class_ind).int().cpu().numpy()
         precision, recall, f1, _ = precision_recall_fscore_support(y, y_pred, average='binary')
         auc = roc_auc_score(y, tumor_prob)
-        self.log(f"{dataset_str}_precision", precision, sync_dist=True)
-        self.log(f"{dataset_str}_recall", recall, sync_dist=True)
-        self.log(f"{dataset_str}_f1", f1, sync_dist=True)
-        self.log(f"{dataset_str}_auc", auc, sync_dist=True)
+        self.log(f"{dataset_str}_precision", precision, on_step=False, on_epoch=True, sync_dist=True)
+        self.log(f"{dataset_str}_recall", recall, on_step=False, on_epoch=True, sync_dist=True)
+        self.log(f"{dataset_str}_f1", f1, on_step=False, on_epoch=True, sync_dist=True)
+        self.log(f"{dataset_str}_auc", auc, on_step=False, on_epoch=True, sync_dist=True)
 
     def validation_epoch_end(self, outputs):
         self.log_epoch_level_metrics(outputs, dataset_str='valid')
