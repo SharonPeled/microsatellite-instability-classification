@@ -49,9 +49,10 @@ class PreprocessingConfigs:
 
 @dataclass
 class TumorClassificationConfigs:
-    TUMOR_EXPERIMENT = os.path.join(GeneralConfigs.ROOT, 'models', 'tumor_classifier_V2')
+    TUMOR_EXPERIMENT_VERSION = 'color_jitter'
+    TUMOR_EXPERIMENT = os.path.join(GeneralConfigs.ROOT, 'models', f'tumor_classifier_{TUMOR_EXPERIMENT_VERSION}')
     TUMOR_TRAINED_MODEL_PATH = os.path.join(GeneralConfigs.ROOT, 'models',
-                                            'tumor_classifier_resnet50_10_epochs_V1.ckpt')
+                                            f'tumor_classifier_resnet50_10_epochs_{TUMOR_EXPERIMENT_VERSION}.ckpt')
     TUMOR_LOG_DIR = os.path.join(GeneralConfigs.ROOT, 'models')
     TUMOR_LABELED_TILES_DIR = os.path.join(GeneralConfigs.ROOT, 'data', 'tumor_labeled_tiles')
     TUMOR_CLASS = 'TUMSTU'
@@ -67,7 +68,7 @@ class TumorClassificationConfigs:
     TUMOR_NUM_EPOCHS = 10
     TUMOR_NUM_DEVICES = 2
     TUMOR_DEVICE = 'gpu'
-    TUMOR_PREDICT_OUTPUT_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'tumor_tiles_pred')
+    TUMOR_PREDICT_OUTPUT_PATH = os.path.join(GeneralConfigs.ROOT, 'data', f'tumor_tiles_{TUMOR_EXPERIMENT_VERSION}_pred')
     TUMOR_INFERENCE_BATCH_SIZE = 64
     TUMOR_INFERENCE_NUM_WORKERS = 32
 
