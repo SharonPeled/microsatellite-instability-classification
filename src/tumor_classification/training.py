@@ -24,7 +24,7 @@ def train():
         transforms.ToTensor(),
         MacenkoNormalizerTransform(Configs.COLOR_NORM_REF_IMG),
         transforms.ToPILImage(),
-        transforms.ColorJitter(brightness=.25, contrast=.25, saturation=.25, hue=.25),
+        transforms.ColorJitter(brightness=.25, contrast=.25, saturation=.25, hue=.5),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406],
                              [0.229, 0.224, 0.225])
