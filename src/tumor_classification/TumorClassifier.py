@@ -20,7 +20,7 @@ class TumorClassifier(pl.LightningModule):
         layers.append(nn.Flatten())
         layers.append(nn.Linear(num_filters, num_classes))
         self.model = nn.Sequential(*layers)
-        self.save_hyperparameters()
+        # self.save_hyperparameters()
 
     def forward(self, x):
         return self.model(x)

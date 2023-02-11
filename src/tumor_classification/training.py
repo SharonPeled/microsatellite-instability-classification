@@ -3,7 +3,7 @@ from torch.utils.data import DataLoader
 from torchvision.datasets import ImageFolder
 import pytorch_lightning as pl
 from torch.multiprocessing import Pool, set_start_method
-from pytorch_lightning.loggers import TensorBoardLogger
+from pytorch_lightning.loggers import TensorBoardLogger, MLFlowLogger
 from ..configs import Configs
 from ..components.MacenkoNormalizerTransform import MacenkoNormalizerTransform
 from .utils import get_train_test_valid_dataset
@@ -52,15 +52,18 @@ def train():
                               num_workers=Configs.TUMOR_TRAINING_NUM_WORKERS)
     test_loader = DataLoader(test_dataset, batch_size=Configs.TUMOR_TRAINING_BATCH_SIZE, shuffle=False,
                              num_workers=Configs.TUMOR_TRAINING_NUM_WORKERS)
-
     model = TumorClassifier(Configs.TUMOR_NUM_CLASSES, Configs.TUMOR_IND, Configs.TUMOR_INIT_LR)
-    logger = TensorBoardLogger(Configs.TUMOR_EXPERIMENT)
+    mlflow_logger = MLFlowLogger(experiment_name=Configs.TUMOR_EXPERIMENT_NAME, run_name=Configs.TUMOR_RUN_NAME,
+                                 save_dir=Configs.MLFLOW_SAVE_DIR,
+                                 artifact_location=Configs.MLFLOW_SAVE_DIR,
+                                 log_model='all',
+                                 tags={"trained_model_path": Configs.TUMOR_TRAINED_MODEL_PATH})
     Logger.log("Starting Training.", log_importance=1)
     trainer = pl.Trainer(devices=Configs.TUMOR_NUM_DEVICES, accelerator=Configs.TUMOR_DEVICE,
                          deterministic=True,
                          check_val_every_n_epoch=1,
                          enable_checkpointing=True,
-                         logger=logger,
+                         logger=mlflow_logger,
                          num_sanity_val_steps=2,
                          max_epochs=Configs.TUMOR_NUM_EPOCHS)
     trainer.fit(model, train_loader, valid_loader, ckpt_path=None)
@@ -70,9 +73,6 @@ def train():
     Logger.log("Saving checkpoint.", log_importance=1)
     trainer.save_checkpoint(Configs.TUMOR_TRAINED_MODEL_PATH)
     Logger.log(f"Done, trained model save in {Configs.TUMOR_TRAINED_MODEL_PATH}.", log_importance=1)
-
-
-
 
 
 

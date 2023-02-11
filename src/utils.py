@@ -12,11 +12,6 @@ import matplotlib.pyplot as plt
 import pyvips
 
 
-def get_comet_api_key(path):
-    with open(path, 'r') as file:
-        return file.readline()
-
-
 def set_global_configs(verbose, log_file_args, log_importance, log_format, random_seed, tile_progress_log_freq):
     Logger.set_default_logger(verbose, log_file_args, log_importance, log_format, tile_progress_log_freq)
     set_random_seed(random_seed)
@@ -98,7 +93,7 @@ def bring_joined_log_file(folder_in, file_format, filepath_out):
 
 
 def delete_all_artifacts(configs):
-    remove_artifact(os.path.join(configs.ROOT, configs.PROGRAM_LOG_FILE))
+    remove_artifact(os.path.join(configs.ROOT, configs.PROGRAM_LOG_FILE_ARGS[0]))
     remove_artifact(configs.PROCESSED_TILES_DIR)
     slide_paths = sorted(glob(f"{configs.SLIDES_DIR}/**/*.svs", recursive=True))  # all .svs files
     for path in slide_paths:

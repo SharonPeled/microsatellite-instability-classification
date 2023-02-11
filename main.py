@@ -42,7 +42,7 @@ def main():
         for sig in catchable_sigs:
             signal.signal(sig, write_to_file)
     if args.clean_all:
-        print("Are you sure you want to delete all generated artifacts?")
+        print(f"Are you sure you want to delete all generated artifacts in {Configs.ROOT} ?")
         if input().lower() in ['y', 'yes']:
             delete_all_artifacts(Configs)
     if args.preprocess:

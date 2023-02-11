@@ -2,7 +2,7 @@ from dataclasses import dataclass
 import os
 from pathlib import Path
 from .preprocessing.pen_filter import get_pen_color_palette
-from .utils import set_global_configs, get_comet_api_key
+from .utils import set_global_configs
 import torch
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning, module="torchstain")
@@ -16,7 +16,7 @@ class GeneralConfigs:
     PROGRAM_LOG_FILE_ARGS = ['log.txt', 'a+']  # slide level log is in the slide dir. Use --bring-slide-logs to get all slide logs.
     LOG_IMPORTANCE = 1  # 0 (all), 1 or 2 (only high importance logs)
     LOG_FORMAT = {'format': '%(process)d  %(asctime)s  [%(name)s] - %(message)s', 'datefmt':'%d-%m-%y %H:%M:%S'}
-    COMET_API_KEY = get_comet_api_key(os.path.join(ROOT, 'src', 'comet_api_key.txt'))
+    MLFLOW_SAVE_DIR = os.path.join(ROOT, 'models', 'mlruns')
 
 
 @dataclass
@@ -49,11 +49,10 @@ class PreprocessingConfigs:
 
 @dataclass
 class TumorClassificationConfigs:
-    TUMOR_EXPERIMENT_VERSION = 'color_jitter'
-    TUMOR_EXPERIMENT = os.path.join(GeneralConfigs.ROOT, 'models', f'tumor_classifier_{TUMOR_EXPERIMENT_VERSION}')
+    TUMOR_EXPERIMENT_NAME = 'tumor_classifier'
+    TUMOR_RUN_NAME = 'color_jitter'
     TUMOR_TRAINED_MODEL_PATH = os.path.join(GeneralConfigs.ROOT, 'models',
-                                            f'tumor_classifier_resnet50_10_epochs_{TUMOR_EXPERIMENT_VERSION}.ckpt')
-    TUMOR_LOG_DIR = os.path.join(GeneralConfigs.ROOT, 'models')
+                                            f'tumor_classifier_resnet50_10_epochs_{TUMOR_RUN_NAME}.ckpt')
     TUMOR_LABELED_TILES_DIR = os.path.join(GeneralConfigs.ROOT, 'data', 'tumor_labeled_tiles')
     TUMOR_CLASS = 'TUMSTU'
     NON_TUMOR_CLASSES = ['STRMUS', 'ADIMUC']
@@ -68,7 +67,8 @@ class TumorClassificationConfigs:
     TUMOR_NUM_EPOCHS = 10
     TUMOR_NUM_DEVICES = 2
     TUMOR_DEVICE = 'gpu'
-    TUMOR_PREDICT_OUTPUT_PATH = os.path.join(GeneralConfigs.ROOT, 'data', f'tumor_tiles_{TUMOR_EXPERIMENT_VERSION}_pred')
+    TUMOR_PREDICT_OUTPUT_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'tumor_classification',
+                                             f'tumor_tiles_{TUMOR_RUN_NAME}_pred')
     TUMOR_INFERENCE_BATCH_SIZE = 64
     TUMOR_INFERENCE_NUM_WORKERS = 32
 

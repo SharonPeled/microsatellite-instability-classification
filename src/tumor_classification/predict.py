@@ -51,7 +51,9 @@ def predict():
     dataloader = DataLoader(dataset, shuffle=False, batch_size=Configs.TUMOR_INFERENCE_BATCH_SIZE,
                             num_workers=Configs.TUMOR_INFERENCE_NUM_WORKERS)
                             # collate_fn=my_collate)
-    model = TumorClassifier.load_from_checkpoint(Configs.TUMOR_TRAINED_MODEL_PATH)
+    model = TumorClassifier.load_from_checkpoint(Configs.TUMOR_TRAINED_MODEL_PATH,
+                                                 num_classes=Configs.TUMOR_NUM_CLASSES,
+                                                 tumor_class_ind=Configs.TUMOR_IND, learning_rate=None)
     pred_writer = CustomWriter(output_dir=Configs.TUMOR_PREDICT_OUTPUT_PATH,
                                write_interval="epoch", class_to_index=Configs.TUMOR_CLASS_TO_IND, dataset=dataset)
     trainer = pl.Trainer(accelerator=Configs.TUMOR_DEVICE, devices=Configs.TUMOR_NUM_DEVICES, callbacks=[pred_writer],
