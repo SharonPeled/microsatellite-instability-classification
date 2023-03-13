@@ -74,7 +74,35 @@ class TumorClassificationConfigs:
 
 
 @dataclass
-class ConfigsClass(GeneralConfigs, PreprocessingConfigs, TumorClassificationConfigs):
+class GlobalClusteringEncoderConfigs:
+    # GCE - global clustering encoder
+    GCE_EXPERIMENT_NAME = 'global_clustering_encoder'
+    GCE_BACKBONE = 'resnet50'
+    GCE_RUN_NAME = f'{GCE_BACKBONE}_backbone'
+    GCE_OUTPUT_DIR = os.path.join(GeneralConfigs.ROOT, 'data', 'encoded_tiles',
+                                  GCE_BACKBONE)
+    GCE_DEVICE = 'gpu'
+    GCE_NUM_DEVICES = 2
+    GCE_BATCH_SIZE = 64
+    GCE_NUM_WORKERS = 32
+
+
+# TODO: add per cluster
+@dataclass
+class GlobalClusteringConfigs:
+    # GC - global clustering
+    GC_EXPERIMENT_NAME = 'global_clustering'
+    GC_STRATEGY = 'minibatch_kmeans'
+    GC_RUN_NAME = f'{GC_STRATEGY}_clustering'
+    GC_OUTPUT_DIR = os.path.join(GeneralConfigs.ROOT, 'data', 'global_clustering',
+                                 GC_STRATEGY)
+    GC_BATCH_SIZE = 10000
+    GC_NUM_CLUSTERS = [5, 10, 15, 20, 25, 30]
+
+
+@dataclass
+class ConfigsClass(GeneralConfigs, PreprocessingConfigs, TumorClassificationConfigs, GlobalClusteringEncoderConfigs,
+                   GlobalClusteringConfigs):
     def __init__(self):
         set_global_configs(verbose=self.VERBOSE,
                            log_file_args=self.PROGRAM_LOG_FILE_ARGS,

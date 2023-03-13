@@ -10,7 +10,6 @@ import os
 import pytorch_lightning as pl
 from .TumorClassifier import TumorClassifier
 from torchvision import transforms
-from torch.utils.data.dataloader import default_collate
 
 
 class CustomWriter(BasePredictionWriter):
@@ -33,24 +32,17 @@ class CustomWriter(BasePredictionWriter):
         df_pred.to_csv(os.path.join(self.output_dir, f"df_pred_{trainer.global_rank}.csv"), index=False)
 
 
-def my_collate(batch):
-    batch = list(filter(lambda x: x is not None, batch))
-    return default_collate(batch)
-
-
 def predict():
     transform = transforms.Compose([
         transforms.Resize(224),
-        transforms.CenterCrop(224),
         transforms.ToTensor(),
-        MacenkoNormalizerTransform(Configs.COLOR_NORM_REF_IMG),  # already norm
+        # MacenkoNormalizerTransform(Configs.COLOR_NORM_REF_IMG),  # already norm
         transforms.Normalize([0.485, 0.456, 0.406],
                              [0.229, 0.224, 0.225])
     ])
     dataset = TileDataset(Configs.PROCESSED_TILES_DIR, transform=transform)
     dataloader = DataLoader(dataset, shuffle=False, batch_size=Configs.TUMOR_INFERENCE_BATCH_SIZE,
                             num_workers=Configs.TUMOR_INFERENCE_NUM_WORKERS)
-                            # collate_fn=my_collate)
     model = TumorClassifier.load_from_checkpoint(Configs.TUMOR_TRAINED_MODEL_PATH,
                                                  num_classes=Configs.TUMOR_NUM_CLASSES,
                                                  tumor_class_ind=Configs.TUMOR_IND, learning_rate=None)
