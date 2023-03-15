@@ -10,6 +10,10 @@ from ..components.Logger import Logger
 from ..components.TissueClassifier import TissueClassifier
 
 
+def set_worker_sharing_strategy(worker_id: int) -> None:
+    set_sharing_strategy('file_system')
+
+
 def train():
     set_sharing_strategy('file_system')
     set_start_method("spawn")
@@ -48,11 +52,11 @@ def train():
                log_importance=1)
 
     train_loader = DataLoader(train_dataset, batch_size=Configs.SS_TRAINING_BATCH_SIZE, shuffle=True,
-                              num_workers=Configs.SS_TRAINING_NUM_WORKERS)
+                              num_workers=Configs.SS_TRAINING_NUM_WORKERS, worker_init_fn=set_worker_sharing_strategy)
     valid_loader = DataLoader(valid_dataset, batch_size=Configs.SS_TRAINING_BATCH_SIZE, shuffle=False,
-                              num_workers=Configs.SS_TRAINING_NUM_WORKERS)
+                              num_workers=Configs.SS_TRAINING_NUM_WORKERS, worker_init_fn=set_worker_sharing_strategy)
     test_loader = DataLoader(test_dataset, batch_size=Configs.SS_TRAINING_BATCH_SIZE, shuffle=False,
-                             num_workers=Configs.SS_TRAINING_NUM_WORKERS)
+                             num_workers=Configs.SS_TRAINING_NUM_WORKERS, worker_init_fn=set_worker_sharing_strategy)
 
     model = TissueClassifier(class_to_ind=Configs.SS_CLASS_TO_IND, learning_rate=Configs.SS_INIT_LR)
     mlflow_logger = MLFlowLogger(experiment_name=Configs.SS_EXPERIMENT_NAME, run_name=Configs.SS_RUN_NAME,

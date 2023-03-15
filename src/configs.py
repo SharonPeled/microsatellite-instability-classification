@@ -78,22 +78,22 @@ class SemanticSegConfigs:
     SS_TRAINED_MODEL_PATH = os.path.join(GeneralConfigs.ROOT, 'models',
                                             f'{SS_EXPERIMENT_NAME}_resnet50_10_epochs_{SS_RUN_NAME}.ckpt')
     SS_LABELED_TILES_TRAIN_DIR = os.path.join(GeneralConfigs.ROOT, 'data', 'semantic_seg_tiles',
-                                              'CRC-VAL-HE-7K')
+                                              'NCT-CRC-HE-100K')
     SS_LABELED_TILES_TEST_DIR = os.path.join(GeneralConfigs.ROOT, 'data', 'semantic_seg_tiles',
                                              'CRC-VAL-HE-7K')
     SS_VALID_SIZE = 0.1
     SS_TRAINING_BATCH_SIZE = 16
-    SS_TRAINING_NUM_WORKERS = 1
+    SS_TRAINING_NUM_WORKERS = 4
     SS_INIT_LR = 1e-4
-    SS_NUM_EPOCHS = 10
+    SS_NUM_EPOCHS = 3
     SS_NUM_DEVICES = 1
     SS_DEVICE = 'gpu'
     # alphabetical order as in ImageFolder (dicts preserve order in Python 3.7+)
     SS_CLASS_TO_IND = {'ADI': 0, 'BACK': 1, 'DEB': 2, 'LYM': 3, 'MUC': 4, 'MUS': 5, 'NORM': 6, 'STR': 7, 'TUM': 8}
     SS_PREDICT_OUTPUT_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'semantic_segmentation_results',
                                              f'ss_{SS_RUN_NAME}_pred')
-    SS_INFERENCE_BATCH_SIZE = 32
-    SS_INFERENCE_NUM_WORKERS = 1
+    SS_INFERENCE_BATCH_SIZE = 64
+    SS_INFERENCE_NUM_WORKERS = 32
 
 
 @dataclass

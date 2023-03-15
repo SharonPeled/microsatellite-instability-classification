@@ -42,17 +42,18 @@ class TissueClassifier(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):
         train_loss, scores, y = self.general_loop(batch, batch_idx)
-        self.log("train_loss", train_loss, on_step=True, on_epoch=True)
+        self.logger.experiment.log_metric(self.logger.run_id, "train_loss", train_loss)
         return {"loss": train_loss}
 
     def validation_step(self, batch, batch_idx):
         val_loss, scores, y = self.general_loop(batch, batch_idx)
         self.log("val_loss", val_loss, on_step=False, on_epoch=True, sync_dist=True)
+        self.logger.experiment.log_metric(self.logger.run_id, "val_loss", val_loss)
         return {"scores": scores, "y": y}
 
     def test_step(self, batch, batch_idx):
         test_loss, scores, y = self.general_loop(batch, batch_idx)
-        self.log("test_loss", test_loss, on_step=False, on_epoch=True, sync_dist=True)
+        self.logger.experiment.log_metric(self.logger.run_id, "test_loss", test_loss)
         return {"scores": scores, "y": y}
 
     def log_epoch_level_metrics(self, outputs, dataset_str):
@@ -67,25 +68,24 @@ class TissueClassifier(pl.LightningModule):
             if class_str not in self.class_to_ind.keys():
                 continue
             for metric_str, metric_val in class_metrics.items():
-                self.log(f"{dataset_str}_{class_str}_{metric_str}", metric_val, on_step=False,
-                         on_epoch=True, sync_dist=True)
+                self.logger.experiment.log_metric(self.logger.run_id, f"{dataset_str}_{class_str}_{metric_str}",
+                                                  metric_val)
         # auc
         if set(self.class_to_ind.values()) == set(y_true):
             # in order to use auc y_true has to include all labels
             # this condition may not be satisfied in the sanity check, where the sampling is not stratified
             auc_scores = roc_auc_score(y_true, logits, multi_class='ovr', average=None)
             for class_str, ind in self.class_to_ind.items():
-                self.log(f"{dataset_str}_{class_str}_auc", auc_scores[ind], on_step=False,
-                         on_epoch=True, sync_dist=True)
+                self.logger.experiment.log_metric(self.logger.run_id, f"{dataset_str}_{class_str}_auc", auc_scores[ind])
         # confusion matrix
-        cm = confusion_matrix(y_true, y_pred)
+        cm = confusion_matrix(y_true, y_pred, normalize='pred')
         fig = plt.figure(figsize=(6, 6))
-        sns.heatmap(cm, annot=True, cmap=plt.cm.Blues, fmt="d",
+        sns.heatmap(cm, annot=True, cmap=plt.cm.Blues, fmt=".2%", annot_kws={"fontsize":14},
                     xticklabels=list(self.class_to_ind.keys()), yticklabels=list(self.class_to_ind.keys()))
         plt.title("Confusion Matrix")
         plt.xlabel("Predicted Label")
         plt.ylabel("True Label")
-        self.logger.experiment.log_figure(self.logger.run_id, fig, "confusion_matrix.png")
+        self.logger.experiment.log_figure(self.logger.run_id, fig, f"confusion_matrix_{self.current_epoch}.png")
 
     def validation_epoch_end(self, outputs):
         self.log_epoch_level_metrics(outputs, dataset_str='valid')
