@@ -1,7 +1,8 @@
 import argparse
 from src.preprocessing.pipeline import execute_preprocessing_pipeline
-from src.tumor_classification.training import train
-from src.tumor_classification.predict import predict
+from src.tumor_classification.training import train as train_tumor
+from src.tumor_classification.predict import predict as predict_tumor
+from src.semantic_segmentation.training import train as train_semantic_seg
 from src.utils import bring_files, bring_joined_log_file, delete_all_artifacts, \
     generate_thumbnails_with_tumor_classification, load_df_tumor_pred
 import signal
@@ -31,6 +32,7 @@ def main():
     parser.add_argument('--bring-tumor-thumbnails', type=str)
     parser.add_argument('--bring-slide-logs', type=str)
     parser.add_argument('--train-tumor-classifier', action='store_true')
+    parser.add_argument('--train-semantic-seg', action='store_true')
     parser.add_argument('--inference-tumor-tiles', action='store_true')
     parser.add_argument('--num-processes', type=int)
     parser.add_argument('--generate-tumor-thumbnails', action='store_true')
@@ -52,9 +54,11 @@ def main():
     if args.bring_slide_logs:
         bring_joined_log_file(Configs.SLIDES_DIR, Configs.PROGRAM_LOG_FILE_ARGS[0], args.bring_slide_logs)
     if args.train_tumor_classifier:
-        train()
+        train_tumor()
     if args.inference_tumor_tiles:
-        predict()
+        predict_tumor()
+    if args.train_semantic_seg:
+        train_semantic_seg()
     if args.generate_tumor_thumbnails:
         df_tumor_pred = load_df_tumor_pred(pred_dir=Configs.TUMOR_PREDICT_OUTPUT_PATH,
                                            class_to_index=Configs.TUMOR_CLASS_TO_IND,

@@ -10,6 +10,9 @@ import os
 from torch.nn.functional import conv2d, softmax
 import matplotlib.pyplot as plt
 import pyvips
+from sklearn.model_selection import StratifiedShuffleSplit
+from src.components.SubDataset import SubDataset
+from torch.utils.data import Subset
 
 
 def set_global_configs(verbose, log_file_args, log_importance, log_format, random_seed, tile_progress_log_freq):
@@ -27,6 +30,16 @@ def conv2d_to_device(img_np, kernel_size, stride, device):
     img_t = torch.from_numpy(img_np).to(device).reshape(new_shape)
     return conv2d(img_t.float(), torch.ones((1, 1, kernel_size, kernel_size), device=device).float(),
                   stride=stride).squeeze().cpu().numpy()
+
+
+def get_train_test_dataset(dataset, test_size, random_state, train_transform, test_transform):
+    # train test split
+    train_test_split = StratifiedShuffleSplit(n_splits=1, test_size=test_size,
+                                              random_state=random_state)
+    train_inds, test_inds = next(train_test_split.split(dataset, y=dataset.targets))
+    train_dataset = SubDataset(Subset(dataset, train_inds), transform=train_transform)
+    test_dataset = SubDataset(Subset(dataset, test_inds), transform=test_transform)
+    return train_dataset, test_dataset
 
 
 def get_time():

@@ -6,9 +6,9 @@ from torch.multiprocessing import Pool, set_start_method
 from pytorch_lightning.loggers import TensorBoardLogger, MLFlowLogger
 from ..configs import Configs
 from ..components.MacenkoNormalizerTransform import MacenkoNormalizerTransform
-from .utils import get_train_test_valid_dataset
+from ..utils import get_train_test_dataset
 from ..components.Logger import Logger
-from .TumorClassifier import TumorClassifier
+from ..components.TissueClassifier import TissueClassifier
 
 
 def train():
@@ -38,11 +38,14 @@ def train():
         transforms.Normalize([0.485, 0.456, 0.406],
                              [0.229, 0.224, 0.225])
     ])
-    train_dataset, valid_dataset, test_dataset = get_train_test_valid_dataset(dataset, Configs.TUMOR_TEST_SIZE,
-                                                                              Configs.TUMOR_VALID_SIZE,
-                                                                              Configs.RANDOM_SEED,
-                                                                              train_transform,
-                                                                              valid_transform)
+    train_dataset, test_dataset = get_train_test_dataset(dataset, Configs.TUMOR_TEST_SIZE,
+                                                               Configs.RANDOM_SEED,
+                                                               train_transform,
+                                                               valid_transform)
+    train_dataset, valid_dataset = get_train_test_dataset(dataset, Configs.TUMOR_VALID_SIZE,
+                                                                Configs.RANDOM_SEED,
+                                                                train_transform,
+                                                                valid_transform)
     Logger.log(f"""Created tumor classification datasets: {len(train_dataset)}, {len(valid_dataset)}, {len(test_dataset)}""",
                log_importance=1)
 
@@ -52,7 +55,7 @@ def train():
                               num_workers=Configs.TUMOR_TRAINING_NUM_WORKERS)
     test_loader = DataLoader(test_dataset, batch_size=Configs.TUMOR_TRAINING_BATCH_SIZE, shuffle=False,
                              num_workers=Configs.TUMOR_TRAINING_NUM_WORKERS)
-    model = TumorClassifier(Configs.TUMOR_NUM_CLASSES, Configs.TUMOR_IND, Configs.TUMOR_INIT_LR)
+    model = TissueClassifier(class_to_ind=Configs.TUMOR_CLASS_TO_IND, learning_rate=Configs.TUMOR_INIT_LR)
     mlflow_logger = MLFlowLogger(experiment_name=Configs.TUMOR_EXPERIMENT_NAME, run_name=Configs.TUMOR_RUN_NAME,
                                  save_dir=Configs.MLFLOW_SAVE_DIR,
                                  artifact_location=Configs.MLFLOW_SAVE_DIR,

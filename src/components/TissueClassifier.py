@@ -4,23 +4,24 @@ import torch.nn.functional as F
 import pytorch_lightning as pl
 from torchvision.models import resnet50
 from torch.nn.functional import softmax
-from sklearn.metrics import precision_recall_fscore_support, roc_auc_score
+from sklearn.metrics import precision_recall_fscore_support, roc_auc_score, classification_report
 from torch.optim.lr_scheduler import ReduceLROnPlateau
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.metrics import confusion_matrix
 
 
-class TumorClassifier(pl.LightningModule):
-    def __init__(self, num_classes, tumor_class_ind, learning_rate):
+class TissueClassifier(pl.LightningModule):
+    def __init__(self, class_to_ind, learning_rate):
         super().__init__()
-        assert tumor_class_ind is not None
-        self.tumor_class_ind = tumor_class_ind
+        self.class_to_ind = class_to_ind
         self.learning_rate = learning_rate
         backbone = resnet50(weights="IMAGENET1K_V2")
         num_filters = backbone.fc.in_features
         layers = list(backbone.children())[:-1]
         layers.append(nn.Flatten())
-        layers.append(nn.Linear(num_filters, num_classes))
+        layers.append(nn.Linear(num_filters, len(self.class_to_ind)))
         self.model = nn.Sequential(*layers)
-        # self.save_hyperparameters()
 
     def forward(self, x):
         return self.model(x)
@@ -56,16 +57,35 @@ class TumorClassifier(pl.LightningModule):
 
     def log_epoch_level_metrics(self, outputs, dataset_str):
         scores = torch.concat([out["scores"] for out in outputs])
-        logits = softmax(scores, dim=1)
-        tumor_prob = logits[:, self.tumor_class_ind].cpu().numpy()
-        y_pred = (torch.argmax(scores, dim=1) == self.tumor_class_ind).int().cpu().numpy()
-        y = (torch.concat([out["y"] for out in outputs]) == self.tumor_class_ind).int().cpu().numpy()
-        precision, recall, f1, _ = precision_recall_fscore_support(y, y_pred, average='binary')
-        auc = roc_auc_score(y, tumor_prob)
-        self.log(f"{dataset_str}_precision", precision, on_step=False, on_epoch=True, sync_dist=True)
-        self.log(f"{dataset_str}_recall", recall, on_step=False, on_epoch=True, sync_dist=True)
-        self.log(f"{dataset_str}_f1", f1, on_step=False, on_epoch=True, sync_dist=True)
-        self.log(f"{dataset_str}_auc", auc, on_step=False, on_epoch=True, sync_dist=True)
+        logits = softmax(scores, dim=1).cpu().numpy()
+        y_pred = torch.argmax(scores, dim=1).cpu().numpy()
+        y_true = torch.concat([out["y"] for out in outputs]).cpu().numpy()
+        # precision, recall, f1
+        metrics = classification_report(y_true, y_pred, output_dict=True,
+                                        target_names=list(self.class_to_ind.keys()))
+        for class_str, class_metrics in metrics.items():
+            if class_str not in self.class_to_ind.keys():
+                continue
+            for metric_str, metric_val in class_metrics.items():
+                self.log(f"{dataset_str}_{class_str}_{metric_str}", metric_val, on_step=False,
+                         on_epoch=True, sync_dist=True)
+        # auc
+        if set(self.class_to_ind.values()) == set(y_true):
+            # in order to use auc y_true has to include all labels
+            # this condition may not be satisfied in the sanity check, where the sampling is not stratified
+            auc_scores = roc_auc_score(y_true, logits, multi_class='ovr', average=None)
+            for class_str, ind in self.class_to_ind.items():
+                self.log(f"{dataset_str}_{class_str}_auc", auc_scores[ind], on_step=False,
+                         on_epoch=True, sync_dist=True)
+        # confusion matrix
+        cm = confusion_matrix(y_true, y_pred)
+        fig = plt.figure(figsize=(6, 6))
+        sns.heatmap(cm, annot=True, cmap=plt.cm.Blues, fmt="d",
+                    xticklabels=list(self.class_to_ind.keys()), yticklabels=list(self.class_to_ind.keys()))
+        plt.title("Confusion Matrix")
+        plt.xlabel("Predicted Label")
+        plt.ylabel("True Label")
+        self.logger.experiment.log_figure(self.logger.run_id, fig, "confusion_matrix.png")
 
     def validation_epoch_end(self, outputs):
         self.log_epoch_level_metrics(outputs, dataset_str='valid')

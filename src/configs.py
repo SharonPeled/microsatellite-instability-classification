@@ -18,7 +18,6 @@ class GeneralConfigs:
     LOG_FORMAT = {'format': '%(process)d  %(asctime)s  [%(name)s] - %(message)s', 'datefmt':'%d-%m-%y %H:%M:%S'}
     MLFLOW_SAVE_DIR = os.path.join(ROOT, 'models', 'mlruns')
 
-
 @dataclass
 class PreprocessingConfigs:
     SLIDE_LOG_FILE_ARGS = ['log.txt', 'w']  # slide level log
@@ -52,7 +51,7 @@ class TumorClassificationConfigs:
     TUMOR_EXPERIMENT_NAME = 'tumor_classifier'
     TUMOR_RUN_NAME = 'color_jitter'
     TUMOR_TRAINED_MODEL_PATH = os.path.join(GeneralConfigs.ROOT, 'models',
-                                            f'tumor_classifier_resnet50_10_epochs_{TUMOR_RUN_NAME}.ckpt')
+                                            f'{TUMOR_EXPERIMENT_NAME}_resnet50_10_epochs_{TUMOR_RUN_NAME}.ckpt')
     TUMOR_LABELED_TILES_DIR = os.path.join(GeneralConfigs.ROOT, 'data', 'tumor_labeled_tiles')
     TUMOR_CLASS = 'TUMSTU'
     NON_TUMOR_CLASSES = ['STRMUS', 'ADIMUC']
@@ -73,8 +72,32 @@ class TumorClassificationConfigs:
     TUMOR_INFERENCE_NUM_WORKERS = 32
 
 
+class SemanticSegConfigs:
+    SS_EXPERIMENT_NAME = 'semantic_segmentation'
+    SS_RUN_NAME = 'first_try'
+    SS_TRAINED_MODEL_PATH = os.path.join(GeneralConfigs.ROOT, 'models',
+                                            f'{SS_EXPERIMENT_NAME}_resnet50_10_epochs_{SS_RUN_NAME}.ckpt')
+    SS_LABELED_TILES_TRAIN_DIR = os.path.join(GeneralConfigs.ROOT, 'data', 'semantic_seg_tiles',
+                                              'CRC-VAL-HE-7K')
+    SS_LABELED_TILES_TEST_DIR = os.path.join(GeneralConfigs.ROOT, 'data', 'semantic_seg_tiles',
+                                             'CRC-VAL-HE-7K')
+    SS_VALID_SIZE = 0.1
+    SS_TRAINING_BATCH_SIZE = 16
+    SS_TRAINING_NUM_WORKERS = 1
+    SS_INIT_LR = 1e-4
+    SS_NUM_EPOCHS = 10
+    SS_NUM_DEVICES = 1
+    SS_DEVICE = 'gpu'
+    # alphabetical order as in ImageFolder (dicts preserve order in Python 3.7+)
+    SS_CLASS_TO_IND = {'ADI': 0, 'BACK': 1, 'DEB': 2, 'LYM': 3, 'MUC': 4, 'MUS': 5, 'NORM': 6, 'STR': 7, 'TUM': 8}
+    SS_PREDICT_OUTPUT_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'semantic_segmentation_results',
+                                             f'ss_{SS_RUN_NAME}_pred')
+    SS_INFERENCE_BATCH_SIZE = 32
+    SS_INFERENCE_NUM_WORKERS = 1
+
+
 @dataclass
-class ConfigsClass(GeneralConfigs, PreprocessingConfigs, TumorClassificationConfigs):
+class ConfigsClass(GeneralConfigs, PreprocessingConfigs, TumorClassificationConfigs, SemanticSegConfigs):
     def __init__(self):
         set_global_configs(verbose=self.VERBOSE,
                            log_file_args=self.PROGRAM_LOG_FILE_ARGS,

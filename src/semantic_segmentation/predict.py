@@ -1,6 +1,5 @@
 import numpy as np
 import pandas as pd
-from ..components.MacenkoNormalizerTransform import MacenkoNormalizerTransform
 from ..components.TileDataset import TileDataset
 from torch.utils.data import DataLoader
 from ..configs import Configs
@@ -18,7 +17,7 @@ class CustomWriter(BasePredictionWriter):
         super().__init__(write_interval)
         self.output_dir = output_dir
         self.class_to_index = class_to_index
-        self.score_names = sorted(class_to_index.keys(), key=lambda k: class_to_index[k])
+        self.score_names = list(class_to_index.keys())
         self.dataset = dataset
 
     def write_on_batch_end(self, trainer, pl_module, prediction, batch_indices, batch, batch_idx, dataloader_idx):
@@ -43,20 +42,19 @@ def predict():
         transforms.Resize(224),
         transforms.CenterCrop(224),
         transforms.ToTensor(),
-        MacenkoNormalizerTransform(Configs.COLOR_NORM_REF_IMG),  # already norm
         transforms.Normalize([0.485, 0.456, 0.406],
                              [0.229, 0.224, 0.225])
     ])
     dataset = TileDataset(Configs.PROCESSED_TILES_DIR, transform=transform)
-    dataloader = DataLoader(dataset, shuffle=False, batch_size=Configs.TUMOR_INFERENCE_BATCH_SIZE,
-                            num_workers=Configs.TUMOR_INFERENCE_NUM_WORKERS)
+    dataloader = DataLoader(dataset, shuffle=False, batch_size=Configs.SS_INFERENCE_BATCH_SIZE,
+                            num_workers=Configs.SS_INFERENCE_NUM_WORKERS)
                             # collate_fn=my_collate)
-    model = TissueClassifier.load_from_checkpoint(Configs.TUMOR_TRAINED_MODEL_PATH,
-                                                  class_to_ind=Configs.TUMOR_CLASS_TO_IND, learning_rate=None)
-    pred_writer = CustomWriter(output_dir=Configs.TUMOR_PREDICT_OUTPUT_PATH,
-                               write_interval="epoch", class_to_index=Configs.TUMOR_CLASS_TO_IND, dataset=dataset)
-    trainer = pl.Trainer(accelerator=Configs.TUMOR_DEVICE, devices=Configs.TUMOR_NUM_DEVICES, callbacks=[pred_writer],
-                         default_root_dir=Configs.TUMOR_PREDICT_OUTPUT_PATH)
+    model = TissueClassifier.load_from_checkpoint(Configs.SS_TRAINED_MODEL_PATH,
+                                                  class_to_ind=Configs.SS_CLASS_TO_IND, learning_rate=None)
+    pred_writer = CustomWriter(output_dir=Configs.SS_PREDICT_OUTPUT_PATH,
+                               write_interval="epoch", class_to_index=Configs.SS_CLASS_TO_IND, dataset=dataset)
+    trainer = pl.Trainer(accelerator=Configs.SS_DEVICE, devices=Configs.SS_NUM_DEVICES, callbacks=[pred_writer],
+                         default_root_dir=Configs.SS_PREDICT_OUTPUT_PATH)
     trainer.predict(model, dataloader, return_predictions=False)
 
 
