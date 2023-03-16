@@ -198,7 +198,6 @@ def generate_classified_tissue_thumbnail(slide_summary_df, slide_path, class_to_
     plt.legend(handles=[plt.Rectangle((0, 0), 1, 1, fc=cmap_colors[i], ec="k") for i in range(len(cmap_colors))],
                labels=classes_str,
                loc='center left', bbox_to_anchor=(1, 0.5))  # add legend with class names and corresponding colors
-    plt.show()  # show plot
 
     thumb = pyvips.Image.thumbnail(slide_path, 512)
     ax2.imshow(thumb)
@@ -207,7 +206,7 @@ def generate_classified_tissue_thumbnail(slide_summary_df, slide_path, class_to_
     plt.tight_layout()
     fig.savefig(os.path.join(os.path.dirname(slide_path), 'semantic_seg_thumbnail.png'), bbox_inches='tight', pad_inches=0.5)
     plt.close(fig)
-    Logger.log(f"""Tumor Thumbnail Saved {os.path.dirname(slide_path)}.""", log_importance=1)
+    Logger.log(f"""Tissue Classified Thumbnail Saved {os.path.dirname(slide_path)}.""", log_importance=1)
 
 
 

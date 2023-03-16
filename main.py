@@ -31,6 +31,7 @@ def main():
     parser.add_argument('--suppress-signals', action='store_true')
     parser.add_argument('--bring-thumbnails', type=str)
     parser.add_argument('--bring-tumor-thumbnails', type=str)
+    parser.add_argument('--bring-semantic-seg-thumbnails', type=str)
     parser.add_argument('--bring-slide-logs', type=str)
     parser.add_argument('--train-tumor-classifier', action='store_true')
     parser.add_argument('--train-semantic-seg', action='store_true')
@@ -82,6 +83,8 @@ def main():
         bring_files(Configs.SLIDES_DIR, 'thumbnail.png', args.bring_thumbnails)
     if args.bring_tumor_thumbnails:
         bring_files(Configs.SLIDES_DIR, 'tumor_thumbnail.png', args.bring_tumor_thumbnails)
+    if args.bring_semantic_seg_thumbnails:
+        bring_files(Configs.SLIDES_DIR, 'semantic_seg_thumbnail.png', args.bring_semantic_seg_thumbnails)
 
 
 if __name__ == "__main__":
