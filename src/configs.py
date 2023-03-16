@@ -61,6 +61,7 @@ class TumorClassificationConfigs:
     TUMOR_TRAINING_NUM_WORKERS = 16
     TUMOR_NUM_CLASSES = 3
     TUMOR_CLASS_TO_IND = {'ADIMUC': 0, 'STRMUS': 1, 'TUMSTU': 2}  # alphabetical order as in ImageFolder
+    TUMOR_CLASS_TO_COLOR = {'ADIMUC': 'pink', 'STRMUS': 'pink', 'TUMSTU': 'red'}
     TUMOR_IND = TUMOR_CLASS_TO_IND['TUMSTU']
     TUMOR_INIT_LR = 1e-4
     TUMOR_NUM_EPOCHS = 10
@@ -90,6 +91,9 @@ class SemanticSegConfigs:
     SS_DEVICE = 'gpu'
     # alphabetical order as in ImageFolder (dicts preserve order in Python 3.7+)
     SS_CLASS_TO_IND = {'ADI': 0, 'BACK': 1, 'DEB': 2, 'LYM': 3, 'MUC': 4, 'MUS': 5, 'NORM': 6, 'STR': 7, 'TUM': 8}
+    SS_CLASS_TO_COLOR = {'ADI': 'beige', 'BACK': 'silver', 'DEB': 'grey',
+                         'LYM': 'yellow', 'MUC': 'chartreuse', 'MUS': 'orange',
+                         'NORM': 'pink', 'STR': 'lavender', 'TUM': 'maroon'}
     SS_PREDICT_OUTPUT_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'semantic_segmentation_results',
                                              f'ss_{SS_RUN_NAME}_pred')
     SS_INFERENCE_BATCH_SIZE = 64

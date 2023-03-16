@@ -9,6 +9,7 @@ import shutil
 import os
 from torch.nn.functional import conv2d, softmax
 import matplotlib.pyplot as plt
+from matplotlib.colors import ListedColormap, BoundaryNorm
 import pyvips
 from sklearn.model_selection import StratifiedShuffleSplit
 from src.components.SubDataset import SubDataset
@@ -77,7 +78,7 @@ def generate_spatial_filter_mask(df, shape, attr):
     :return: Array where each cell is 1 if a tile was is <attr> and 0 otherwise
     """
     mask = np.zeros(shape)
-    tuple_inds = df[df[attr]==True].index
+    tuple_inds = df[(df[attr]==True)|(df[attr]==1)].index
     rows_inds = [t[0] for t in tuple_inds]
     cols_inds = [t[1] for t in tuple_inds]
     mask[rows_inds, cols_inds] = 1
@@ -127,21 +128,24 @@ def remove_artifact(path):
             shutil.rmtree(path)
 
 
-def load_df_tumor_pred(pred_dir, class_to_index, tumor_class_name):
+def load_df_pred(pred_dir, class_to_index):
     df_paths = glob(f"{pred_dir}/**/df_pred_*", recursive=True)  # df pred from all devices
     df = pd.concat([pd.read_csv(path) for path in df_paths], ignore_index=True)
-    score_names = sorted(class_to_index.keys(), key=lambda k: class_to_index[k])
-    logits = softmax(torch.from_numpy(df[score_names].values), dim=-1)
-    tumor_prob = logits[:, class_to_index[tumor_class_name]]
-    df['tumor_prob'] = tumor_prob
-    df['Tumor'] = torch.argmax(logits, dim=1) == class_to_index[tumor_class_name]
+    classes = list(class_to_index.keys())
+    logits = softmax(torch.from_numpy(df[classes].values), dim=-1)
+    df[[c + '_prob' for c in classes]] = logits
+    class_indices = torch.argmax(logits, dim=1)  # get index of highest score for each sample
+    labels = torch.zeros(logits.shape)  # initialize binary matrix
+    labels[range(labels.shape[0]), class_indices] = 1
+    df[classes] = labels
     return df
 
 
-def generate_thumbnails_with_tumor_classification(df_tumor_pred, slides_dir):
-    df_tumor_pred['row'] = df_tumor_pred.tile_path.apply(lambda p: int(os.path.basename(p).split('_')[0]))
-    df_tumor_pred['col'] = df_tumor_pred.tile_path.apply(lambda p: int(os.path.basename(p).split('_')[1]))
-    df_tumor_pred['slide_uuid'] = df_tumor_pred.tile_path.apply(lambda p: os.path.basename(os.path.dirname(p)))
+def generate_thumbnails_with_tissue_classification(df_pred, slides_dir, class_to_index, class_to_color):
+    classes = list(class_to_index.keys())
+    df_pred['row'] = df_pred.tile_path.apply(lambda p: int(os.path.basename(p).split('_')[0]))
+    df_pred['col'] = df_pred.tile_path.apply(lambda p: int(os.path.basename(p).split('_')[1]))
+    df_pred['slide_uuid'] = df_pred.tile_path.apply(lambda p: os.path.basename(os.path.dirname(p)))
     summary_df_paths = glob(f"{slides_dir}/**/summary_df.csv", recursive=True)
     df_list = []
     for path in summary_df_paths:
@@ -153,14 +157,13 @@ def generate_thumbnails_with_tumor_classification(df_tumor_pred, slides_dir):
         summary_df['col'] = summary_df.index.map(lambda a: eval(a)[1])
         df_list.append(summary_df)
     summary_df_combined = pd.concat(df_list, ignore_index=True)
-    df_merged = summary_df_combined.merge(df_tumor_pred, how='left', on=['slide_uuid', 'row', 'col'])
-    df_merged.tumor_prob.fillna(0, inplace=True)  # all non-tumor tissue tiles has tumor_prob of 0
-    df_merged.Tumor.fillna(False, inplace=True)
+    df_merged = summary_df_combined.merge(df_pred, how='left', on=['slide_uuid', 'row', 'col'])
+    df_merged[classes] = df_merged[classes].fillna(0)  # non-tissue tiles (BKG/PEN)
     df_merged.row = df_merged.row.astype(int)
     df_merged.col = df_merged.col.astype(int)
     for slide_uuid, slide_summary_df in df_merged.groupby('slide_uuid'):
         slide_path = slide_summary_df.slide_path.values[0]
-        generate_tumor_thumbnail(slide_summary_df, slide_path)
+        generate_classified_tissue_thumbnail(slide_summary_df, slide_path, class_to_color)
         slide_summary_df.to_csv(os.path.join(os.path.dirname(slide_path), 'summary_df_pred_merged.csv'))
 
 
@@ -170,31 +173,39 @@ def add_cell_to_ax(row, col, ax, **kwargs):
     return rect
 
 
-def generate_tumor_thumbnail(slide_summary_df, slide_path):
+def generate_classified_tissue_thumbnail(slide_summary_df, slide_path, class_to_color):
     num_rows = slide_summary_df['row'].max() + 1
     num_cols = slide_summary_df['col'].max() + 1
+    slide_summary_df.index = [(x, y) for x in range(num_rows)
+                              for y in range(num_cols)]
+    cmap_colors = ['white']
+    classes_str = ['NON-TISSUE']
     grid = np.zeros((num_rows, num_cols))
-
-    tissue_inds = slide_summary_df[slide_summary_df.Tissue][['row', 'col']]
-    grid[tissue_inds.row.values, tissue_inds.col.values] = 0.2  # pinkish color
+    for i, (class_str, color) in enumerate(class_to_color.items()):
+        mask = generate_spatial_filter_mask(slide_summary_df, grid.shape, class_str)
+        grid[mask == 1] = i+1
+        cmap_colors.append(color)
+        classes_str.append(class_str)
+    cmap = ListedColormap(cmap_colors)  # create custom colormap
+    norm = BoundaryNorm(np.arange(len(cmap_colors) + 1), len(cmap_colors))  # create custom normalization
 
     fig, (ax1, ax2) = plt.subplots(nrows=2, ncols=1, figsize=(10, 10))
     for ax in [ax1, ax2]:
         ax.set_xticks([])
         ax.set_yticks([])
 
-    ax1.imshow(grid, cmap=plt.get_cmap('Reds'), vmin=0.0, vmax=1.0)
-    patches = [add_cell_to_ax(row, col, ax1, fill=True, color='tab:red')
-               for row, col in slide_summary_df[slide_summary_df.Tumor][['row', 'col']].values]
-    patches[0].set_label('Tumor') if len(patches) > 0 else None
-    ax1.legend(loc='lower right')
+    ax1.imshow(grid, cmap=cmap, norm=norm)
+    plt.legend(handles=[plt.Rectangle((0, 0), 1, 1, fc=cmap_colors[i], ec="k") for i in range(len(cmap_colors))],
+               labels=classes_str,
+               loc='center left', bbox_to_anchor=(1, 0.5))  # add legend with class names and corresponding colors
+    plt.show()  # show plot
 
     thumb = pyvips.Image.thumbnail(slide_path, 512)
     ax2.imshow(thumb)
 
     plt.subplots_adjust(wspace=0, hspace=0)
     plt.tight_layout()
-    fig.savefig(os.path.join(os.path.dirname(slide_path), 'tumor_thumbnail.png'), bbox_inches='tight', pad_inches=0.5)
+    fig.savefig(os.path.join(os.path.dirname(slide_path), 'semantic_seg_thumbnail.png'), bbox_inches='tight', pad_inches=0.5)
     plt.close(fig)
     Logger.log(f"""Tumor Thumbnail Saved {os.path.dirname(slide_path)}.""", log_importance=1)
 
