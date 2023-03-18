@@ -189,7 +189,7 @@ def generate_classified_tissue_thumbnail(slide_summary_df, slide_path, class_to_
     cmap = ListedColormap(cmap_colors)  # create custom colormap
     norm = BoundaryNorm(np.arange(len(cmap_colors) + 1), len(cmap_colors))  # create custom normalization
 
-    fig, (ax1, ax2) = plt.subplots(nrows=2, ncols=1, figsize=(10, 10))
+    fig, (ax1, ax2) = plt.subplots(nrows=2, ncols=1, figsize=(100, 100))
     for ax in [ax1, ax2]:
         ax.set_xticks([])
         ax.set_yticks([])
