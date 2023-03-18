@@ -5,7 +5,7 @@ import pytorch_lightning as pl
 from torchvision.models import resnet50
 from torch.nn.functional import softmax
 from sklearn.metrics import precision_recall_fscore_support, roc_auc_score, classification_report
-from torch.optim.lr_scheduler import ReduceLROnPlateau
+from torch.optim.lr_scheduler import ReduceLROnPlateau, StepLR
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.metrics import confusion_matrix
@@ -19,6 +19,8 @@ class TissueClassifier(pl.LightningModule):
         backbone = resnet50(weights="IMAGENET1K_V2")
         num_filters = backbone.fc.in_features
         layers = list(backbone.children())[:-1]
+        for layer in layers:
+            layer.requires_grad_(False)
         layers.append(nn.Flatten())
         layers.append(nn.Linear(num_filters, len(self.class_to_ind)))
         self.model = nn.Sequential(*layers)
@@ -31,7 +33,8 @@ class TissueClassifier(pl.LightningModule):
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate)
-        scheduler = ReduceLROnPlateau(optimizer, factor=0.1, patience=2)
+        # scheduler = ReduceLROnPlateau(optimizer, factor=0.1, patience=2)
+        scheduler = StepLR(optimizer, step_size=1, gamma=0.75)
         return {'optimizer': optimizer, 'lr_scheduler': scheduler, 'monitor': 'val_loss'}
 
     def general_loop(self, batch, batch_idx):
@@ -80,7 +83,7 @@ class TissueClassifier(pl.LightningModule):
         # confusion matrix
         cm = confusion_matrix(y_true, y_pred, normalize='pred')
         fig = plt.figure(figsize=(6, 6))
-        sns.heatmap(cm, annot=True, cmap=plt.cm.Blues, fmt=".2%", annot_kws={"fontsize":14},
+        sns.heatmap(cm, annot=True, cmap=plt.cm.Blues, fmt=".2f", annot_kws={"fontsize": 7},
                     xticklabels=list(self.class_to_ind.keys()), yticklabels=list(self.class_to_ind.keys()))
         plt.title("Confusion Matrix")
         plt.xlabel("Predicted Label")
