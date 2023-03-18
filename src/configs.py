@@ -77,11 +77,11 @@ class SemanticSegConfigs:
     SS_EXPERIMENT_NAME = 'semantic_segmentation'
     SS_RUN_NAME = 'second_try'
     SS_RUN_DESCRIPTION = """Simple aug only (flips, no colors jiggers). Normalized all labeled images.
-    Froze resnet50 backbone, for 10 epochs with lr decay of 0.75 after each epoch.
+    Froze resnet50 backbone, for 10 epochs with lr decay of 0.6 after each epoch.
     No validation set, training over all 100k images.
     """
     SS_TRAINED_MODEL_PATH = os.path.join(GeneralConfigs.ROOT, 'models',
-                                            f'{SS_EXPERIMENT_NAME}_resnet50_10_epochs_{SS_RUN_NAME}.ckpt')
+                                            f'{SS_EXPERIMENT_NAME}_resnet50_5_epochs_{SS_RUN_NAME}.ckpt')
     SS_LABELED_TILES_TRAIN_DIR = os.path.join(GeneralConfigs.ROOT, 'data', 'semantic_seg_tiles',
                                               'NCT-CRC-HE-100K')
     SS_LABELED_TILES_TEST_DIR = os.path.join(GeneralConfigs.ROOT, 'data', 'semantic_seg_tiles',
@@ -90,7 +90,7 @@ class SemanticSegConfigs:
     SS_TRAINING_BATCH_SIZE = 16
     SS_TRAINING_NUM_WORKERS = 16
     SS_INIT_LR = 1e-4
-    SS_NUM_EPOCHS = 10
+    SS_NUM_EPOCHS = 5
     SS_NUM_DEVICES = 2
     SS_DEVICE = 'gpu'
     # alphabetical order as in ImageFolder (dicts preserve order in Python 3.7+)
