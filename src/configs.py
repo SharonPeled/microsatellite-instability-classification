@@ -96,7 +96,7 @@ class SemanticSegConfigs:
     SS_TRAINING_NUM_WORKERS = 16
     SS_INIT_LR = 1e-4
     SS_NUM_EPOCHS = 10
-    SS_NUM_DEVICES = 2
+    SS_NUM_DEVICES = [0, ]
     SS_DEVICE = 'gpu'
     # alphabetical order as in ImageFolder (dicts preserve order in Python 3.7+)
     SS_CLASS_TO_IND = {'ADI': 0, 'BACK': 1, 'DEB': 2, 'LYM': 3, 'MUC': 4, 'MUS': 5, 'NORM': 6, 'STR': 7, 'TUM': 8}
@@ -106,8 +106,8 @@ class SemanticSegConfigs:
     SS_TUM_CLASS = 'TUM'
     SS_TRAINED_MODEL_PATH = os.path.join(GeneralConfigs.ROOT, 'models',
                                          f'{SS_EXPERIMENT_NAME}_resnet50_{SS_NUM_EPOCHS}_epochs_{SS_RUN_NAME}.ckpt')
-    SS_INFERENCE_BATCH_SIZE = 128
-    SS_INFERENCE_NUM_WORKERS = 64
+    SS_INFERENCE_BATCH_SIZE = 64
+    SS_INFERENCE_NUM_WORKERS = 32
 
 
 @dataclass
