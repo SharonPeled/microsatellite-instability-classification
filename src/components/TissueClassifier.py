@@ -6,9 +6,7 @@ from torchvision.models import resnet50
 from torch.nn.functional import softmax
 from sklearn.metrics import precision_recall_fscore_support, roc_auc_score, classification_report
 from torch.optim.lr_scheduler import ReduceLROnPlateau, StepLR
-import matplotlib.pyplot as plt
-import seaborn as sns
-from sklearn.metrics import confusion_matrix
+from ..utils import generate_confusion_matrix_figure
 
 
 class TissueClassifier(pl.LightningModule):
@@ -81,13 +79,7 @@ class TissueClassifier(pl.LightningModule):
             for class_str, ind in self.class_to_ind.items():
                 self.logger.experiment.log_metric(self.logger.run_id, f"{dataset_str}_{class_str}_auc", auc_scores[ind])
         # confusion matrix
-        cm = confusion_matrix(y_true, y_pred, normalize='pred')
-        fig = plt.figure(figsize=(6, 6))
-        sns.heatmap(cm, annot=True, cmap=plt.cm.Blues, fmt=".2f", annot_kws={"fontsize": 7},
-                    xticklabels=list(self.class_to_ind.keys()), yticklabels=list(self.class_to_ind.keys()))
-        plt.title("Confusion Matrix")
-        plt.xlabel("Predicted Label")
-        plt.ylabel("True Label")
+        fig = generate_confusion_matrix_figure(y_true, y_pred, list(self.class_to_ind.keys()))
         self.logger.experiment.log_figure(self.logger.run_id, fig, f"confusion_matrix_{self.current_epoch}.png")
 
     def validation_epoch_end(self, outputs):

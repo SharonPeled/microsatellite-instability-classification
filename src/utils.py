@@ -14,6 +14,8 @@ import pyvips
 from sklearn.model_selection import StratifiedShuffleSplit
 from src.components.SubDataset import SubDataset
 from torch.utils.data import Subset
+import seaborn as sns
+from sklearn.metrics import confusion_matrix
 
 
 def set_global_configs(verbose, log_file_args, log_importance, log_format, random_seed, tile_progress_log_freq):
@@ -132,6 +134,7 @@ def load_df_pred(pred_dir, class_to_index):
     df_paths = glob(f"{pred_dir}/**/df_pred_*", recursive=True)  # df pred from all devices
     df = pd.concat([pd.read_csv(path) for path in df_paths], ignore_index=True)
     classes = list(class_to_index.keys())
+    df['y_pred'] = torch.argmax(torch.from_numpy(df[classes].values), dim=1).numpy()
     logits = softmax(torch.from_numpy(df[classes].values), dim=-1)
     df[[c + '_prob' for c in classes]] = logits
     class_indices = torch.argmax(logits, dim=1)  # get index of highest score for each sample
@@ -209,6 +212,15 @@ def generate_classified_tissue_thumbnail(slide_summary_df, slide_path, class_to_
     Logger.log(f"""Tissue Classified Thumbnail Saved {os.path.dirname(slide_path)}.""", log_importance=1)
 
 
+def generate_confusion_matrix_figure(y_true, y_pred, classes):
+    cm = confusion_matrix(y_true, y_pred, normalize='pred')
+    fig = plt.figure(figsize=(6, 6))
+    sns.heatmap(cm, annot=True, cmap=plt.cm.Blues, fmt=".2f", annot_kws={"fontsize": 7},
+                xticklabels=list(classes), yticklabels=list(classes))
+    plt.title("Confusion Matrix")
+    plt.xlabel("Predicted Label")
+    plt.ylabel("True Label")
+    return fig
 
 
 

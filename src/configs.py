@@ -75,33 +75,39 @@ class TumorClassificationConfigs:
 
 class SemanticSegConfigs:
     SS_EXPERIMENT_NAME = 'semantic_segmentation'
-    SS_RUN_NAME = 'second_try'
+    SS_RUN_NAME = 'first_try'
     SS_RUN_DESCRIPTION = """Simple aug only (flips, no colors jiggers). Normalized all labeled images.
     Froze resnet50 backbone, for 10 epochs with lr decay of 0.6 after each epoch.
     No validation set, training over all 100k images.
     """
-    SS_TRAINED_MODEL_PATH = os.path.join(GeneralConfigs.ROOT, 'models',
-                                            f'{SS_EXPERIMENT_NAME}_resnet50_5_epochs_{SS_RUN_NAME}.ckpt')
+    SS_RUN_OOD_NAME = f'OOD_{SS_RUN_NAME}'
+    SS_OOD_RUN_DESCRIPTION = "TCGA manually annotate tumor tiles. 0.5MPP 512*512 pixels (resized to 224)."
     SS_LABELED_TILES_TRAIN_DIR = os.path.join(GeneralConfigs.ROOT, 'data', 'semantic_seg_tiles',
-                                              'NCT-CRC-HE-100K')
+                                           'NCT-CRC-HE-100K')
     SS_LABELED_TILES_TEST_DIR = os.path.join(GeneralConfigs.ROOT, 'data', 'semantic_seg_tiles',
                                              'CRC-VAL-HE-7K')
+    SS_PREDICT_OUTPUT_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'semantic_segmentation_results',
+                                          f'ss_{SS_RUN_NAME}_processed_tiles_pred')
+    SS_OOD_DATASET_DIR = os.path.join(GeneralConfigs.ROOT, 'data', 'tumor_labeled_tiles_TCGA')
+    SS_OOD_DATASET_PREDICT_OUTPUT_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'semantic_segmentation_results',
+                                                      f'ss_{SS_RUN_OOD_NAME}_pred')
     SS_VALID_SIZE = 0
     SS_TRAINING_BATCH_SIZE = 16
     SS_TRAINING_NUM_WORKERS = 16
     SS_INIT_LR = 1e-4
-    SS_NUM_EPOCHS = 5
-    SS_NUM_DEVICES = 2
+    SS_NUM_EPOCHS = 10
+    SS_NUM_DEVICES = 1
     SS_DEVICE = 'gpu'
     # alphabetical order as in ImageFolder (dicts preserve order in Python 3.7+)
     SS_CLASS_TO_IND = {'ADI': 0, 'BACK': 1, 'DEB': 2, 'LYM': 3, 'MUC': 4, 'MUS': 5, 'NORM': 6, 'STR': 7, 'TUM': 8}
     SS_CLASS_TO_COLOR = {'ADI': 'beige', 'BACK': 'silver', 'DEB': 'grey',
                          'LYM': 'yellow', 'MUC': 'chartreuse', 'MUS': 'orange',
                          'NORM': 'pink', 'STR': 'lavender', 'TUM': 'maroon'}
-    SS_PREDICT_OUTPUT_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'semantic_segmentation_results',
-                                             f'ss_{SS_RUN_NAME}_pred')
-    SS_INFERENCE_BATCH_SIZE = 64
-    SS_INFERENCE_NUM_WORKERS = 32
+    SS_TUM_CLASS = 'TUM'
+    SS_TRAINED_MODEL_PATH = os.path.join(GeneralConfigs.ROOT, 'models',
+                                         f'{SS_EXPERIMENT_NAME}_resnet50_{SS_NUM_EPOCHS}_epochs_{SS_RUN_NAME}.ckpt')
+    SS_INFERENCE_BATCH_SIZE = 1
+    SS_INFERENCE_NUM_WORKERS = 1
 
 
 @dataclass

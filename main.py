@@ -2,6 +2,7 @@ import argparse
 from src.preprocessing.pipeline import execute_preprocessing_pipeline
 from src.tumor_classification.training import train as train_tumor
 from src.tumor_classification.predict import predict as predict_tumor
+from src.semantic_segmentation.OOD_validation import OOD_validation as semantic_seg_OOD_validation
 from src.semantic_segmentation.training import train as train_semantic_seg
 from src.semantic_segmentation.predict import predict as predict_semantic_seg
 from src.utils import bring_files, bring_joined_log_file, delete_all_artifacts, \
@@ -35,6 +36,7 @@ def main():
     parser.add_argument('--bring-slide-logs', type=str)
     parser.add_argument('--train-tumor-classifier', action='store_true')
     parser.add_argument('--train-semantic-seg', action='store_true')
+    parser.add_argument('--semantic-seg-OOD-validation', action='store_true')
     parser.add_argument('--inference-semantic-seg', action='store_true')
     parser.add_argument('--inference-tumor-tiles', action='store_true')
     parser.add_argument('--num-processes', type=int)
@@ -79,6 +81,8 @@ def main():
                                                        slides_dir=Configs.SLIDES_DIR,
                                                        class_to_index=Configs.SS_CLASS_TO_IND,
                                                        class_to_color=Configs.SS_CLASS_TO_COLOR)
+    if args.semantic_seg_OOD_validation:
+        semantic_seg_OOD_validation()
     if args.bring_thumbnails:
         bring_files(Configs.SLIDES_DIR, 'thumbnail.png', args.bring_thumbnails)
     if args.bring_tumor_thumbnails:
