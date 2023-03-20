@@ -23,7 +23,7 @@ def OOD_validation():
                              [0.229, 0.224, 0.225])
     ])
     ood_dataset = TCGATumorTileDataset(Configs.SS_OOD_DATASET_DIR, img_extension='jpg',
-                                       transform=transform)
+                                       transform=transform, crop_and_agg=True)
     ood_loader = DataLoader(ood_dataset, batch_size=Configs.SS_INFERENCE_BATCH_SIZE, shuffle=False,
                             num_workers=Configs.SS_INFERENCE_NUM_WORKERS)
     model = TissueClassifier.load_from_checkpoint(Configs.SS_TRAINED_MODEL_PATH,
@@ -35,8 +35,14 @@ def OOD_validation():
     trainer.predict(model, ood_loader, return_predictions=False)
     # loading the results
     df_pred = load_df_pred(pred_dir=Configs.SS_OOD_DATASET_PREDICT_OUTPUT_PATH, class_to_index=Configs.SS_CLASS_TO_IND)
+    # transforming to binary case - tum / no tum
+    df_pred['y_pred'] = (df_pred['y_pred'] == Configs.SS_CLASS_TO_IND[Configs.SS_TUM_CLASS]).astype(int)
+    # agg predictions - if at least one of the smaller tiles is tum then the entire tile is tum
+    df_pred = df_pred.groupby('tile_path', as_index=False).agg({
+        'y_pred': lambda s: int(s.sum() > 0)
+    })
+    y_pred = df_pred['y_pred']
     y_true = torch.Tensor([1 for _ in range(len(df_pred))])  # OOD contains only tumors
-    y_pred = (df_pred['y_pred'] == Configs.SS_CLASS_TO_IND[Configs.SS_TUM_CLASS]).astype(int)
     # logging metrics
     mlflow_logger = MLFlowLogger(experiment_name=Configs.SS_EXPERIMENT_NAME, run_name=Configs.SS_RUN_OOD_NAME,
                                  save_dir=Configs.MLFLOW_SAVE_DIR,
@@ -47,7 +53,7 @@ def OOD_validation():
     fig = generate_confusion_matrix_figure(y_true, y_pred, list(Configs.SS_CLASS_TO_IND.keys()))
     mlflow_logger.experiment.log_figure(mlflow_logger.run_id, fig, f"confusion_matrix.png")
     precision, recall, f1, _ = precision_recall_fscore_support(y_true, y_pred, average='binary',
-                                                            pos_label=1)
+                                                               pos_label=1)
     mlflow_logger.experiment.log_metric(mlflow_logger.run_id, f"OOD_TUM_precision", precision)
     mlflow_logger.experiment.log_metric(mlflow_logger.run_id, f"OOD_TUM_recall", recall)
     mlflow_logger.experiment.log_metric(mlflow_logger.run_id, f"OOD_TUM_f1", f1)
