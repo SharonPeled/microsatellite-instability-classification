@@ -35,13 +35,13 @@ def conv2d_to_device(img_np, kernel_size, stride, device):
                   stride=stride).squeeze().cpu().numpy()
 
 
-def get_train_test_dataset(dataset, test_size, random_state, train_transform, test_transform):
+def get_train_test_dataset(dataset, test_size, random_state):
     # train test split
     train_test_split = StratifiedShuffleSplit(n_splits=1, test_size=test_size,
                                               random_state=random_state)
     train_inds, test_inds = next(train_test_split.split(dataset, y=dataset.targets))
-    train_dataset = SubDataset(Subset(dataset, train_inds), transform=train_transform)
-    test_dataset = SubDataset(Subset(dataset, test_inds), transform=test_transform)
+    train_dataset = SubDataset(Subset(dataset, train_inds))
+    test_dataset = SubDataset(Subset(dataset, test_inds))
     return train_dataset, test_dataset
 
 
@@ -130,8 +130,9 @@ def remove_artifact(path):
             shutil.rmtree(path)
 
 
-def load_df_pred(pred_dir, class_to_index):
-    df_paths = glob(f"{pred_dir}/**/df_pred_*", recursive=True)  # df pred from all devices
+def load_df_pred(pred_dir, class_to_index, num_devices):
+    df_paths = glob(f"{pred_dir}/**/df_pred_*", recursive=True)  # df pred from all devices from all time
+    assert len(df_paths) == num_devices
     df = pd.concat([pd.read_csv(path) for path in df_paths], ignore_index=True)
     classes = list(class_to_index.keys())
     df['y_pred'] = torch.argmax(torch.from_numpy(df[classes].values), dim=1).numpy()

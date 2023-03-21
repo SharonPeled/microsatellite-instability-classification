@@ -3,6 +3,7 @@ import torch
 import numpy as np
 import pandas as pd
 import os
+from datetime import datetime
 
 
 class CustomWriter(BasePredictionWriter):
@@ -22,4 +23,5 @@ class CustomWriter(BasePredictionWriter):
         df_pred = pd.DataFrame(data=predictions, columns=self.score_names)
         df_pred['dataset_ind'] = batch_indices
         df_pred = self.dataset.join_metadata(df_pred, batch_indices)
-        df_pred.to_csv(os.path.join(self.output_dir, f"df_pred_{trainer.global_rank}.csv"), index=False)
+        time_str = datetime.now().strftime('%d/%m/%Y_%H_%M')
+        df_pred.to_csv(os.path.join(self.output_dir, f"df_pred_{trainer.global_rank}_{time_str}.csv"), index=False)

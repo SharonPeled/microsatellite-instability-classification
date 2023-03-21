@@ -34,7 +34,8 @@ def OOD_validation():
                          default_root_dir=Configs.SS_PREDICT_OUTPUT_PATH)
     trainer.predict(model, ood_loader, return_predictions=False)
     # loading the results
-    df_pred = load_df_pred(pred_dir=Configs.SS_OOD_DATASET_PREDICT_OUTPUT_PATH, class_to_index=Configs.SS_CLASS_TO_IND)
+    df_pred = load_df_pred(pred_dir=Configs.SS_OOD_DATASET_PREDICT_OUTPUT_PATH, class_to_index=Configs.SS_CLASS_TO_IND,
+                           num_devices=Configs.SS_NUM_DEVICES)
     # transforming to binary case - tum / no tum
     df_pred['y_pred'] = (df_pred['y_pred'] == Configs.SS_CLASS_TO_IND[Configs.SS_TUM_CLASS]).astype(int)
     # agg predictions - if at least one of the smaller tiles is tum then the entire tile is tum

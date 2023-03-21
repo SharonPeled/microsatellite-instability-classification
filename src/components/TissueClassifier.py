@@ -7,32 +7,43 @@ from torch.nn.functional import softmax
 from sklearn.metrics import precision_recall_fscore_support, roc_auc_score, classification_report
 from torch.optim.lr_scheduler import ReduceLROnPlateau, StepLR
 from ..utils import generate_confusion_matrix_figure
+from ..components.Logger import Logger
 
 
 class TissueClassifier(pl.LightningModule):
-    def __init__(self, class_to_ind, learning_rate):
+    def __init__(self, class_to_ind, learning_rate, class_to_weight=None):
         super().__init__()
         self.class_to_ind = class_to_ind
+        self.class_weights = self.init_class_weights(class_to_weight)
         self.learning_rate = learning_rate
         backbone = resnet50(weights="IMAGENET1K_V2")
         num_filters = backbone.fc.in_features
         layers = list(backbone.children())[:-1]
-        for layer in layers:
-            layer.requires_grad_(False)
+        # for layer in layers:
+        #     layer.requires_grad_(False)
         layers.append(nn.Flatten())
         layers.append(nn.Linear(num_filters, len(self.class_to_ind)))
         self.model = nn.Sequential(*layers)
+        Logger.log(f"""TissueClassifier created with loss weights: {self.class_weights}.""", log_importance=1)
+
+    def init_class_weights(self, class_to_ind):
+        if class_to_ind is None:
+            return None
+        sum_w = float(sum(class_to_ind.values()))
+        return torch.Tensor([w/sum_w for w in class_to_ind.values()])
 
     def forward(self, x):
         return self.model(x)
 
     def loss(self, scores, targets):
-        return F.cross_entropy(scores, targets)
+        if self.class_weights is None:
+            return F.cross_entropy(scores, targets)
+        return F.cross_entropy(scores, targets, weight=self.class_weights.to(scores.device))
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate)
-        # scheduler = ReduceLROnPlateau(optimizer, factor=0.1, patience=2)
-        scheduler = StepLR(optimizer, step_size=1, gamma=0.6)
+        scheduler = ReduceLROnPlateau(optimizer, factor=0.1, patience=2)
+        # scheduler = StepLR(optimizer, step_size=1, gamma=0.6)
         return {'optimizer': optimizer, 'lr_scheduler': scheduler, 'monitor': 'val_loss'}
 
     def general_loop(self, batch, batch_idx):

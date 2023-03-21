@@ -69,14 +69,16 @@ def main():
         predict_semantic_seg()
     if args.generate_tumor_thumbnails:
         df_pred = load_df_pred(pred_dir=Configs.TUMOR_PREDICT_OUTPUT_PATH,
-                               class_to_index=Configs.TUMOR_CLASS_TO_IND)
+                               class_to_index=Configs.TUMOR_CLASS_TO_IND,
+                               num_devices=Configs.TUMOR_NUM_DEVICES)
         generate_thumbnails_with_tissue_classification(df_pred=df_pred,
                                                        slides_dir=Configs.SLIDES_DIR,
                                                        class_to_index=Configs.TUMOR_CLASS_TO_IND,
                                                        class_to_color=Configs.TUMOR_CLASS_TO_COLOR)
     if args.generate_semantic_seg_thumbnails:
         df_pred = load_df_pred(pred_dir=Configs.SS_PREDICT_OUTPUT_PATH,
-                               class_to_index=Configs.SS_CLASS_TO_IND)
+                               class_to_index=Configs.SS_CLASS_TO_IND,
+                               num_devices=Configs.SS_NUM_DEVICES)
         generate_thumbnails_with_tissue_classification(df_pred=df_pred,
                                                        slides_dir=Configs.SLIDES_DIR,
                                                        class_to_index=Configs.SS_CLASS_TO_IND,
