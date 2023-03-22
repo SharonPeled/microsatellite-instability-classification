@@ -132,7 +132,7 @@ def remove_artifact(path):
 
 def load_df_pred(pred_dir, class_to_index, num_devices):
     df_paths = glob(f"{pred_dir}/**/df_pred_*", recursive=True)  # df pred from all devices from all time
-    assert len(df_paths) == num_devices
+    Logger.log(f"Loaded {len(df_paths)} pred dataframes.", log_importance=1)
     df = pd.concat([pd.read_csv(path) for path in df_paths], ignore_index=True)
     classes = list(class_to_index.keys())
     df['y_pred'] = torch.argmax(torch.from_numpy(df[classes].values), dim=1).numpy()
