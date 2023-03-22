@@ -10,6 +10,7 @@ class CustomWriter(BasePredictionWriter):
     def __init__(self, output_dir, write_interval, class_to_index, dataset):
         super().__init__(write_interval)
         self.output_dir = output_dir
+        os.makedirs(self.output_dir, exist_ok=True)
         self.class_to_index = class_to_index
         self.score_names = list(class_to_index.keys())
         self.dataset = dataset
