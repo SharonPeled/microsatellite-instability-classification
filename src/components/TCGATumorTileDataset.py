@@ -20,7 +20,7 @@ class TCGATumorTileDataset(Dataset, Logger):
         if crop_and_agg:
             self.generate_cropped_df()
             self.crop_and_agg = crop_and_agg
-        self.log(f"""ImageBagDataset created with {len(self.df)} images.""", log_importance=1)
+        self.log(f"""ImageBagDataset created with {len(self.df)} images from {self.dir}.""", log_importance=1)
 
     def join_metadata(self, df_pred, inds):
         df_pred.loc[:, self.df.columns] = self.df.loc[inds].values
