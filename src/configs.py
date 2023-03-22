@@ -89,7 +89,7 @@ class SemanticSegConfigs:
                                              'CRC-VAL-HE-7K')
     SS_PREDICT_OUTPUT_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'semantic_segmentation_results',
                                           f'ss_{SS_RUN_NAME}_processed_tiles_pred')
-    SS_OOD_DATASET_DIR = os.path.join(GeneralConfigs.ROOT, 'data', 'tumor_labeled_tiles_TCGA')
+    SS_OOD_DATASET_DIR = os.path.join(GeneralConfigs.ROOT, 'data', 'tumor_labeled_tiles_TCGA_test')
     SS_OOD_DATASET_PREDICT_OUTPUT_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'semantic_segmentation_results',
                                                       f'ss_{SS_RUN_OOD_NAME}_pred')
     SS_VALID_SIZE = 0.05
