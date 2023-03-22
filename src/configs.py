@@ -81,7 +81,7 @@ class SemanticSegConfigs:
     Non frozen parts, for 10 epochs with plateau lr decay of 0.1.
     Validation of of 5%.
     """
-    SS_RUN_OOD_NAME = f'OOD_{SS_RUN_NAME}'
+    SS_RUN_OOD_NAME = f'OOD_crop_{SS_RUN_NAME}'
     SS_OOD_RUN_DESCRIPTION = "TCGA manually annotate tumor tiles. 0.5MPP 512*512 pixels (resized to 224)."
     SS_LABELED_TILES_TRAIN_DIR = os.path.join(GeneralConfigs.ROOT, 'data', 'semantic_seg_tiles',
                                            'NCT-CRC-HE-100K')
