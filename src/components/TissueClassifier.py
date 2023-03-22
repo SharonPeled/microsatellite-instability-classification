@@ -36,9 +36,13 @@ class TissueClassifier(pl.LightningModule):
         return self.model(x)
 
     def loss(self, scores, targets):
+        # if self.class_weights is None:
+        #     return F.cross_entropy(scores, targets)
+        # return F.cross_entropy(scores, targets, weight=self.class_weights.to(scores.device))
         if self.class_weights is None:
-            return F.cross_entropy(scores, targets)
-        return F.cross_entropy(scores, targets, weight=self.class_weights.to(scores.device))
+            return F.binary_cross_entropy_with_logits(scores, targets)
+        return F.binary_cross_entropy_with_logits(scores, targets,
+                                                  weight=self.class_weights.to(scores.device))
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate)
@@ -48,6 +52,7 @@ class TissueClassifier(pl.LightningModule):
 
     def general_loop(self, batch, batch_idx):
         x, y = batch
+        y = torch.nn.functional.one_hot(y, num_classes=9).to(y.device).float()
         scores = self.forward(x)
         loss = self.loss(scores, y)
         return loss, scores, y
@@ -70,8 +75,8 @@ class TissueClassifier(pl.LightningModule):
 
     def log_epoch_level_metrics(self, outputs, dataset_str):
         scores = torch.concat([out["scores"] for out in outputs])
-        logits = softmax(scores, dim=1).cpu().numpy()
-        y_pred = torch.argmax(scores, dim=1).cpu().numpy()
+        # y_pred = torch.argmax(scores, dim=1).cpu().numpy()
+        y_pred = torch.round(torch.sigmoid(scores).cpu()).numpy()
         y_true = torch.concat([out["y"] for out in outputs]).cpu().numpy()
         # precision, recall, f1
         metrics = classification_report(y_true, y_pred, output_dict=True,
@@ -83,15 +88,17 @@ class TissueClassifier(pl.LightningModule):
                 self.logger.experiment.log_metric(self.logger.run_id, f"{dataset_str}_{class_str}_{metric_str}",
                                                   metric_val)
         # auc
-        if set(self.class_to_ind.values()) == set(y_true):
+        if y_true.ndim == 1 and set(self.class_to_ind.values()) == set(y_true):
             # in order to use auc y_true has to include all labels
             # this condition may not be satisfied in the sanity check, where the sampling is not stratified
-            auc_scores = roc_auc_score(y_true, logits, multi_class='ovr', average=None)
+            auc_scores = roc_auc_score(y_true, scores, multi_class='ovr', average=None)
             for class_str, ind in self.class_to_ind.items():
                 self.logger.experiment.log_metric(self.logger.run_id, f"{dataset_str}_{class_str}_auc", auc_scores[ind])
         # confusion matrix
-        fig = generate_confusion_matrix_figure(y_true, y_pred, list(self.class_to_ind.keys()))
-        self.logger.experiment.log_figure(self.logger.run_id, fig, f"confusion_matrix_{self.current_epoch}.png")
+        if y_true.ndim == 1:
+            # confusion matrix only for multiclass and not multilabel.
+            fig = generate_confusion_matrix_figure(y_true, y_pred, list(self.class_to_ind.keys()))
+            self.logger.experiment.log_figure(self.logger.run_id, fig, f"confusion_matrix_{self.current_epoch}.png")
 
     def validation_epoch_end(self, outputs):
         self.log_epoch_level_metrics(outputs, dataset_str='valid')
