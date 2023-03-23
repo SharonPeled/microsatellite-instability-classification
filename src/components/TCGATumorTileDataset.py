@@ -15,7 +15,7 @@ class TCGATumorTileDataset(Dataset, Logger):
         self.dir = dir
         self.transform = transform
         tile_paths = glob(f"{dir}/**/*.{img_extension}", recursive=True)
-        self.df = pd.DataFrame(tile_paths, columns=['tile_path'])
+        self.df = pd.DataFrame(tile_paths, columns=['tile_path']).sample(10000)
         self.y = y  # same y for images, there are all tumors
         self.crop_and_agg = crop_and_agg
         if self.crop_and_agg:
