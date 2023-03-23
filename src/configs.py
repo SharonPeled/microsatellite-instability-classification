@@ -99,7 +99,7 @@ class SemanticSegConfigs:
     SS_TRAINING_NUM_WORKERS = 10
     SS_INIT_LR = 1e-4
     SS_NUM_EPOCHS = 10
-    SS_NUM_DEVICES = 10
+    SS_NUM_DEVICES = 1
     SS_DEVICE = 'cpu'
     # alphabetical order as in ImageFolder (dicts preserve order in Python 3.7+)
     SS_CLASS_TO_IND = {'ADI': 0, 'BACK': 1, 'DEB': 2, 'LYM': 3, 'MUC': 4, 'MUS': 5, 'NORM': 6, 'STR': 7, 'TUM': 8}

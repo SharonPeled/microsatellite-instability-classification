@@ -24,7 +24,7 @@ def OOD_validation():
                              [0.229, 0.224, 0.225])
     ])
     ood_dataset = TCGATumorTileDataset(Configs.SS_OOD_DATASET_DIR, img_extension='jpg',
-                                       transform=transform, crop_and_agg=False)
+                                       transform=transform, crop_and_agg=True)
     ood_loader = DataLoader(ood_dataset, batch_size=Configs.SS_INFERENCE_BATCH_SIZE, shuffle=False,
                             num_workers=Configs.SS_INFERENCE_NUM_WORKERS)
     Logger.log(f"Loading trained model: {Configs.SS_LOADING_MODEL_PATH}", log_importance=1)
@@ -59,7 +59,7 @@ def OOD_validation():
     mlflow_logger.experiment.log_metric(mlflow_logger.run_id, f"OOD_TUM_precision", precision[-1])
     mlflow_logger.experiment.log_metric(mlflow_logger.run_id, f"OOD_TUM_recall", recall[-1])
     mlflow_logger.experiment.log_metric(mlflow_logger.run_id, f"OOD_TUM_f1", f1[-1])
-
+    print(precision, recall, f1)
 
 
 
