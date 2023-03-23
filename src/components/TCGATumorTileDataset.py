@@ -17,9 +17,9 @@ class TCGATumorTileDataset(Dataset, Logger):
         tile_paths = glob(f"{dir}/**/*.{img_extension}", recursive=True)
         self.df = pd.DataFrame(tile_paths, columns=['tile_path'])
         self.y = y  # same y for images, there are all tumors
-        if crop_and_agg:
+        self.crop_and_agg = crop_and_agg
+        if self.crop_and_agg:
             self.generate_cropped_df()
-            self.crop_and_agg = crop_and_agg
         self.log(f"""ImageBagDataset created with {len(self.df)} images from {self.dir}.""", log_importance=1)
 
     def join_metadata(self, df_pred, inds):
