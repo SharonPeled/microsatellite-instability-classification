@@ -14,7 +14,11 @@ from sklearn.metrics import precision_recall_fscore_support
 from ..components.Logger import Logger
 
 
-def OOD_validation():
+def OOD_validation_tumor_TCGA():
+    Logger.log(f"""Starting OOD_validation_tumor_TCGA: 
+    Device: {Configs.SS_DEVICE}
+    Workers: {Configs.SS_INFERENCE_NUM_WORKERS}
+    Directory: {Configs.SS_OOD_DATASET_DIR}""", log_importance=1)
     transform = transforms.Compose([
         transforms.Resize(224),
         transforms.CenterCrop(224),
@@ -29,7 +33,7 @@ def OOD_validation():
                             num_workers=Configs.SS_INFERENCE_NUM_WORKERS)
     model = TissueClassifier.load_from_checkpoint(Configs.SS_INFERENCE_MODEL_PATH,
                                                   class_to_ind=Configs.SS_CLASS_TO_IND, learning_rate=None)
-    Logger.log(f"Loading trained model: {Configs.SS_LOADING_MODEL_PATH}", log_importance=1)
+    Logger.log(f"Loading trained model: {Configs.SS_INFERENCE_MODEL_PATH}", log_importance=1)
     pred_writer = CustomWriter(output_dir=Configs.SS_OOD_DATASET_PREDICT_OUTPUT_PATH,
                                write_interval="epoch", class_to_index=Configs.SS_CLASS_TO_IND, dataset=ood_dataset)
     trainer = pl.Trainer(accelerator=Configs.SS_DEVICE, devices=Configs.SS_NUM_DEVICES, callbacks=[pred_writer],
@@ -59,7 +63,7 @@ def OOD_validation():
     mlflow_logger.experiment.log_metric(mlflow_logger.run_id, f"OOD_TUM_precision", precision)
     mlflow_logger.experiment.log_metric(mlflow_logger.run_id, f"OOD_TUM_recall", recall)
     mlflow_logger.experiment.log_metric(mlflow_logger.run_id, f"OOD_TUM_f1", f1)
-    print(precision, recall, f1)
+    Logger.log(f"{precision, recall, f1}", log_importance=1)
 
 
 
