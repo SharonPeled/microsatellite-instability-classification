@@ -141,7 +141,7 @@ def load_df_pred(pred_dir, class_to_index):
     class_indices = torch.argmax(logits, dim=1)  # get index of highest score for each sample
     labels = torch.zeros(logits.shape)  # initialize binary matrix
     labels[range(labels.shape[0]), class_indices] = 1
-    df[classes] = labels
+    df[[c + '_argmax' for c in classes]] = labels
     return df
 
 

@@ -75,14 +75,13 @@ class TumorClassificationConfigs:
 
 class SemanticSegConfigs:
     SS_EXPERIMENT_NAME = 'semantic_segmentation'
-    SS_RUN_NAME = 'wloss_multilabel_OOD'
-    SS_RUN_DESCRIPTION = """Multilabel tun, with class weights and 5% validation.
+    SS_RUN_NAME = 'wloss_multilabel_bug_fix'
+    SS_RUN_DESCRIPTION = """Multilabel small test set, with class weights and 5% validation.
     Simple aug only (flips, no colors jiggers). Normalized all labeled images.
     Non frozen parts, for 10 epochs with plateau lr decay of 0.1.
     Validation of of 5%.
     """
-    SS_LOADING_MODEL_PATH = os.path.join(GeneralConfigs.ROOT, 'models',
-                                         "semantic_segmentation_resnet50_10_epochs_fourth_try_weighted_loss_multilabel.ckpt")
+    SS_INFERENCE_MODEL_PATH = "/home/sharonpe/microsatellite-instability-classification/models/mlruns/ec41704aef4643178ec59c22cecaf606/artifacts/model/checkpoints/epoch=9-step=29690/epoch=9-step=29690.ckpt"
     SS_RUN_OOD_NAME = f'OOD_crop_{SS_RUN_NAME}'
     SS_OOD_RUN_DESCRIPTION = "TCGA manually annotate tumor tiles. 0.5MPP 512*512 pixels (resized to 224)."
     SS_LABELED_TILES_TRAIN_DIR = os.path.join(GeneralConfigs.ROOT, 'data', 'semantic_seg_tiles',
@@ -99,8 +98,8 @@ class SemanticSegConfigs:
     SS_TRAINING_NUM_WORKERS = 10
     SS_INIT_LR = 1e-4
     SS_NUM_EPOCHS = 10
-    SS_NUM_DEVICES = 1
-    SS_DEVICE = 'cpu'
+    SS_NUM_DEVICES = [1,]
+    SS_DEVICE = 'gpu'
     # alphabetical order as in ImageFolder (dicts preserve order in Python 3.7+)
     SS_CLASS_TO_IND = {'ADI': 0, 'BACK': 1, 'DEB': 2, 'LYM': 3, 'MUC': 4, 'MUS': 5, 'NORM': 6, 'STR': 7, 'TUM': 8}
     SS_CLASS_TO_WEIGHT = {'ADI': 1, 'BACK': 1, 'DEB': 1, 'LYM': 1, 'MUC': 1, 'MUS': 1, 'NORM': 4, 'STR': 1, 'TUM': 4}
@@ -110,8 +109,8 @@ class SemanticSegConfigs:
     SS_TUM_CLASS = 'TUM'
     SS_TRAINED_MODEL_PATH = os.path.join(GeneralConfigs.ROOT, 'models',
                                          f'{SS_EXPERIMENT_NAME}_resnet50_{SS_NUM_EPOCHS}_epochs_{SS_RUN_NAME}.ckpt')
-    SS_INFERENCE_BATCH_SIZE = 64
-    SS_INFERENCE_NUM_WORKERS = 32
+    SS_INFERENCE_BATCH_SIZE = 16
+    SS_INFERENCE_NUM_WORKERS = 10
 
 
 @dataclass
