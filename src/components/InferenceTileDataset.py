@@ -5,7 +5,7 @@ from ..components.Logger import Logger
 import pandas as pd
 
 
-class TCGATumorTileDataset(Dataset, Logger):
+class InferenceTileDataset(Dataset, Logger):
     def __init__(self, dir, img_extension, y=None, transform=None, crop_and_agg=False):
         """
         crop_and_agg: the model trained on 224*224 tiles at 0.5MPP while this dataset is

@@ -73,25 +73,8 @@ class TissueClassifier(pl.LightningModule):
         logits = softmax(scores, dim=1).cpu().numpy()
         y_pred = torch.argmax(scores, dim=1).cpu().numpy()
         y_true = torch.concat([out["y"] for out in outputs]).cpu().numpy()
-        # precision, recall, f1
-        metrics = classification_report(y_true, y_pred, output_dict=True,
-                                        target_names=list(self.class_to_ind.keys()))
-        for class_str, class_metrics in metrics.items():
-            if class_str not in self.class_to_ind.keys():
-                continue
-            for metric_str, metric_val in class_metrics.items():
-                self.logger.experiment.log_metric(self.logger.run_id, f"{dataset_str}_{class_str}_{metric_str}",
-                                                  metric_val)
-        # auc
-        if set(self.class_to_ind.values()) == set(y_true):
-            # in order to use auc y_true has to include all labels
-            # this condition may not be satisfied in the sanity check, where the sampling is not stratified
-            auc_scores = roc_auc_score(y_true, logits, multi_class='ovr', average=None)
-            for class_str, ind in self.class_to_ind.items():
-                self.logger.experiment.log_metric(self.logger.run_id, f"{dataset_str}_{class_str}_auc", auc_scores[ind])
-        # confusion matrix
-        fig = generate_confusion_matrix_figure(y_true, y_pred, list(self.class_to_ind.keys()))
-        self.logger.experiment.log_figure(self.logger.run_id, fig, f"confusion_matrix_{self.current_epoch}.png")
+        TissueClassifier.log_metrics(y_true, y_pred, logits, target_names=self.class_to_ind.keys(),
+                                     logger=self.logger, dataset_str=dataset_str, epoch=self.current_epoch)
 
     def validation_epoch_end(self, outputs):
         self.log_epoch_level_metrics(outputs, dataset_str='valid')
@@ -101,3 +84,26 @@ class TissueClassifier(pl.LightningModule):
 
     def predict_step(self, batch, batch_idx, dataloader_idx=0):
         return self.forward(batch)
+
+    @staticmethod
+    def log_metrics(y_true, y_pred, logits, target_names, logger, dataset_str, epoch=0):
+        # precision, recall, f1
+        metrics = classification_report(y_true, y_pred, output_dict=True,
+                                        target_names=target_names)
+        for class_str, class_metrics in metrics.items():
+            if class_str not in target_names:
+                continue
+            for metric_str, metric_val in class_metrics.items():
+                logger.experiment.log_metric(logger.run_id, f"{dataset_str}_{class_str}_{metric_str}",
+                                                  metric_val)
+        if logits is not None:
+            # auc
+            if set(target_names) == set(y_true):
+                # in order to use auc y_true has to include all labels
+                # this condition may not be satisfied in the sanity check, where the sampling is not stratified
+                auc_scores = roc_auc_score(y_true, logits, multi_class='ovr', average=None)
+                for ind, class_str in enumerate(target_names):
+                    logger.experiment.log_metric(logger.run_id, f"{dataset_str}_{class_str}_auc", auc_scores[ind])
+        # confusion matrix
+        fig = generate_confusion_matrix_figure(y_true, y_pred, target_names)
+        logger.experiment.log_figure(logger.run_id, fig, f"confusion_matrix_{epoch}.png")

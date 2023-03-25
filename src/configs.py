@@ -75,21 +75,19 @@ class TumorClassificationConfigs:
 
 class SemanticSegConfigs:
     SS_EXPERIMENT_NAME = 'semantic_segmentation'
-    SS_RUN_NAME = 'third_try_weighted_loss'
-    SS_RUN_DESCRIPTION = """Regular run like first_try, with class weights and 5% validation.
-    Simple aug only (flips, no colors jiggers). Normalized all labeled images.
-    Non frozen parts, for 10 epochs with plateau lr decay of 0.1.
-    Validation of of 5%.
-    """
-    SS_RUN_OOD_NAME = f'OOD_crop_{SS_RUN_NAME}'
-    SS_OOD_RUN_DESCRIPTION = "TCGA manually annotate tumor tiles. 0.5MPP 512*512 pixels (resized to 224)."
+    SS_RUN_NAME = None
+    SS_RUN_DESCRIPTION = None
+    SS_RUN_OOD_NAME = f'OOD_IRCCS_validaiton_wloss'
+    SS_OOD_RUN_DESCRIPTION = """third_try model with wloss validation on IRCSS dataset 150*150 tiles.
+    With label missmatch."""
     SS_LABELED_TILES_TRAIN_DIR = os.path.join(GeneralConfigs.ROOT, 'data', 'semantic_seg_tiles',
                                            'NCT-CRC-HE-100K')
     SS_LABELED_TILES_TEST_DIR = os.path.join(GeneralConfigs.ROOT, 'data', 'semantic_seg_tiles',
                                              'CRC-VAL-HE-7K')
     SS_PREDICT_OUTPUT_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'semantic_segmentation_results',
                                           f'ss_{SS_RUN_NAME}_processed_tiles_pred')
-    SS_OOD_DATASET_DIR = os.path.join(GeneralConfigs.ROOT, 'data', 'tumor_labeled_tiles_TCGA_test')
+    # SS_OOD_DATASET_DIR = os.path.join(GeneralConfigs.ROOT, 'data', 'semantic_seg_tiles_IRCCS', 'Result_Normalization')
+    SS_OOD_DATASET_DIR = "/home/sharonpe/microsatellite-instability-classification/data/semantic_seg_tiles_IRCCS/Result_Normalization/"
     SS_OOD_DATASET_PREDICT_OUTPUT_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'semantic_segmentation_results',
                                                       f'ss_{SS_RUN_OOD_NAME}_pred')
     SS_VALID_SIZE = 0.05
@@ -97,21 +95,22 @@ class SemanticSegConfigs:
     SS_TRAINING_NUM_WORKERS = 32
     SS_INIT_LR = 1e-4
     SS_NUM_EPOCHS = 10
-    SS_NUM_DEVICES = [0, ]
+    SS_NUM_DEVICES = [1, ]
     SS_DEVICE = 'gpu'
     # alphabetical order as in ImageFolder (dicts preserve order in Python 3.7+)
-    SS_CLASS_TO_IND = {'ADI': 0, 'BACK': 1, 'DEB': 2, 'LYM': 3, 'MUC': 4, 'MUS': 5, 'NORM': 6, 'STR': 7, 'TUM': 8}
+    SS_CLASS_TO_IND = {'ADI': 0, 'BACK': 1, 'DEB': 2, 'LYM': 3, 'MUC': 4, 'MUS': 5, 'NORM': 6, 'STR': 7, 'TUM': 8}  # order does matter
     SS_CLASS_TO_WEIGHT = {'ADI': 1, 'BACK': 1, 'DEB': 1, 'LYM': 1, 'MUC': 1, 'MUS': 1, 'NORM': 4, 'STR': 1, 'TUM': 4}
+    SS_OOD_CLASS_TRANSLATE = {'ADI': 'ADI', 'BACK': 'BACK', 'DEB': 'DEBRIS_MUCUS', 'LYM': 'LYM', 'MUC': 'DEBRIS_MUCUS',
+                              'MUS': 'MUSC_STROMA', 'NORM': 'NORM', 'STR': 'MUSC_STROMA', 'TUM': 'TUM'}
     SS_CLASS_TO_COLOR = {'ADI': 'beige', 'BACK': 'silver', 'DEB': 'grey',
                          'LYM': 'yellow', 'MUC': 'chartreuse', 'MUS': 'orange',
                          'NORM': 'pink', 'STR': 'lavender', 'TUM': 'maroon'}
     SS_TUM_CLASS = 'TUM'
     SS_TRAINED_MODEL_PATH = os.path.join(GeneralConfigs.ROOT, 'models',
                                          f'{SS_EXPERIMENT_NAME}_resnet50_{SS_NUM_EPOCHS}_epochs_{SS_RUN_NAME}.ckpt')
-    SS_INFERENCE_MODEL_PATH = os.path.join(GeneralConfigs.ROOT, 'models',
-                                           f'{SS_EXPERIMENT_NAME}_resnet50_{SS_NUM_EPOCHS}_epochs_{SS_RUN_NAME}.ckpt')
-    SS_INFERENCE_BATCH_SIZE = 64
-    SS_INFERENCE_NUM_WORKERS = 32
+    SS_INFERENCE_MODEL_PATH = "/home/sharonpe/microsatellite-instability-classification/models/mlruns/ec41704aef4643178ec59c22cecaf606/artifacts/model/checkpoints/epoch=9-step=29690/epoch=9-step=29690.ckpt"
+    SS_INFERENCE_BATCH_SIZE = 32
+    SS_INFERENCE_NUM_WORKERS = 1
 
 
 @dataclass

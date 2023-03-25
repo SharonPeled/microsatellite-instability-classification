@@ -2,7 +2,8 @@ import argparse
 from src.preprocessing.pipeline import execute_preprocessing_pipeline
 from src.tumor_classification.training import train as train_tumor
 from src.tumor_classification.predict import predict as predict_tumor
-from src.semantic_segmentation.OOD_validation_tumor_TCGA import OOD_validation_tumor_TCGA as OOD_validation_tumor_TCGA
+from src.semantic_segmentation.OOD_validation_tumor_TCGA import OOD_validation_tumor_TCGA
+from src.semantic_segmentation.OOD_validation_ss_IRCCS import OOD_validation_ss_IRCCS
 from src.semantic_segmentation.training import train as train_semantic_seg
 from src.semantic_segmentation.predict import predict as predict_semantic_seg
 from src.utils import bring_files, bring_joined_log_file, delete_all_artifacts, \
@@ -37,6 +38,7 @@ def main():
     parser.add_argument('--train-tumor-classifier', action='store_true')
     parser.add_argument('--train-semantic-seg', action='store_true')
     parser.add_argument('--OOD-validation-tumor-TCGA', action='store_true')
+    parser.add_argument('--OOD-validation-ss-IRCCS', action='store_true')
     parser.add_argument('--inference-semantic-seg', action='store_true')
     parser.add_argument('--inference-tumor-tiles', action='store_true')
     parser.add_argument('--num-processes', type=int)
@@ -83,6 +85,8 @@ def main():
                                                        class_to_color=Configs.SS_CLASS_TO_COLOR)
     if args.OOD_validation_tumor_TCGA:
         OOD_validation_tumor_TCGA()
+    if args.OOD_validation_ss_IRCCS:
+        OOD_validation_ss_IRCCS()
     if args.bring_thumbnails:
         bring_files(Configs.SLIDES_DIR, 'thumbnail.png', args.bring_thumbnails)
     if args.bring_tumor_thumbnails:
