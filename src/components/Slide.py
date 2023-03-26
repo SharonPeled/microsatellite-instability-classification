@@ -15,7 +15,8 @@ import time
 
 
 class Slide(Image):
-    def __init__(self, path, slide_uuid=None, load_metadata=True, device=None, **kwargs):
+    def __init__(self, path, slide_uuid=None, load_metadata=True, device=None, metadata_filename=None,
+                 summary_df_filename=None, **kwargs):
         """
         :param slide_uuid:
         :param path: if slide_uuid=None then path directory name must be uuid of the slide, as in the gdc-client format
@@ -27,7 +28,10 @@ class Slide(Image):
             raise Exception(f"Corrupt Slide {self.path}")
         if slide_uuid is None:
             self.set('slide_uuid', self._get_uuid())
-        self.set('metadata_path', os.path.join(os.path.dirname(self.path), 'metadata.json'))
+        self.metadata_filename = metadata_filename
+        self.summary_df_filename = summary_df_filename
+        self.set('summary_df_path', os.path.join(os.path.dirname(self.path), summary_df_filename))
+        self.set('metadata_path', os.path.join(os.path.dirname(self.path), metadata_filename))
         if load_metadata:
             self.load_slide_metadata()
         self.img_r = None  # reduced image
@@ -36,22 +40,33 @@ class Slide(Image):
         self.downsample = None
         self.color_normalizer = None
 
-    def load(self, load_level=None):
+    @classmethod
+    def from_img(cls, img_obj, new_img_attr):
+        new_img_obj = cls(img_obj.path, img_obj.img, device=img_obj.device,
+                          metadata_filename=img_obj.metadata_filename,
+                          summary_df_filename=img_obj.summary_df_filename)
+        new_img_obj.__dict__.update({k: v for k, v in img_obj.__dict__.items() if k != "img"})
+        new_img_obj.img = new_img_attr
+        return new_img_obj
+
+    def load(self):
         self.img = pyvips.Image.new_from_file(self.path).extract_band(0, n=3) # removing alpha channel
+
+    def load_reduced_image_to_memory(self, load_level, tile_size):
         if isinstance(load_level, int):
-            if int(self.img.get('openslide.level-count')) - 1 >= load_level:
-                self.img_r = pyvips.Image.new_from_file(self.path, level=load_level).extract_band(0, n=3) # removing alpha channel
-                self.img_r_level = int(load_level)
+            load_level = [load_level, ]  # insert to list to easy iteration
         if isinstance(load_level, list):
             for level in load_level:
                 if int(self.img.get('openslide.level-count')) - 1 >= level:
-                    self.img_r = pyvips.Image.new_from_file(self.path, level=level).extract_band(0, n=3) # removing alpha channel
-                    self.img_r_level = int(level)
-                    break
+                    downsample = int(self.width / float(self.img.get(f'openslide.level[{level}].width')))
+                    if not tile_size % downsample == 0:
+                        # downsize should be divisible by tile_size
+                        continue
+                self.img_r = pyvips.Image.new_from_file(self.path, level=level).extract_band(0, n=3)  # removing alpha channel
+                self.img_r_level = int(level)
+                break
         if load_level is not None and self.img_r is None:
             raise Exception(f"Loading level {load_level} failed.")
-
-    def load_level_to_memory(self):
         self.img_r.write_to_memory()
         height_r, width_r = self.img_r.height, self.img_r.width
         width_ratio, height_ratio = int(self.width / width_r), int(self.height / height_r)
@@ -140,9 +155,9 @@ class Slide(Image):
                     if pipeline.steps[-1][0] == 'save_processed_tile':
                         self.set('processed_tiles_dir', pipeline.steps[-1][1].kw_args['processed_tiles_dir'])
                     self._log(f"""Finished processing {len(tiles_inds)} tiles.""", log_importance=1)
+                    self.set('Done preprocessing', True)
 
                 self.set(f'Finished ({resolution}, {i}).', True)
-            self.set('Done preprocessing', True)
             self.save_metadata()
             self._log(f"""Finish processing [Slide] ({ind+1}/{num_slides} - {self}""", log_importance=1)
         except Exception as e:
@@ -159,7 +174,7 @@ class Slide(Image):
         return tissue_tiles.index.values
 
     def save_summary_df(self):
-        out_path = os.path.join(os.path.dirname(self.path), 'summary_df.csv')
+        out_path = self.get('summary_df_path')
         self.summary_df.to_csv(out_path)
         # adding percentages of each filter of metadata
         tile_value_counts = {k: list(v)
@@ -168,7 +183,6 @@ class Slide(Image):
         for k,v in tile_value_counts.items():
             self.set(k, v)
         self._log(f"Tiles value counts: {tile_value_counts}", log_importance=1)
-        self.set('summary_df_path', out_path)
         self.log(f"""Summary df saved for slide {self}.""", log_importance=2)
 
     def __str__(self):

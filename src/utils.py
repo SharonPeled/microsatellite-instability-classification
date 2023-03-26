@@ -115,11 +115,11 @@ def delete_all_artifacts(configs):
     for path in slide_paths:
         slide_dir = os.path.dirname(path)
         remove_artifact(os.path.join(slide_dir, configs.PROGRAM_LOG_FILE_ARGS[0]))
-        remove_artifact(os.path.join(slide_dir, 'metadata.json'))
+        remove_artifact(os.path.join(slide_dir, configs.METADATA_JSON_FILENAME))
         remove_artifact(os.path.join(slide_dir, 'thumbnail.png'))
         remove_artifact(os.path.join(slide_dir, 'tumor_thumbnail.png'))
-        remove_artifact(os.path.join(slide_dir, 'summary_df.csv'))
-        remove_artifact(os.path.join(slide_dir, 'summary_df_pred_merged.csv'))
+        remove_artifact(os.path.join(slide_dir, configs.SUMMARY_DF_FILENAME))
+        remove_artifact(os.path.join(slide_dir, configs.SUMMARY_DF_PRED_MERGED_FILENAME))
 
 
 def remove_artifact(path):
@@ -145,12 +145,13 @@ def load_df_pred(pred_dir, class_to_index):
     return df
 
 
-def generate_thumbnails_with_tissue_classification(df_pred, slides_dir, class_to_index, class_to_color):
+def generate_thumbnails_with_tissue_classification(df_pred, slides_dir, class_to_index, class_to_color,
+                                                   summary_df_filename, summary_df_pred_merged_filename):
     classes = list(class_to_index.keys())
     df_pred['row'] = df_pred.tile_path.apply(lambda p: int(os.path.basename(p).split('_')[0]))
     df_pred['col'] = df_pred.tile_path.apply(lambda p: int(os.path.basename(p).split('_')[1]))
     df_pred['slide_uuid'] = df_pred.tile_path.apply(lambda p: os.path.basename(os.path.dirname(p)))
-    summary_df_paths = glob(f"{slides_dir}/**/summary_df.csv", recursive=True)
+    summary_df_paths = glob(f"{slides_dir}/**/{summary_df_filename}", recursive=True)
     df_list = []
     for path in summary_df_paths:
         summary_df = pd.read_csv(path, index_col=0)
@@ -168,7 +169,7 @@ def generate_thumbnails_with_tissue_classification(df_pred, slides_dir, class_to
     for slide_uuid, slide_summary_df in df_merged.groupby('slide_uuid'):
         slide_path = slide_summary_df.slide_path.values[0]
         generate_classified_tissue_thumbnail(slide_summary_df, slide_path, class_to_color)
-        slide_summary_df.to_csv(os.path.join(os.path.dirname(slide_path), 'summary_df_pred_merged.csv'))
+        slide_summary_df.to_csv(os.path.join(os.path.dirname(slide_path), summary_df_pred_merged_filename))
 
 
 def add_cell_to_ax(row, col, ax, **kwargs):

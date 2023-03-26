@@ -20,14 +20,17 @@ class GeneralConfigs:
 
 @dataclass
 class PreprocessingConfigs:
+    METADATA_JSON_FILENAME = 'metadata_224.json'
+    SUMMARY_DF_FILENAME = 'summary_df_224.csv'
+    SUMMARY_DF_PRED_MERGED_FILENAME = 'summary_df_pred_merged_filename_224.csv'
     SLIDE_LOG_FILE_ARGS = ['log.txt', 'w']  # slide level log
     TILE_PROGRESS_LOG_FREQ = 100  # report progress every process of x tiles (convenient for multiprocessing)
     LOAD_METADATA = True
-    PREPROCESSING_DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
+    PREPROCESSING_DEVICE = 'cpu'
     # Assuming TCGA folder structure, where each slide is in a separate dir and the dir is named after the slide ID
     SLIDES_DIR = os.path.join(GeneralConfigs.ROOT, 'data', 'slides')
-    PROCESSED_TILES_DIR = os.path.join(GeneralConfigs.ROOT, 'data', 'processed_tiles')
-    TILE_SIZE = 512  # should be divisible by downsample of reduced image, the easiest way is to set to be a power of 2
+    PROCESSED_TILES_DIR = os.path.join(GeneralConfigs.ROOT, 'data', 'processed_tiles_224')
+    TILE_SIZE = 224  # should be divisible by downsample of reduced image, the easiest way is to set to be a power of 2
     REDUCED_LEVEL_TO_MEMORY = [3, 2]  # attempting to load according to order
     TARGET_MAG_POWER = 20
     MAG_ATTR = 'openslide.objective-power'

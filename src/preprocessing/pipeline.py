@@ -20,11 +20,12 @@ def execute_preprocessing_pipeline(with_tiling, num_processes):
 
     pipeline_list = [
         ('slide', Pipeline([
-            ('load_slide', LoggingFunctionTransformer(load_slide,
-                                                      kw_args={'load_level': Configs.REDUCED_LEVEL_TO_MEMORY})),
+            ('load_slide', LoggingFunctionTransformer(load_slide)),
             ('scale_mpp', LoggingFunctionTransformer(resize, kw_args={'target_mag_power': Configs.TARGET_MAG_POWER,
                                                                       'mag_attr': Configs.MAG_ATTR})),
-            ('load_reduced_image_to_memory', LoggingFunctionTransformer(load_reduced_image_to_memory)),
+            ('load_reduced_image_to_memory', LoggingFunctionTransformer(load_reduced_image_to_memory,
+                                                                        kw_args={'load_level': Configs.REDUCED_LEVEL_TO_MEMORY,
+                                                                                 'tile_size': Configs.TILE_SIZE})),
             ('center_crop_reduced_image', LoggingFunctionTransformer(center_crop_reduced_image,
                                                                      kw_args={'tile_size': Configs.TILE_SIZE,
                                                                               'tissue_attr': Configs.TISSUE_ATTR})),
@@ -54,4 +55,4 @@ def execute_preprocessing_pipeline(with_tiling, num_processes):
                                                                             'fail_norm_attr': Configs.COLOR_NORM_FAIL}))
             ]))
         )
-    slide_dataset.apply_pipeline(pipeline_list, process_manager)
+    slide_dataset.apply_pipeline(pipeline_list, process_manager, Configs.METADATA_JSON_FILENAME, Configs.SUMMARY_DF_FILENAME)

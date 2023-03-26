@@ -11,8 +11,8 @@ import matplotlib.colors as colors
 from torchvision import transforms
 
 
-def load_slide(slide, load_level=None):
-    slide.load(load_level)
+def load_slide(slide):
+    slide.load()
     return slide
 
 
@@ -45,8 +45,8 @@ def center_crop_reduced_image(slide, tile_size, tissue_attr):
     return slide
 
 
-def load_reduced_image_to_memory(slide):
-    slide.load_level_to_memory()
+def load_reduced_image_to_memory(slide, load_level, tile_size):
+    slide.load_reduced_image_to_memory(load_level, tile_size)
     return slide
 
 

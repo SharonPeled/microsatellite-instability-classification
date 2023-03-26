@@ -75,14 +75,18 @@ def main():
         generate_thumbnails_with_tissue_classification(df_pred=df_pred,
                                                        slides_dir=Configs.SLIDES_DIR,
                                                        class_to_index=Configs.TUMOR_CLASS_TO_IND,
-                                                       class_to_color=Configs.TUMOR_CLASS_TO_COLOR)
+                                                       class_to_color=Configs.TUMOR_CLASS_TO_COLOR,
+                                                       summary_df_filename=Configs.SUMMARY_DF_FILENAME,
+                                                       summary_df_pred_merged_filename=Configs.SUMMARY_DF_PRED_MERGED_FILENAME)
     if args.generate_semantic_seg_thumbnails:
         df_pred = load_df_pred(pred_dir=Configs.SS_PREDICT_OUTPUT_PATH,
                                class_to_index=Configs.SS_CLASS_TO_IND)
         generate_thumbnails_with_tissue_classification(df_pred=df_pred,
                                                        slides_dir=Configs.SLIDES_DIR,
                                                        class_to_index=Configs.SS_CLASS_TO_IND,
-                                                       class_to_color=Configs.SS_CLASS_TO_COLOR)
+                                                       class_to_color=Configs.SS_CLASS_TO_COLOR,
+                                                       summary_df_filename=Configs.SUMMARY_DF_FILENAME,
+                                                       summary_df_pred_merged_filename=Configs.SUMMARY_DF_PRED_MERGED_FILENAME)
     if args.OOD_validation_tumor_TCGA:
         OOD_validation_tumor_TCGA()
     if args.OOD_validation_ss_IRCCS:
