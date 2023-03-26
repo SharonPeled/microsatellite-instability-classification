@@ -24,8 +24,9 @@ class PreprocessingConfigs:
     SUMMARY_DF_FILENAME = 'summary_df_224.csv'
     SUMMARY_DF_PRED_MERGED_FILENAME = 'summary_df_pred_merged_filename_224.csv'
     SLIDE_LOG_FILE_ARGS = ['log.txt', 'w']  # slide level log
-    TILE_PROGRESS_LOG_FREQ = 100  # report progress every process of x tiles (convenient for multiprocessing)
+    TILE_PROGRESS_LOG_FREQ = 500  # report progress every process of x tiles (convenient for multiprocessing)
     LOAD_METADATA = True
+    TO_MACENKO_NORMALIZE = False
     PREPROCESSING_DEVICE = 'cpu'
     # Assuming TCGA folder structure, where each slide is in a separate dir and the dir is named after the slide ID
     SLIDES_DIR = os.path.join(GeneralConfigs.ROOT, 'data', 'slides')

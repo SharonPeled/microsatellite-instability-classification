@@ -168,9 +168,7 @@ def load_tile(tile):
     return tile
 
 
-def save_processed_tile(tile, processed_tiles_dir, fail_norm_attr):
-    if tile.get('norm_result', soft=True) is None or tile.get('norm_result', soft=True) == fail_norm_attr:
-        return tile
+def save_processed_tile(tile, processed_tiles_dir):
     tile.save(processed_tiles_dir)
     return tile
 
