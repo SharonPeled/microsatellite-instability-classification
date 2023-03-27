@@ -79,7 +79,7 @@ class TumorClassificationConfigs:
 
 class SemanticSegConfigs:
     SS_EXPERIMENT_NAME = 'semantic_segmentation'
-    SS_RUN_NAME = None
+    SS_RUN_NAME = "thrid_try_predict_224"
     SS_RUN_DESCRIPTION = None
     SS_RUN_OOD_NAME = f'OOD_IRCCS_validaiton_wloss'
     SS_OOD_RUN_DESCRIPTION = """third_try model with wloss validation on IRCSS dataset 150*150 tiles.
@@ -99,7 +99,7 @@ class SemanticSegConfigs:
     SS_TRAINING_NUM_WORKERS = 32
     SS_INIT_LR = 1e-4
     SS_NUM_EPOCHS = 10
-    SS_NUM_DEVICES = [1, ]
+    SS_NUM_DEVICES = [0, ]
     SS_DEVICE = 'gpu'
     # alphabetical order as in ImageFolder (dicts preserve order in Python 3.7+)
     SS_CLASS_TO_IND = {'ADI': 0, 'BACK': 1, 'DEB': 2, 'LYM': 3, 'MUC': 4, 'MUS': 5, 'NORM': 6, 'STR': 7, 'TUM': 8}  # order does matter
@@ -113,8 +113,8 @@ class SemanticSegConfigs:
     SS_TRAINED_MODEL_PATH = os.path.join(GeneralConfigs.ROOT, 'models',
                                          f'{SS_EXPERIMENT_NAME}_resnet50_{SS_NUM_EPOCHS}_epochs_{SS_RUN_NAME}.ckpt')
     SS_INFERENCE_MODEL_PATH = "/home/sharonpe/microsatellite-instability-classification/models/mlruns/ec41704aef4643178ec59c22cecaf606/artifacts/model/checkpoints/epoch=9-step=29690/epoch=9-step=29690.ckpt"
-    SS_INFERENCE_BATCH_SIZE = 32
-    SS_INFERENCE_NUM_WORKERS = 1
+    SS_INFERENCE_BATCH_SIZE = 64
+    SS_INFERENCE_NUM_WORKERS = 32
 
 
 @dataclass
