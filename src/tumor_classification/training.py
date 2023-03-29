@@ -49,11 +49,11 @@ def train():
     Logger.log(f"""Created tumor classification datasets: {len(train_dataset)}, {len(valid_dataset)}, {len(test_dataset)}""",
                log_importance=1)
 
-    train_loader = DataLoader(train_dataset, batch_size=Configs.TUMOR_TRAINING_BATCH_SIZE, shuffle=True,
+    train_loader = DataLoader(train_dataset, batch_size=Configs.TUMOR_TRAINING_BATCH_SIZE, shuffle=True, persistent_workers=True,
                               num_workers=Configs.TUMOR_TRAINING_NUM_WORKERS)
-    valid_loader = DataLoader(valid_dataset, batch_size=Configs.TUMOR_TRAINING_BATCH_SIZE, shuffle=False,
+    valid_loader = DataLoader(valid_dataset, batch_size=Configs.TUMOR_TRAINING_BATCH_SIZE, shuffle=False, persistent_workers=True,
                               num_workers=Configs.TUMOR_TRAINING_NUM_WORKERS)
-    test_loader = DataLoader(test_dataset, batch_size=Configs.TUMOR_TRAINING_BATCH_SIZE, shuffle=False,
+    test_loader = DataLoader(test_dataset, batch_size=Configs.TUMOR_TRAINING_BATCH_SIZE, shuffle=False, persistent_workers=True,
                              num_workers=Configs.TUMOR_TRAINING_NUM_WORKERS)
     model = TissueClassifier(class_to_ind=Configs.TUMOR_CLASS_TO_IND, learning_rate=Configs.TUMOR_INIT_LR)
     mlflow_logger = MLFlowLogger(experiment_name=Configs.TUMOR_EXPERIMENT_NAME, run_name=Configs.TUMOR_RUN_NAME,

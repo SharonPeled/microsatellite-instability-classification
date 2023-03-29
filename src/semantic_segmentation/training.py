@@ -51,6 +51,7 @@ def train():
         {len(train_dataset)}, {len(valid_dataset)}, {len(test_dataset)}",
                    log_importance=1)
         valid_loader = DataLoader(valid_dataset, batch_size=Configs.SS_TRAINING_BATCH_SIZE, shuffle=False,
+                                  persistent_workers=True,
                                   num_workers=Configs.SS_TRAINING_NUM_WORKERS,
                                   worker_init_fn=set_worker_sharing_strategy)
     else:
@@ -58,9 +59,9 @@ def train():
         Logger.log(f"Created semantic segmentation datasets: \
                 {len(train_dataset)}, {len(test_dataset)}",
                    log_importance=1)
-    train_loader = DataLoader(train_dataset, batch_size=Configs.SS_TRAINING_BATCH_SIZE, shuffle=True,
+    train_loader = DataLoader(train_dataset, batch_size=Configs.SS_TRAINING_BATCH_SIZE, shuffle=True, persistent_workers=True,
                               num_workers=Configs.SS_TRAINING_NUM_WORKERS, worker_init_fn=set_worker_sharing_strategy)
-    test_loader = DataLoader(test_dataset, batch_size=Configs.SS_TRAINING_BATCH_SIZE, shuffle=False,
+    test_loader = DataLoader(test_dataset, batch_size=Configs.SS_TRAINING_BATCH_SIZE, shuffle=False, persistent_workers=True,
                              num_workers=Configs.SS_TRAINING_NUM_WORKERS, worker_init_fn=set_worker_sharing_strategy)
 
     model = TissueClassifier(class_to_ind=Configs.SS_CLASS_TO_IND, learning_rate=Configs.SS_INIT_LR,

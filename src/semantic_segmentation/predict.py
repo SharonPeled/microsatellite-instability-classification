@@ -18,7 +18,7 @@ def predict():
                              [0.229, 0.224, 0.225])
     ])
     dataset = ProcessedTileDataset(Configs.PROCESSED_TILES_DIR, transform=transform)
-    dataloader = DataLoader(dataset, shuffle=False, batch_size=Configs.SS_INFERENCE_BATCH_SIZE,
+    dataloader = DataLoader(dataset, shuffle=False, batch_size=Configs.SS_INFERENCE_BATCH_SIZE, persistent_workers=True,
                             num_workers=Configs.SS_INFERENCE_NUM_WORKERS)
     model = TissueClassifier.load_from_checkpoint(Configs.SS_INFERENCE_MODEL_PATH,
                                                   class_to_ind=Configs.SS_CLASS_TO_IND, learning_rate=None)

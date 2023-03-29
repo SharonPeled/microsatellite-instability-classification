@@ -25,6 +25,7 @@ def predict():
     ])
     dataset = ProcessedTileDataset(Configs.PROCESSED_TILES_DIR, transform=transform)
     dataloader = DataLoader(dataset, shuffle=False, batch_size=Configs.TUMOR_INFERENCE_BATCH_SIZE,
+                            persistent_workers=True,
                             num_workers=Configs.TUMOR_INFERENCE_NUM_WORKERS)
                             # collate_fn=my_collate)
     model = TissueClassifier.load_from_checkpoint(Configs.TUMOR_TRAINED_MODEL_PATH,

@@ -31,7 +31,7 @@ def OOD_validation_ss_IRCCS():
     ])
     ood_dataset = InferenceTileDataset(Configs.SS_OOD_DATASET_DIR, img_extension='png',
                                        transform=transform, crop_and_agg=False)
-    ood_loader = DataLoader(ood_dataset, batch_size=Configs.SS_INFERENCE_BATCH_SIZE, shuffle=False,
+    ood_loader = DataLoader(ood_dataset, batch_size=Configs.SS_INFERENCE_BATCH_SIZE, shuffle=False, persistent_workers=True,
                             num_workers=Configs.SS_INFERENCE_NUM_WORKERS)
     model = TissueClassifier.load_from_checkpoint(Configs.SS_INFERENCE_MODEL_PATH,
                                                   class_to_ind=Configs.SS_CLASS_TO_IND, learning_rate=None)
