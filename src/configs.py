@@ -118,8 +118,8 @@ class SemanticSegConfigs:
     SS_TRAINED_MODEL_PATH = os.path.join(GeneralConfigs.ROOT, 'models',
                                          f'{SS_EXPERIMENT_NAME}_resnet50_{SS_NUM_EPOCHS}_epochs_{SS_RUN_NAME}.ckpt')
     SS_INFERENCE_MODEL_PATH = "/home/sharonpe/microsatellite-instability-classification/models/mlruns/ec41704aef4643178ec59c22cecaf606/artifacts/model/checkpoints/epoch=9-step=29690/epoch=9-step=29690.ckpt"
-    SS_INFERENCE_BATCH_SIZE = 128
-    SS_INFERENCE_NUM_WORKERS = 25
+    SS_INFERENCE_BATCH_SIZE = 64
+    SS_INFERENCE_NUM_WORKERS = 5
 
 
 @dataclass
