@@ -77,7 +77,8 @@ def main():
                                                        class_to_index=Configs.TUMOR_CLASS_TO_IND,
                                                        class_to_color=Configs.TUMOR_CLASS_TO_COLOR,
                                                        summary_df_filename=Configs.SUMMARY_DF_FILENAME,
-                                                       summary_df_pred_merged_filename=Configs.SUMMARY_DF_PRED_MERGED_FILENAME)
+                                                       summary_df_pred_merged_filename=Configs.TUMOR_SUMMARY_DF_PRED_MERGED_FILENAME,
+                                                       thumbnail_filename=Configs.TUMOR_THUMBNAIL_FILENAME)
     if args.generate_semantic_seg_thumbnails:
         df_pred = load_df_pred(pred_dir=Configs.SS_PREDICT_OUTPUT_PATH,
                                class_to_index=Configs.SS_CLASS_TO_IND)
@@ -86,17 +87,19 @@ def main():
                                                        class_to_index=Configs.SS_CLASS_TO_IND,
                                                        class_to_color=Configs.SS_CLASS_TO_COLOR,
                                                        summary_df_filename=Configs.SUMMARY_DF_FILENAME,
-                                                       summary_df_pred_merged_filename=Configs.SUMMARY_DF_PRED_MERGED_FILENAME)
+                                                       summary_df_pred_merged_filename=Configs.SS_SUMMARY_DF_PRED_MERGED_FILENAME,
+                                                       thumbnail_filename=Configs.SS_THUMBNAIL_FILENAME)
+
     if args.OOD_validation_tumor_TCGA:
         OOD_validation_tumor_TCGA()
     if args.OOD_validation_ss_IRCCS:
         OOD_validation_ss_IRCCS()
     if args.bring_thumbnails:
-        bring_files(Configs.SLIDES_DIR, 'thumbnail.png', args.bring_thumbnails)
+        bring_files(Configs.SLIDES_DIR, Configs.THUMBNAIL_FILENAME, args.bring_thumbnails)
     if args.bring_tumor_thumbnails:
-        bring_files(Configs.SLIDES_DIR, 'tumor_thumbnail.png', args.bring_tumor_thumbnails)
+        bring_files(Configs.SLIDES_DIR, Configs.TUMOR_THUMBNAIL_FILENAME, args.bring_tumor_thumbnails)
     if args.bring_semantic_seg_thumbnails:
-        bring_files(Configs.SLIDES_DIR, 'semantic_seg_thumbnail.png', args.bring_semantic_seg_thumbnails)
+        bring_files(Configs.SLIDES_DIR, Configs.SS_THUMBNAIL_FILENAME, args.bring_semantic_seg_thumbnails)
 
 
 if __name__ == "__main__":

@@ -192,7 +192,7 @@ def macenko_color_norm(tile, succ_norm_attr, fail_norm_attr):
         return tile
 
 
-def generate_slide_color_grid(slide, attrs_to_colors_map):
+def generate_slide_color_grid(slide, attrs_to_colors_map, thumbnail_filename):
     df = slide.summary_df.assign(**{a: False for a in attrs_to_colors_map.keys() if
                                     a not in slide.summary_df.columns})  # adding missing attrs as false
     grid = np.ones((slide.get('num_x_tiles'), slide.get('num_y_tiles')))
@@ -227,7 +227,7 @@ def generate_slide_color_grid(slide, attrs_to_colors_map):
 
     plt.subplots_adjust(wspace=0, hspace=0)
     plt.tight_layout()
-    fig.savefig(os.path.join(os.path.dirname(slide.path), 'thumbnail.png'), bbox_inches='tight', pad_inches=0.5)
+    fig.savefig(os.path.join(os.path.dirname(slide.path), thumbnail_filename), bbox_inches='tight', pad_inches=0.5)
     plt.close(fig)
     Logger.log(f"""Thumbnail Saved.""", log_importance=1)
     return slide

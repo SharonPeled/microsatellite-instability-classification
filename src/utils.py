@@ -116,10 +116,12 @@ def delete_all_artifacts(configs):
         slide_dir = os.path.dirname(path)
         remove_artifact(os.path.join(slide_dir, configs.PROGRAM_LOG_FILE_ARGS[0]))
         remove_artifact(os.path.join(slide_dir, configs.METADATA_JSON_FILENAME))
-        remove_artifact(os.path.join(slide_dir, 'thumbnail.png'))
-        remove_artifact(os.path.join(slide_dir, 'tumor_thumbnail.png'))
+        remove_artifact(os.path.join(slide_dir, configs.THUMBNAIL_FILENAME))
+        remove_artifact(os.path.join(slide_dir, configs.TUMOR_THUMBNAIL_FILENAME))
+        remove_artifact(os.path.join(slide_dir, configs.SS_THUMBNAIL_FILENAME))
         remove_artifact(os.path.join(slide_dir, configs.SUMMARY_DF_FILENAME))
-        remove_artifact(os.path.join(slide_dir, configs.SUMMARY_DF_PRED_MERGED_FILENAME))
+        remove_artifact(os.path.join(slide_dir, configs.TUMOR_SUMMARY_DF_PRED_MERGED_FILENAME))
+        remove_artifact(os.path.join(slide_dir, configs.SS_SUMMARY_DF_PRED_MERGED_FILENAME))
 
 
 def remove_artifact(path):
@@ -146,7 +148,8 @@ def load_df_pred(pred_dir, class_to_index):
 
 
 def generate_thumbnails_with_tissue_classification(df_pred, slides_dir, class_to_index, class_to_color,
-                                                   summary_df_filename, summary_df_pred_merged_filename):
+                                                   summary_df_filename, summary_df_pred_merged_filename,
+                                                   thumbnail_filename):
     classes = list(class_to_index.keys())
     df_pred['row'] = df_pred.tile_path.apply(lambda p: int(os.path.basename(p).split('_')[0]))
     df_pred['col'] = df_pred.tile_path.apply(lambda p: int(os.path.basename(p).split('_')[1]))
@@ -168,7 +171,7 @@ def generate_thumbnails_with_tissue_classification(df_pred, slides_dir, class_to
     df_merged.col = df_merged.col.astype(int)
     for slide_uuid, slide_summary_df in df_merged.groupby('slide_uuid'):
         slide_path = slide_summary_df.slide_path.values[0]
-        generate_classified_tissue_thumbnail(slide_summary_df, slide_path, class_to_color)
+        generate_classified_tissue_thumbnail(slide_summary_df, slide_path, class_to_color, thumbnail_filename)
         slide_summary_df.to_csv(os.path.join(os.path.dirname(slide_path), summary_df_pred_merged_filename))
 
 
@@ -178,7 +181,7 @@ def add_cell_to_ax(row, col, ax, **kwargs):
     return rect
 
 
-def generate_classified_tissue_thumbnail(slide_summary_df, slide_path, class_to_color):
+def generate_classified_tissue_thumbnail(slide_summary_df, slide_path, class_to_color, thumbnail_filename):
     num_rows = slide_summary_df['row'].max() + 1
     num_cols = slide_summary_df['col'].max() + 1
     slide_summary_df.index = [(x, y) for x in range(num_rows)
@@ -209,7 +212,7 @@ def generate_classified_tissue_thumbnail(slide_summary_df, slide_path, class_to_
 
     plt.subplots_adjust(wspace=0, hspace=0)
     plt.tight_layout()
-    fig.savefig(os.path.join(os.path.dirname(slide_path), 'semantic_seg_thumbnail.png'), bbox_inches='tight', pad_inches=0.5)
+    fig.savefig(os.path.join(os.path.dirname(slide_path), thumbnail_filename), bbox_inches='tight', pad_inches=0.5)
     plt.close(fig)
     Logger.log(f"""Tissue Classified Thumbnail Saved {os.path.dirname(slide_path)}.""", log_importance=1)
 

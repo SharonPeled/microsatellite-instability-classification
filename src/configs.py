@@ -18,11 +18,13 @@ class GeneralConfigs:
     LOG_FORMAT = {'format': '%(process)d  %(asctime)s  [%(name)s] - %(message)s', 'datefmt':'%d-%m-%y %H:%M:%S'}
     MLFLOW_SAVE_DIR = os.path.join(ROOT, 'models', 'mlruns')
 
+
 @dataclass
 class PreprocessingConfigs:
-    METADATA_JSON_FILENAME = 'metadata_224.json'
-    SUMMARY_DF_FILENAME = 'summary_df_224.csv'
-    SUMMARY_DF_PRED_MERGED_FILENAME = 'summary_df_pred_merged_filename_224.csv'
+    PREPROCESS_RUN_NAME = '224'
+    METADATA_JSON_FILENAME = f'metadata_{PREPROCESS_RUN_NAME}.json'
+    SUMMARY_DF_FILENAME = f'summary_df_{PREPROCESS_RUN_NAME}.csv'
+    THUMBNAIL_FILENAME = f'thumbnail_{PREPROCESS_RUN_NAME}.png'
     SLIDE_LOG_FILE_ARGS = ['log.txt', 'w']  # slide level log
     TILE_PROGRESS_LOG_FREQ = 1000  # report progress every process of x tiles (convenient for multiprocessing)
     LOAD_METADATA = True
@@ -57,6 +59,8 @@ class TumorClassificationConfigs:
     TUMOR_TRAINED_MODEL_PATH = os.path.join(GeneralConfigs.ROOT, 'models',
                                             f'{TUMOR_EXPERIMENT_NAME}_resnet50_10_epochs_{TUMOR_RUN_NAME}.ckpt')
     TUMOR_LABELED_TILES_DIR = os.path.join(GeneralConfigs.ROOT, 'data', 'tumor_labeled_tiles')
+    TUMOR_SUMMARY_DF_PRED_MERGED_FILENAME = f'summary_df_pred_merged_{TUMOR_EXPERIMENT_NAME}_{TUMOR_RUN_NAME}.csv'
+    TUMOR_THUMBNAIL_FILENAME = f'tumor_thumbnail_{TUMOR_RUN_NAME}.png'
     TUMOR_CLASS = 'TUMSTU'
     NON_TUMOR_CLASSES = ['STRMUS', 'ADIMUC']
     TUMOR_TEST_SIZE = 0.2
@@ -84,14 +88,15 @@ class SemanticSegConfigs:
     SS_RUN_OOD_NAME = f'OOD_IRCCS_validaiton_wloss'
     SS_OOD_RUN_DESCRIPTION = """third_try model with wloss validation on IRCSS dataset 150*150 tiles.
     With label missmatch."""
+    SS_THUMBNAIL_FILENAME = f'ss_thumbnail_{SS_RUN_NAME}.png'
+    SS_SUMMARY_DF_PRED_MERGED_FILENAME = f'summary_df_pred_merged_{SS_EXPERIMENT_NAME}_{SS_RUN_NAME}.csv'
     SS_LABELED_TILES_TRAIN_DIR = os.path.join(GeneralConfigs.ROOT, 'data', 'semantic_seg_tiles',
                                            'NCT-CRC-HE-100K')
     SS_LABELED_TILES_TEST_DIR = os.path.join(GeneralConfigs.ROOT, 'data', 'semantic_seg_tiles',
                                              'CRC-VAL-HE-7K')
     SS_PREDICT_OUTPUT_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'semantic_segmentation_results',
                                           f'ss_{SS_RUN_NAME}_processed_tiles_pred')
-    # SS_OOD_DATASET_DIR = os.path.join(GeneralConfigs.ROOT, 'data', 'semantic_seg_tiles_IRCCS', 'Result_Normalization')
-    SS_OOD_DATASET_DIR = "/home/sharonpe/microsatellite-instability-classification/data/semantic_seg_tiles_IRCCS/Result_Normalization/"
+    SS_OOD_DATASET_DIR = os.path.join(GeneralConfigs.ROOT, 'data', 'semantic_seg_tiles_IRCCS', 'Result_Normalization')
     SS_OOD_DATASET_PREDICT_OUTPUT_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'semantic_segmentation_results',
                                                       f'ss_{SS_RUN_OOD_NAME}_pred')
     SS_VALID_SIZE = 0.05
