@@ -62,10 +62,10 @@ class Slide(Image):
                     if not tile_size % downsample == 0:
                         # downsize should be divisible by tile_size
                         continue
-                self.img_r = pyvips.Image.new_from_file(self.path, level=level).extract_band(0, n=3)  # removing alpha channel
-                self.img_r_level = int(level)
-                break
-        if load_level is not None and self.img_r is None:
+                    self.img_r = pyvips.Image.new_from_file(self.path, level=level).extract_band(0, n=3)  # removing alpha channel
+                    self.img_r_level = int(level)
+                    break
+        if self.img_r is None:
             raise Exception(f"Loading level {load_level} failed.")
         self.img_r.write_to_memory()
         height_r, width_r = self.img_r.height, self.img_r.width
