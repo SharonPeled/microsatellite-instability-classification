@@ -11,7 +11,6 @@ from ..components.MacenkoNormalizerTransform import MacenkoNormalizerTransform
 def predict():
     transform = transforms.Compose([
         transforms.Resize(224),
-        transforms.CenterCrop(224),
         transforms.ToTensor(),
         MacenkoNormalizerTransform(Configs.COLOR_NORM_REF_IMG),
         transforms.Normalize([0.485, 0.456, 0.406],
