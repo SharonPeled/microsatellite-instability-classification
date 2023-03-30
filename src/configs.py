@@ -101,7 +101,7 @@ class SemanticSegConfigs:
     SS_OOD_DATASET_PREDICT_OUTPUT_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'semantic_segmentation_results',
                                                       f'ss_{SS_RUN_OOD_NAME}_pred')
     SS_VALID_SIZE = 0.05
-    SS_TRAINING_BATCH_SIZE = 64
+    SS_TRAINING_BATCH_SIZE = 32
     SS_TRAINING_NUM_WORKERS = 16
     SS_INIT_LR = 1e-4
     SS_NUM_EPOCHS = 10
