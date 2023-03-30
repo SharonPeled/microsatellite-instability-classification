@@ -120,7 +120,7 @@ class SemanticSegConfigs:
                                          f'{SS_EXPERIMENT_NAME}_resnet50_{SS_NUM_EPOCHS}_epochs_{SS_RUN_NAME}.ckpt')
     SS_INFERENCE_MODEL_PATH = os.path.join(GeneralConfigs.ROOT, 'models',
                                            f'{SS_EXPERIMENT_NAME}_resnet50_{SS_NUM_EPOCHS}_epochs_{SS_RUN_NAME}.ckpt')
-    SS_INFERENCE_BATCH_SIZE = 64
+    SS_INFERENCE_BATCH_SIZE = 256
     SS_INFERENCE_NUM_WORKERS = 5
 
 
