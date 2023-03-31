@@ -46,14 +46,14 @@ def train():
     valid_dataset = TumorRegressionDataset(df_valid, transform=test_transform)
     test_dataset = TumorRegressionDataset(df_test, transform=test_transform)
 
-    train_loader = DataLoader(train_dataset, batch_size=Configs.SS_TRAINING_BATCH_SIZE, shuffle=True,
-                              persistent_workers=True, num_workers=Configs.SS_TRAINING_NUM_WORKERS,
+    train_loader = DataLoader(train_dataset, batch_size=Configs.TR_TRAINING_BATCH_SIZE, shuffle=True,
+                              persistent_workers=True, num_workers=Configs.TR_TRAINING_NUM_WORKERS,
                               worker_init_fn=set_worker_sharing_strategy)
-    valid_loader = DataLoader(valid_dataset, batch_size=Configs.SS_TRAINING_BATCH_SIZE, shuffle=False,
-                              persistent_workers=True, num_workers=Configs.SS_TRAINING_NUM_WORKERS,
+    valid_loader = DataLoader(valid_dataset, batch_size=Configs.TR_TRAINING_BATCH_SIZE, shuffle=False,
+                              persistent_workers=True, num_workers=Configs.TR_TRAINING_NUM_WORKERS,
                               worker_init_fn=set_worker_sharing_strategy)
-    test_loader = DataLoader(test_dataset, batch_size=Configs.SS_TRAINING_BATCH_SIZE, shuffle=False,
-                             persistent_workers=True, num_workers=Configs.SS_TRAINING_NUM_WORKERS,
+    test_loader = DataLoader(test_dataset, batch_size=Configs.TR_TRAINING_BATCH_SIZE, shuffle=False,
+                             persistent_workers=True, num_workers=Configs.TR_TRAINING_NUM_WORKERS,
                              worker_init_fn=set_worker_sharing_strategy)
 
     model = TumorRegressor(learning_rate=Configs.TR_INIT_LR)

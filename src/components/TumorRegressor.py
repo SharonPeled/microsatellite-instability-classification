@@ -27,6 +27,8 @@ class TumorRegressor(pl.LightningModule):
         return self.model(x)
 
     def loss(self, scores, targets):
+        print(scores)
+        print(targets)
         return F.mse_loss(scores, targets)
 
     def configure_optimizers(self):
@@ -36,6 +38,7 @@ class TumorRegressor(pl.LightningModule):
 
     def general_loop(self, batch, batch_idx):
         x, y = batch
+        y = y.float()
         scores = self.forward(x)
         loss = self.loss(scores, y)
         return loss, scores, y

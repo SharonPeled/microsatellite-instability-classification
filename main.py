@@ -38,7 +38,7 @@ def main():
     parser.add_argument('--bring-slide-logs', type=str)
     parser.add_argument('--train-tumor-classifier', action='store_true')
     parser.add_argument('--train-semantic-seg', action='store_true')
-    parser.add_argument('--train-tumor_regression', action='store_true')
+    parser.add_argument('--train-tumor-regression', action='store_true')
     parser.add_argument('--OOD-validation-tumor-TCGA', action='store_true')
     parser.add_argument('--OOD-validation-ss-IRCCS', action='store_true')
     parser.add_argument('--inference-semantic-seg', action='store_true')
