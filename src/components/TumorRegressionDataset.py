@@ -16,7 +16,7 @@ class TumorRegressionDataset(Dataset, Logger):
     def __getitem__(self, index):
         path = self.df['tile_path'][index]
         img = Image.open(path)
-        y = float(self.df['dis_to_tum'][index])
+        y = self.df['dis_to_tum'][index]
         if self.transform:
             img = self.transform(img)
         if self.target_transform:
