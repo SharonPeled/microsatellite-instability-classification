@@ -6,7 +6,7 @@ from ..components.TissueClassifier import TissueClassifier
 from torchvision import transforms
 from ..components.CustomWriter import CustomWriter
 from ..components.MacenkoNormalizerTransform import MacenkoNormalizerTransform
-from ..components.InferenceTileDataset import InferenceTileDataset
+from ..components.TumorTileDataset import TumorTileDataset
 from ..utils import load_df_pred
 from pytorch_lightning.loggers import MLFlowLogger
 from ..utils import generate_confusion_matrix_figure
@@ -29,7 +29,7 @@ def OOD_validation_ss_IRCCS():
         transforms.Normalize([0.485, 0.456, 0.406],
                              [0.229, 0.224, 0.225])
     ])
-    ood_dataset = InferenceTileDataset(Configs.SS_OOD_DATASET_DIR, img_extension='png',
+    ood_dataset = TumorTileDataset(Configs.SS_OOD_DATASET_DIR, img_extension='png',
                                        transform=transform, crop_and_agg=False)
     ood_loader = DataLoader(ood_dataset, batch_size=Configs.SS_INFERENCE_BATCH_SIZE, shuffle=False, persistent_workers=True,
                             num_workers=Configs.SS_INFERENCE_NUM_WORKERS)
