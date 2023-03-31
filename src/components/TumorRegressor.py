@@ -75,12 +75,10 @@ class TumorRegressor(pl.LightningModule):
 
     @staticmethod
     def log_metrics(y_true, y_pred, logger, dataset_str, epoch=0):
-        logger.experiment.log_metrics(logger.run_id, {
-            f"{dataset_str}_mse": mean_squared_error(y_true, y_pred),
-            f"{dataset_str}_mae": mean_absolute_error(y_true, y_pred),
-            f"{dataset_str}_r2": r2_score(y_true, y_pred),
-            f"{dataset_str}_mape": mean_absolute_percentage_error(y_true, y_pred)
-        })
+        logger.experiment.log_metric(logger.run_id, f"{dataset_str}_mse", mean_squared_error(y_true, y_pred))
+        logger.experiment.log_metric(logger.run_id, f"{dataset_str}_mae", mean_absolute_error(y_true, y_pred))
+        logger.experiment.log_metric(logger.run_id, f"{dataset_str}_r2", r2_score(y_true, y_pred))
+        logger.experiment.log_metric(logger.run_id, f"{dataset_str}_mape", mean_absolute_percentage_error(y_true, y_pred))
 
         fig = plt.figure(figsize=(6, 10))
         plt.scatter(y_true, y_pred)
