@@ -43,7 +43,6 @@ class TissueClassifier(pl.LightningModule):
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate)
         scheduler = ReduceLROnPlateau(optimizer, factor=0.1, patience=2)
-        # scheduler = StepLR(optimizer, step_size=1, gamma=0.6)
         return {'optimizer': optimizer, 'lr_scheduler': scheduler, 'monitor': 'val_loss'}
 
     def general_loop(self, batch, batch_idx):
@@ -78,6 +77,8 @@ class TissueClassifier(pl.LightningModule):
 
     def validation_epoch_end(self, outputs):
         self.log_epoch_level_metrics(outputs, dataset_str='valid')
+        self.logger.experiment.log_param(self.logger.run_id, f"lr_epoch_{self.current_epoch}",
+                                         self.optimizers()[0].get_lr())
 
     def test_epoch_end(self, outputs):
         self.log_epoch_level_metrics(outputs, dataset_str='test')
@@ -87,7 +88,7 @@ class TissueClassifier(pl.LightningModule):
 
     @staticmethod
     def log_metrics(y_true, y_pred, logits, target_names, logger, dataset_str, epoch=0):
-        # precision, recall, f1
+        # precision, recall, f1 per class
         metrics = classification_report(y_true, y_pred, output_dict=True,
                                         target_names=target_names)
         for class_str, class_metrics in metrics.items():
@@ -106,4 +107,4 @@ class TissueClassifier(pl.LightningModule):
                     logger.experiment.log_metric(logger.run_id, f"{dataset_str}_{class_str}_auc", auc_scores[ind])
         # confusion matrix
         fig = generate_confusion_matrix_figure(y_true, y_pred, target_names)
-        logger.experiment.log_figure(logger.run_id, fig, f"confusion_matrix_{epoch}.png")
+        logger.experiment.log_figure(logger.run_id, fig, f"confusion_matrix_{dataset_str}_{epoch}.png")

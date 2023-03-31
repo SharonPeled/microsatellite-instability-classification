@@ -6,6 +6,7 @@ from src.semantic_segmentation.OOD_validation_tumor_TCGA import OOD_validation_t
 from src.semantic_segmentation.OOD_validation_ss_IRCCS import OOD_validation_ss_IRCCS
 from src.semantic_segmentation.training import train as train_semantic_seg
 from src.semantic_segmentation.predict import predict as predict_semantic_seg
+from src.tumor_distance_estimation.training import train as train_tumor_regression
 from src.utils import bring_files, bring_joined_log_file, delete_all_artifacts, \
     generate_thumbnails_with_tissue_classification, load_df_pred
 import signal
@@ -37,6 +38,7 @@ def main():
     parser.add_argument('--bring-slide-logs', type=str)
     parser.add_argument('--train-tumor-classifier', action='store_true')
     parser.add_argument('--train-semantic-seg', action='store_true')
+    parser.add_argument('--train-tumor_regression', action='store_true')
     parser.add_argument('--OOD-validation-tumor-TCGA', action='store_true')
     parser.add_argument('--OOD-validation-ss-IRCCS', action='store_true')
     parser.add_argument('--inference-semantic-seg', action='store_true')
@@ -69,6 +71,8 @@ def main():
         train_semantic_seg()
     if args.inference_semantic_seg:
         predict_semantic_seg()
+    if args.train_tumor_regression:
+        train_tumor_regression()
     if args.generate_tumor_thumbnails:
         df_pred = load_df_pred(pred_dir=Configs.TUMOR_PREDICT_OUTPUT_PATH,
                                class_to_index=Configs.TUMOR_CLASS_TO_IND)

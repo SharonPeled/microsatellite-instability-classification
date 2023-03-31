@@ -18,7 +18,6 @@ def set_worker_sharing_strategy(worker_id: int) -> None:
 def train():
     set_sharing_strategy('file_system')
     set_start_method("spawn")
-    transforms.RandomApply([transforms.GaussianBlur(kernel_size=(3, 3), sigma=(0.25, 0.75))], p=0.1),
     train_transform = transforms.Compose([
         transforms.RandomApply([transforms.RandomChoice([
             transforms.GaussianBlur(kernel_size=(5, 5), sigma=(0.1, 3)),

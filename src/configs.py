@@ -102,7 +102,7 @@ class SemanticSegConfigs:
                                                       f'ss_{SS_RUN_OOD_NAME}_pred')
     SS_VALID_SIZE = 0.05
     SS_TRAINING_BATCH_SIZE = 32
-    SS_TRAINING_NUM_WORKERS = 16
+    SS_TRAINING_NUM_WORKERS = 1
     SS_INIT_LR = 1e-4
     SS_NUM_EPOCHS = 10
     SS_NUM_DEVICES = [0, ]
@@ -124,8 +124,21 @@ class SemanticSegConfigs:
     SS_INFERENCE_NUM_WORKERS = 5
 
 
+class TumorRegressionConfigs:
+    TR_EXPERIMENT_NAME = 'tumor_norm_distance_regression'
+    TR_RUN_NAME = "first_try"
+    TR_RUN_DESCRIPTION = """Simple resent50 backbone (trained entirely)."""
+    TR_LABEL_DF_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'tumor_regression_distances', 'df_dis.csv')
+    TR_NUM_EPOCHS = 10
+    TR_NUM_DEVICES = [0, ]
+    TR_DEVICE = 'gpu'
+    TR_TEST_SIZE = 0.2
+    TR_VALID_SIZE = 0.05
+    TR_INIT_LR = 1e-4
+
+
 @dataclass
-class ConfigsClass(GeneralConfigs, PreprocessingConfigs, TumorClassificationConfigs, SemanticSegConfigs):
+class ConfigsClass(GeneralConfigs, PreprocessingConfigs, TumorClassificationConfigs, SemanticSegConfigs, TumorRegressionConfigs):
     def __init__(self):
         set_global_configs(verbose=self.VERBOSE,
                            log_file_args=self.PROGRAM_LOG_FILE_ARGS,
