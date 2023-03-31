@@ -36,7 +36,7 @@ class TumorRegressor(pl.LightningModule):
 
     def general_loop(self, batch, batch_idx):
         x, y = batch
-        y = torch.flatten(y).float()
+        y = y.reshape(-1, 1).float()
         scores = self.forward(x)
         loss = self.loss(scores, y)
         return loss, scores, y
