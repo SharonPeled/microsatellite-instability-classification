@@ -77,8 +77,8 @@ class TissueClassifier(pl.LightningModule):
 
     def validation_epoch_end(self, outputs):
         self.log_epoch_level_metrics(outputs, dataset_str='valid')
-        self.logger.experiment.log_param(self.logger.run_id, f"lr_epoch_{self.current_epoch}",
-                                         self.optimizers().optimizer.get_lr())
+        # self.logger.experiment.log_param(self.logger.run_id, f"lr_epoch_{self.current_epoch}",
+        #                                  self.optimizers().optimizer.get_lr())
 
     def test_epoch_end(self, outputs):
         self.log_epoch_level_metrics(outputs, dataset_str='test')
