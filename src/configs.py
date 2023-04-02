@@ -126,14 +126,15 @@ class SemanticSegConfigs:
 
 class TumorRegressionConfigs:
     TR_EXPERIMENT_NAME = 'tumor_norm_distance_regression'
-    TR_RUN_NAME = "first_try"
-    TR_RUN_DESCRIPTION = """Simple resent50 backbone (trained entirely)."""
-    TR_LABEL_DF_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'tumor_regression_distances', 'df_dis.csv')
-    TR_NUM_EPOCHS = 10
-    TR_NUM_DEVICES = [0, 1]
+    TR_RUN_NAME = "second_try"
+    TR_RUN_DESCRIPTION = """Simple resent50 backbone (trained entirely) for 15 epochs.
+    Only connected components with size larger than 5."""
+    TR_LABEL_DF_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'tumor_regression_distances', 'df_dis_g5.csv')
+    TR_NUM_EPOCHS = 15
+    TR_NUM_DEVICES = [0, ]
     TR_DEVICE = 'gpu'
     TR_TRAINING_BATCH_SIZE = 32
-    TR_TRAINING_NUM_WORKERS = 16
+    TR_TRAINING_NUM_WORKERS = 4
     TR_TEST_SIZE = 0.2
     TR_VALID_SIZE = 0.05
     TR_INIT_LR = 1e-4
