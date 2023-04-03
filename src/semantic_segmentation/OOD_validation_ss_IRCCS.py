@@ -37,7 +37,8 @@ def OOD_validation_ss_IRCCS():
                                                   class_to_ind=Configs.SS_CLASS_TO_IND, learning_rate=None)
     Logger.log(f"Loading trained model: {Configs.SS_INFERENCE_MODEL_PATH}", log_importance=1)
     pred_writer = CustomWriter(output_dir=Configs.SS_OOD_DATASET_PREDICT_OUTPUT_PATH,
-                               write_interval="epoch", class_to_index=Configs.SS_CLASS_TO_IND, dataset=ood_dataset)
+                               write_interval="epoch", score_names=list(Configs.SS_CLASS_TO_IND.keys()),
+                               dataset=ood_dataset)
     trainer = pl.Trainer(accelerator=Configs.SS_DEVICE, devices=Configs.SS_NUM_DEVICES, callbacks=[pred_writer],
                          default_root_dir=Configs.SS_PREDICT_OUTPUT_PATH)
     trainer.predict(model, ood_loader, return_predictions=False)

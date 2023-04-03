@@ -7,12 +7,11 @@ from datetime import datetime
 
 
 class CustomWriter(BasePredictionWriter):
-    def __init__(self, output_dir, write_interval, class_to_index, dataset):
+    def __init__(self, output_dir, write_interval, score_names, dataset):
         super().__init__(write_interval)
         self.output_dir = output_dir
         os.makedirs(self.output_dir, exist_ok=True)
-        self.class_to_index = class_to_index
-        self.score_names = list(class_to_index.keys())
+        self.score_names = score_names
         self.dataset = dataset
 
     def write_on_batch_end(self, trainer, pl_module, prediction, batch_indices, batch, batch_idx, dataloader_idx):

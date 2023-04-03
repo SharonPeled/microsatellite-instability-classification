@@ -31,7 +31,8 @@ def predict():
     model = TissueClassifier.load_from_checkpoint(Configs.TUMOR_TRAINED_MODEL_PATH,
                                                   class_to_ind=Configs.TUMOR_CLASS_TO_IND, learning_rate=None)
     pred_writer = CustomWriter(output_dir=Configs.TUMOR_PREDICT_OUTPUT_PATH,
-                               write_interval="epoch", class_to_index=Configs.TUMOR_CLASS_TO_IND, dataset=dataset)
+                               write_interval="epoch", score_names=list(Configs.TUMOR_CLASS_TO_IND.keys()),
+                               dataset=dataset)
     trainer = pl.Trainer(accelerator=Configs.TUMOR_DEVICE, devices=Configs.TUMOR_NUM_DEVICES, callbacks=[pred_writer],
                          default_root_dir=Configs.TUMOR_PREDICT_OUTPUT_PATH)
     trainer.predict(model, dataloader, return_predictions=False)

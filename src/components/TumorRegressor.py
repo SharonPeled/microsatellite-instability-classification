@@ -65,8 +65,6 @@ class TumorRegressor(pl.LightningModule):
 
     def validation_epoch_end(self, outputs):
         self.log_epoch_level_metrics(outputs, dataset_str='valid')
-        # self.logger.experiment.log_param(self.logger.run_id, f"lr_epoch_{self.current_epoch}",
-        #                                  self.optimizers().optimizer.get_lr())
 
     def test_epoch_end(self, outputs):
         self.log_epoch_level_metrics(outputs, dataset_str='test')
@@ -81,7 +79,7 @@ class TumorRegressor(pl.LightningModule):
         logger.experiment.log_metric(logger.run_id, f"{dataset_str}_r2", r2_score(y_true, y_pred))
         logger.experiment.log_metric(logger.run_id, f"{dataset_str}_mape", mean_absolute_percentage_error(y_true, y_pred))
 
-        fig = plt.figure(figsize=(6, 10))
+        fig = plt.figure(figsize=(10, 6))
         plt.scatter(y_true, y_pred)
         plt.plot([y_true.min(), y_true.max()], [y_true.min(), y_true.max()], 'k--')
         plt.xlabel('True values')

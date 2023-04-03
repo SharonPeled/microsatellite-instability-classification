@@ -130,7 +130,9 @@ class TumorRegressionConfigs:
     TR_RUN_DESCRIPTION = """Simple resent50 backbone (trained entirely) for 15 epochs.
     Only connected components with size larger than 5."""
     TR_LABEL_DF_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'tumor_regression_distances', 'df_dis_g5.csv')
-    TR_NUM_EPOCHS = 15
+    TR_PREDICT_OUTPUT_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'tumor_regression_results',
+                                          f'tr_{TR_RUN_NAME}_test_pred')
+    TR_NUM_EPOCHS = 25
     TR_NUM_DEVICES = [0, ]
     TR_DEVICE = 'gpu'
     TR_TRAINING_BATCH_SIZE = 32

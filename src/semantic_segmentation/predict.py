@@ -22,7 +22,8 @@ def predict():
     model = TissueClassifier.load_from_checkpoint(Configs.SS_INFERENCE_MODEL_PATH,
                                                   class_to_ind=Configs.SS_CLASS_TO_IND, learning_rate=None)
     pred_writer = CustomWriter(output_dir=Configs.SS_PREDICT_OUTPUT_PATH,
-                               write_interval="epoch", class_to_index=Configs.SS_CLASS_TO_IND, dataset=dataset)
+                               write_interval="epoch", score_names=list(Configs.SS_CLASS_TO_IND.keys()),
+                               dataset=dataset)
     trainer = pl.Trainer(accelerator=Configs.SS_DEVICE, devices=Configs.SS_NUM_DEVICES, callbacks=[pred_writer],
                          default_root_dir=Configs.SS_PREDICT_OUTPUT_PATH)
     trainer.predict(model, dataloader, return_predictions=False)

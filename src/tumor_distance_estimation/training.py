@@ -10,6 +10,8 @@ from ..components.MacenkoNormalizerTransform import MacenkoNormalizerTransform
 from ..components.TumorRegressionDataset import TumorRegressionDataset
 import pandas as pd
 from sklearn.model_selection import train_test_split
+from ..components.CustomWriter import CustomWriter
+from pytorch_lightning.callbacks import LearningRateMonitor
 
 
 def set_worker_sharing_strategy(worker_id: int) -> None:
@@ -62,10 +64,12 @@ def train():
                                  artifact_location=Configs.MLFLOW_SAVE_DIR,
                                  log_model='all',
                                  tags={"mlflow.note.content": Configs.TR_RUN_DESCRIPTION})
+    lr_monitor = LearningRateMonitor(logging_interval='epoch')
     Logger.log("Starting Training.", log_importance=1)
     trainer = pl.Trainer(devices=Configs.TR_NUM_DEVICES, accelerator=Configs.TR_DEVICE,
                          deterministic=True,
                          check_val_every_n_epoch=1,
+                         callbacks=[lr_monitor],
                          enable_checkpointing=True,
                          logger=mlflow_logger,
                          num_sanity_val_steps=2,
@@ -74,7 +78,16 @@ def train():
     Logger.log("Done Training.", log_importance=1)
     Logger.log("Starting Test.", log_importance=1)
     trainer.test(model, dataloaders=test_loader)
-    Logger.log(f"Done.", log_importance=1)
+    Logger.log(f"Done Test.", log_importance=1)
+    Logger.log(f"Saving test results.", log_importance=1)
+    # not nice code but whatever
+    pred_writer = CustomWriter(output_dir=Configs.TR_PREDICT_OUTPUT_PATH,
+                               write_interval="epoch", score_names=['y_pred', ],
+                               dataset=test_dataset)
+    pl.Trainer(accelerator=Configs.TR_DEVICE, devices=Configs.TR_NUM_DEVICES, callbacks=[pred_writer],
+               default_root_dir=Configs.TR_PREDICT_OUTPUT_PATH)
+    trainer.predict(model, test_loader, return_predictions=False)
+
 
 
 
