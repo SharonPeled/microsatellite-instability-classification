@@ -129,7 +129,10 @@ class TumorRegressionConfigs:
     TR_RUN_NAME = "second_try"
     TR_RUN_DESCRIPTION = """Simple resent50 backbone (trained entirely) for 15 epochs.
     Only connected components with size larger than 5."""
-    TR_LABEL_DF_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'tumor_regression_distances', 'df_dis_g5.csv')
+    TR_TRAIN_LABEL_DF_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'tumor_regression_distances',
+                                          'df_dis3_g4_train.csv')
+    TR_TEST_LABEL_DF_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'tumor_regression_distances',
+                                         'df_dis3_g4_test.csv')
     TR_PREDICT_OUTPUT_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'tumor_regression_results',
                                           f'tr_{TR_RUN_NAME}_test_pred')
     TR_NUM_EPOCHS = 25
