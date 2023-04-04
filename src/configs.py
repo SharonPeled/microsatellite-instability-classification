@@ -138,7 +138,7 @@ class TumorRegressionConfigs:
     TR_NUM_EPOCHS = 25
     TR_NUM_DEVICES = [0, ]
     TR_DEVICE = 'gpu'
-    TR_TRAINING_BATCH_SIZE = 32
+    TR_TRAINING_BATCH_SIZE = 64
     TR_TRAINING_NUM_WORKERS = 4
     TR_TEST_SIZE = 0.2
     TR_VALID_SIZE = 0.05
