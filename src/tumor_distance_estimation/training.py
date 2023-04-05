@@ -81,11 +81,15 @@ def train():
     Logger.log(f"Done Test.", log_importance=1)
     Logger.log(f"Saving test results.", log_importance=1)
     # not nice code but whatever
+    test_dataset.with_y = False
     pred_writer = CustomWriter(output_dir=Configs.TR_PREDICT_OUTPUT_PATH,
                                write_interval="epoch", score_names=['y_pred', ],
                                dataset=test_dataset)
-    pl.Trainer(accelerator=Configs.TR_DEVICE, devices=Configs.TR_NUM_DEVICES, callbacks=[pred_writer],
-               default_root_dir=Configs.TR_PREDICT_OUTPUT_PATH)
+    test_loader = DataLoader(test_dataset, batch_size=Configs.TR_TRAINING_BATCH_SIZE, shuffle=False,
+                             persistent_workers=True, num_workers=Configs.TR_TRAINING_NUM_WORKERS,
+                             worker_init_fn=set_worker_sharing_strategy)
+    trainer = pl.Trainer(accelerator=Configs.TR_DEVICE, devices=Configs.TR_NUM_DEVICES, callbacks=[pred_writer],
+                         default_root_dir=Configs.TR_PREDICT_OUTPUT_PATH)
     trainer.predict(model, test_loader, return_predictions=False)
 
 
