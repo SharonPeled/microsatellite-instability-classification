@@ -41,7 +41,7 @@ def train():
     ])
 
     df_train = pd.read_csv(Configs.TR_TRAIN_LABEL_DF_PATH)
-    df_train, df_valid = train_test_split(df_train, test_size=Configs.TR_VALID_SIZE, random_state=Configs.RANDOM_SEED)
+    df_valid = pd.read_csv(Configs.TR_VALID_LABEL_DF_PATH)
     df_test = pd.read_csv(Configs.TR_TEST_LABEL_DF_PATH)
 
     train_dataset = TumorRegressionDataset(df_train, transform=train_transform)

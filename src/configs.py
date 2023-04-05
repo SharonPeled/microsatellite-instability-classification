@@ -131,6 +131,8 @@ class TumorRegressionConfigs:
     Only connected components with size larger than 5."""
     TR_TRAIN_LABEL_DF_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'tumor_regression_distances',
                                           'df_dis3_g4_train.csv')
+    TR_VALID_LABEL_DF_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'tumor_regression_distances',
+                                          'df_dis3_g4_valid.csv')
     TR_TEST_LABEL_DF_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'tumor_regression_distances',
                                          'df_dis3_g4_test.csv')
     TR_PREDICT_OUTPUT_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'tumor_regression_results',
