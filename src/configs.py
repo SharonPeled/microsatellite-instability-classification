@@ -139,7 +139,7 @@ class TumorRegressionConfigs:
     TR_PREDICT_OUTPUT_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'tumor_regression_results',
                                           f'tr_{TR_RUN_NAME}_test_pred')
     TR_NUM_EPOCHS = 25
-    TR_NUM_DEVICES = [0, 1]
+    TR_NUM_DEVICES = [1, ]
     TR_DEVICE = 'gpu'
     TR_TRAINING_BATCH_SIZE = 64
     TR_TRAINING_NUM_WORKERS = 16
