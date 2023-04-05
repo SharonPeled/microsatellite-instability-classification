@@ -12,6 +12,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from ..components.CustomWriter import CustomWriter
 from pytorch_lightning.callbacks import LearningRateMonitor
+from ..utils import train_test_valid_split_patients_stratified
 
 
 def set_worker_sharing_strategy(worker_id: int) -> None:
@@ -40,9 +41,10 @@ def train():
                              [0.229, 0.224, 0.225])
     ])
 
-    df_train = pd.read_csv(Configs.TR_TRAIN_LABEL_DF_PATH)
-    df_valid = pd.read_csv(Configs.TR_VALID_LABEL_DF_PATH)
-    df_test = pd.read_csv(Configs.TR_TEST_LABEL_DF_PATH)
+    df_full = pd.read_csv(Configs.TR_LABEL_DF_PATH)
+    df_full = df_full[(df_full.dis_to_tum >= Configs.TR_MIN_DIS_TO_TUM)&(df_full.group_size > Configs.TR_MIN_GROUP_SIZE)]
+    df_train, df_valid, df_test = train_test_valid_split_patients_stratified(df_full, Configs.TR_TEST_SIZE,
+                                                                             Configs.TR_VALID_SIZE, Configs.RANDOM_SEED)
 
     train_dataset = TumorRegressionDataset(df_train, transform=train_transform)
     valid_dataset = TumorRegressionDataset(df_valid, transform=test_transform)
@@ -58,7 +60,10 @@ def train():
                              persistent_workers=True, num_workers=Configs.TR_TRAINING_NUM_WORKERS,
                              worker_init_fn=set_worker_sharing_strategy)
 
-    model = TumorRegressor(learning_rate=Configs.TR_INIT_LR)
+    y_value_counts = df_train.int_dis_to_tum.value_counts()
+    class_weight_dict = (y_value_counts / y_value_counts.sum()).to_dict()
+
+    model = TumorRegressor(Configs.TR_INIT_LR, class_weight_dict, Configs.TR_DROPOUT_VALUE)
     mlflow_logger = MLFlowLogger(experiment_name=Configs.TR_EXPERIMENT_NAME, run_name=Configs.TR_RUN_NAME,
                                  save_dir=Configs.MLFLOW_SAVE_DIR,
                                  artifact_location=Configs.MLFLOW_SAVE_DIR,

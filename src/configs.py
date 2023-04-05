@@ -127,18 +127,17 @@ class SemanticSegConfigs:
 class TumorRegressionConfigs:
     TR_EXPERIMENT_NAME = 'tumor_norm_distance_regression'
     TR_RUN_NAME = "fourth_try"
-    TR_RUN_DESCRIPTION = """Simple resent50 backbone (trained entirely) for 15 epochs.
-    Only connected components with size larger than 5. Tum_dis greater than 3.
+    TR_MIN_DIS_TO_TUM = 0
+    TR_MIN_GROUP_SIZE = 0
+    TR_RUN_DESCRIPTION = f"""Simple resent50 backbone, 0.05 dropout for 10 epochs.
+    Only connected components with size larger than {TR_MIN_GROUP_SIZE}. Tum_dis greater than {TR_MIN_GROUP_SIZE}.
     Separated patients (stratified) in train and test and in valid."""
-    TR_TRAIN_LABEL_DF_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'tumor_regression_distances',
-                                          'df_dis3_g4_train.csv')
-    TR_VALID_LABEL_DF_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'tumor_regression_distances',
-                                          'df_dis3_g4_valid.csv')
-    TR_TEST_LABEL_DF_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'tumor_regression_distances',
-                                         'df_dis3_g4_test.csv')
+    TR_LABEL_DF_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'tumor_regression_distances',
+                                    'df_dis_g.csv')
     TR_PREDICT_OUTPUT_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'tumor_regression_results',
                                           f'tr_{TR_RUN_NAME}_test_pred')
-    TR_NUM_EPOCHS = 25
+    TR_DROPOUT_VALUE = 0.05
+    TR_NUM_EPOCHS = 5
     TR_NUM_DEVICES = [1, ]
     TR_DEVICE = 'gpu'
     TR_TRAINING_BATCH_SIZE = 64

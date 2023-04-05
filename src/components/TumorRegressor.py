@@ -10,15 +10,17 @@ import matplotlib.pyplot as plt
 
 
 class TumorRegressor(pl.LightningModule):
-    def __init__(self, learning_rate):
+    def __init__(self, learning_rate, class_weight_dict, dropout_value):
         super().__init__()
         self.learning_rate = learning_rate
+        self.class_weight_dict = class_weight_dict
         backbone = resnet50(weights="IMAGENET1K_V2")
         num_filters = backbone.fc.in_features
         layers = list(backbone.children())[:-1]
         # for layer in layers:
         #     layer.requires_grad_(False)
         layers.append(nn.Flatten())
+        layers.append(nn.Dropout(dropout_value))
         layers.append(nn.Linear(num_filters, 1))
         self.model = nn.Sequential(*layers)
         Logger.log(f"""TumorRegressor created.""", log_importance=1)
@@ -27,7 +29,13 @@ class TumorRegressor(pl.LightningModule):
         return self.model(x)
 
     def loss(self, scores, targets):
-        return F.mse_loss(scores, targets)
+        if self.class_weight_dict is None:
+            return F.mse_loss(scores, targets)
+        scores = scores.flatten()
+        targets = targets.flatten()
+        weights = torch.Tensor([self.class_weight_dict[val] for val in targets.int()]).to(targets.device)
+        weights /= weights.sum()
+        return torch.mean(weights * ((scores - targets) ** 2))
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate)

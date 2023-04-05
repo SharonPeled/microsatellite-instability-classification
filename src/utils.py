@@ -16,6 +16,7 @@ from src.components.SubDataset import SubDataset
 from torch.utils.data import Subset
 import seaborn as sns
 from sklearn.metrics import confusion_matrix
+from sklearn.model_selection import StratifiedGroupKFold
 
 
 def set_global_configs(verbose, log_file_args, log_importance, log_format, random_seed, tile_progress_log_freq):
@@ -145,6 +146,20 @@ def load_df_pred(pred_dir, class_to_index):
     labels[range(labels.shape[0]), class_indices] = 1
     df[classes] = labels
     return df
+
+
+def train_test_valid_split_patients_stratified(df_full, test_size, valid_size, random_seed):
+    splitter = StratifiedGroupKFold(n_splits=1/test_size, shuffle=True, random_state=random_seed)
+    split = splitter.split(X=df_full, y=df_full['int_dis_to_tum'], groups=df_full['patient_id'])
+    train_inds, test_inds = next(split)
+    df_train = df_full.iloc[train_inds].reset_index(drop=True)
+    df_test = df_full.iloc[test_inds].reset_index(drop=True)
+    splitter = StratifiedGroupKFold(n_splits=1/valid_size, shuffle=True, random_state=random_seed)
+    split = splitter.split(X=df_train, y=df_train['int_dis_to_tum'], groups=df_train['patient_id'])
+    train_inds, valid_inds = next(split)
+    df_valid = df_train.iloc[valid_inds].reset_index(drop=True)
+    df_train = df_train.iloc[train_inds].reset_index(drop=True)
+    return df_train, df_valid, df_test
 
 
 def generate_thumbnails_with_tissue_classification(df_pred, slides_dir, class_to_index, class_to_color,
