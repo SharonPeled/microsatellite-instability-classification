@@ -140,8 +140,8 @@ class TumorRegressionConfigs:
     TR_NUM_EPOCHS = 5
     TR_NUM_DEVICES = [1, ]
     TR_DEVICE = 'gpu'
-    TR_TRAINING_BATCH_SIZE = 64
-    TR_TRAINING_NUM_WORKERS = 16
+    TR_TRAINING_BATCH_SIZE = 32
+    TR_TRAINING_NUM_WORKERS = 4
     TR_TEST_SIZE = 0.2
     TR_VALID_SIZE = 0.05
     TR_INIT_LR = 1e-4
