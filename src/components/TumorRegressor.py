@@ -33,7 +33,7 @@ class TumorRegressor(pl.LightningModule):
             return F.mse_loss(scores, targets)
         scores = scores.flatten()
         targets = targets.flatten()
-        weights = torch.Tensor([self.class_weight_dict[val] for val in targets.int()]).to(targets.device)
+        weights = torch.Tensor([self.class_weight_dict[val.item()] for val in targets.int()]).to(targets.device)
         weights /= weights.sum()
         return torch.mean(weights * ((scores - targets) ** 2))
 
