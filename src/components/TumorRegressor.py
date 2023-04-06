@@ -35,7 +35,7 @@ class TumorRegressor(pl.LightningModule):
         targets = targets.flatten()
         weights = torch.Tensor([self.class_weight_dict[val.item()] for val in targets.int()]).to(targets.device)
         weights /= weights.sum()
-        return torch.mean(weights * ((scores - targets) ** 2))
+        return torch.sum(weights * ((scores - targets) ** 2))
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate)

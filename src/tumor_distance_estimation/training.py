@@ -13,6 +13,8 @@ from sklearn.model_selection import train_test_split
 from ..components.CustomWriter import CustomWriter
 from pytorch_lightning.callbacks import LearningRateMonitor
 from ..utils import train_test_valid_split_patients_stratified
+from collections import defaultdict
+import numpy as np
 
 
 def set_worker_sharing_strategy(worker_id: int) -> None:
@@ -26,9 +28,13 @@ def train():
     train_transform = transforms.Compose([
         transforms.RandomHorizontalFlip(),  # reverse 50% of images
         transforms.RandomVerticalFlip(),  # reverse 50% of images
+
+        transforms.RandomApply([transforms.ColorJitter(brightness=0.1, contrast=0.4, saturation=0.4, hue=0.1)], p=0.75),
+        transforms.RandomChoice([transforms.GaussianBlur(kernel_size=(5, 5), sigma=(0.25, 1)),
+                                 transforms.RandomAdjustSharpness(sharpness_factor=2)], p=[0.15, 0.15]),
         transforms.Resize(224),
         transforms.ToTensor(),
-        MacenkoNormalizerTransform(Configs.COLOR_NORM_REF_IMG),  # gets tensor and output PIL ...
+        # MacenkoNormalizerTransform(Configs.COLOR_NORM_REF_IMG),  # gets tensor and output PIL ...
         transforms.Normalize([0.485, 0.456, 0.406],
                              [0.229, 0.224, 0.225])
     ])
@@ -36,13 +42,14 @@ def train():
     test_transform = transforms.Compose([
         transforms.Resize(224),
         transforms.ToTensor(),
-        MacenkoNormalizerTransform(Configs.COLOR_NORM_REF_IMG),
+        # MacenkoNormalizerTransform(Configs.COLOR_NORM_REF_IMG),
         transforms.Normalize([0.485, 0.456, 0.406],
                              [0.229, 0.224, 0.225])
     ])
 
     df_full = pd.read_csv(Configs.TR_LABEL_DF_PATH)
     df_full = df_full[(df_full.dis_to_tum >= Configs.TR_MIN_DIS_TO_TUM)&(df_full.group_size > Configs.TR_MIN_GROUP_SIZE)]
+    df_full.dis_to_tum = np.log(df_full.dis_to_tum) + 1
     df_train, df_valid, df_test = train_test_valid_split_patients_stratified(df_full, Configs.TR_TEST_SIZE,
                                                                              Configs.TR_VALID_SIZE, Configs.RANDOM_SEED)
 
@@ -60,10 +67,11 @@ def train():
                              persistent_workers=True, num_workers=Configs.TR_TRAINING_NUM_WORKERS,
                              worker_init_fn=set_worker_sharing_strategy)
 
-    y_value_counts = df_train.int_dis_to_tum.value_counts()
-    class_weight_dict = (y_value_counts / y_value_counts.sum()).to_dict()
+    # y_value_counts = df_train.int_dis_to_tum.value_counts()
+    # class_weight_dict = (y_value_counts / y_value_counts.sum()).to_dict()
+    # class_weight_dict = defaultdict(lambda: 0.25).update(class_weight_dict)
 
-    model = TumorRegressor(Configs.TR_INIT_LR, class_weight_dict, Configs.TR_DROPOUT_VALUE)
+    model = TumorRegressor(Configs.TR_INIT_LR, None, Configs.TR_DROPOUT_VALUE)
     mlflow_logger = MLFlowLogger(experiment_name=Configs.TR_EXPERIMENT_NAME, run_name=Configs.TR_RUN_NAME,
                                  save_dir=Configs.MLFLOW_SAVE_DIR,
                                  artifact_location=Configs.MLFLOW_SAVE_DIR,
