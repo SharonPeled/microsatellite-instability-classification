@@ -128,7 +128,7 @@ class TumorRegressionConfigs:
     TR_EXPERIMENT_NAME = 'tumor_norm_distance_regression'
     TR_MIN_DIS_TO_TUM = 0
     TR_MIN_GROUP_SIZE = 0
-    TR_RUN_NAME = f"loss_dropout25_dis{TR_MIN_DIS_TO_TUM}_g{TR_MIN_GROUP_SIZE}_hard_aug_wo_nr_log_y"
+    TR_RUN_NAME = f"dropout50_dis{TR_MIN_DIS_TO_TUM}_g{TR_MIN_GROUP_SIZE}_hard_aug_wo_nr_log_y"
     TR_RUN_DESCRIPTION = f"""Simple resent50 backbone, 0.05 dropout for 10 epochs.
     Only connected components with size larger than {TR_MIN_GROUP_SIZE}. Tum_dis greater than {TR_MIN_GROUP_SIZE}.
     Separated patients (stratified) in train and test and in valid."""
@@ -136,9 +136,11 @@ class TumorRegressionConfigs:
                                     'df_dis_g.csv')
     TR_PREDICT_OUTPUT_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'tumor_regression_results',
                                           f'tr_{TR_RUN_NAME}_test_pred')
-    TR_DROPOUT_VALUE = 0.25
-    TR_NUM_EPOCHS = 5
-    TR_NUM_DEVICES = [1, ]
+    TR_LOG_DIS = True
+    TR_SAMPLE_WEIGHT = False
+    TR_DROPOUT_VALUE = 0.5
+    TR_NUM_EPOCHS = 6
+    TR_NUM_DEVICES = [0, ]
     TR_DEVICE = 'gpu'
     TR_TRAINING_BATCH_SIZE = 64
     TR_TRAINING_NUM_WORKERS = 8

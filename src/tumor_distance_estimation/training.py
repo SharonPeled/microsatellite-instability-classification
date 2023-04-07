@@ -49,7 +49,8 @@ def train():
 
     df_full = pd.read_csv(Configs.TR_LABEL_DF_PATH)
     df_full = df_full[(df_full.dis_to_tum >= Configs.TR_MIN_DIS_TO_TUM)&(df_full.group_size > Configs.TR_MIN_GROUP_SIZE)]
-    df_full.dis_to_tum = np.log(df_full.dis_to_tum) + 1
+    if Configs.TR_LOG_DIS:
+        df_full.dis_to_tum = np.log(df_full.dis_to_tum) + 1
     df_train, df_valid, df_test = train_test_valid_split_patients_stratified(df_full, Configs.TR_TEST_SIZE,
                                                                              Configs.TR_VALID_SIZE, Configs.RANDOM_SEED)
 
@@ -66,12 +67,14 @@ def train():
     test_loader = DataLoader(test_dataset, batch_size=Configs.TR_TRAINING_BATCH_SIZE, shuffle=False,
                              persistent_workers=True, num_workers=Configs.TR_TRAINING_NUM_WORKERS,
                              worker_init_fn=set_worker_sharing_strategy)
+    if Configs.TR_SAMPLE_WEIGHT:
+        y_value_counts = df_train.int_dis_to_tum.value_counts()
+        class_weight_dict = (y_value_counts / y_value_counts.sum()).to_dict()
+        class_weight_dict = defaultdict(lambda: 0.25).update(class_weight_dict)
+    else:
+        class_weight_dict = None
 
-    # y_value_counts = df_train.int_dis_to_tum.value_counts()
-    # class_weight_dict = (y_value_counts / y_value_counts.sum()).to_dict()
-    # class_weight_dict = defaultdict(lambda: 0.25).update(class_weight_dict)
-
-    model = TumorRegressor(Configs.TR_INIT_LR, None, Configs.TR_DROPOUT_VALUE)
+    model = TumorRegressor(Configs.TR_INIT_LR, class_weight_dict, Configs.TR_DROPOUT_VALUE)
     mlflow_logger = MLFlowLogger(experiment_name=Configs.TR_EXPERIMENT_NAME, run_name=Configs.TR_RUN_NAME,
                                  save_dir=Configs.MLFLOW_SAVE_DIR,
                                  artifact_location=Configs.MLFLOW_SAVE_DIR,
