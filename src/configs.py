@@ -126,9 +126,9 @@ class SemanticSegConfigs:
 
 class TumorRegressionConfigs:
     TR_EXPERIMENT_NAME = 'tumor_norm_distance_regression'
-    TR_MIN_DIS_TO_TUM = 0
-    TR_MIN_GROUP_SIZE = 0
-    TR_RUN_NAME = f"wloss_dropout50_dis{TR_MIN_DIS_TO_TUM}_g{TR_MIN_GROUP_SIZE}_hard_aug_log_y"
+    TR_MIN_DIS_TO_TUM = 3
+    TR_MIN_GROUP_SIZE = 5
+    TR_RUN_NAME = f"2layers_wloss_dropout50_dis{TR_MIN_DIS_TO_TUM}_g{TR_MIN_GROUP_SIZE}_haug_logy"
     TR_RUN_DESCRIPTION = f"""Simple resent50 backbone, 0.05 dropout for 10 epochs.
     Only connected components with size larger than {TR_MIN_GROUP_SIZE}. Tum_dis greater than {TR_MIN_GROUP_SIZE}.
     Separated patients (stratified) in train and test and in valid."""

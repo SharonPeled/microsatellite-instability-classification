@@ -20,8 +20,12 @@ class TumorRegressor(pl.LightningModule):
         # for layer in layers:
         #     layer.requires_grad_(False)
         layers.append(nn.Flatten())
-        layers.append(nn.Dropout(dropout_value))
-        layers.append(nn.Linear(num_filters, 1))
+        hidden_size = 1024
+        layers.append(nn.Dropout(0.5))
+        layers.append(nn.Linear(num_filters, hidden_size))
+        layers.append(nn.ReLU())
+        layers.append(nn.Dropout(0.5))
+        layers.append(nn.Linear(hidden_size, 1))
         self.model = nn.Sequential(*layers)
         Logger.log(f"""TumorRegressor created.""", log_importance=1)
 
