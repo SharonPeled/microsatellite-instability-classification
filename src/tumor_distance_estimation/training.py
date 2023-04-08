@@ -69,8 +69,8 @@ def train():
                              worker_init_fn=set_worker_sharing_strategy)
     if Configs.TR_SAMPLE_WEIGHT:
         y_value_counts = df_train.dis_to_tum.round(1).value_counts()
-        y_percentages_dict = (y_value_counts / y_value_counts.sum()).to_dict()
-        class_weight_dict = defaultdict(lambda: 0.25)  # default value
+        y_percentages_dict = (1 / y_value_counts).to_dict()
+        class_weight_dict = defaultdict(lambda: 0.1)  # default value
         class_weight_dict.update(y_percentages_dict)
     else:
         class_weight_dict = None
