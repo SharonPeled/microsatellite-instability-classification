@@ -29,9 +29,10 @@ def train():
         transforms.RandomHorizontalFlip(),  # reverse 50% of images
         transforms.RandomVerticalFlip(),  # reverse 50% of images
 
-        transforms.RandomApply([transforms.ColorJitter(brightness=0.1, contrast=0.4, saturation=0.4, hue=0.1)], p=0.75),
-        transforms.RandomChoice([transforms.GaussianBlur(kernel_size=(5, 5), sigma=(0.25, 1)),
-                                 transforms.RandomAdjustSharpness(sharpness_factor=2)], p=[0.15, 0.15]),
+        transforms.RandomApply(
+            [transforms.ColorJitter(brightness=0.2, contrast=0.6, saturation=0.5, hue=0.15)], p=0.75),
+        transforms.RandomChoice([transforms.GaussianBlur(kernel_size=(5, 5), sigma=(0.4, 1)),
+                                 transforms.RandomAdjustSharpness(sharpness_factor=2)], p=[0.25, 0.25]),
         transforms.Resize(224),
         transforms.ToTensor(),
         # MacenkoNormalizerTransform(Configs.COLOR_NORM_REF_IMG),  # gets tensor and output PIL ...
@@ -49,8 +50,7 @@ def train():
 
     df_full = pd.read_csv(Configs.TR_LABEL_DF_PATH)
     df_full = df_full[(df_full.dis_to_tum >= Configs.TR_MIN_DIS_TO_TUM)&(df_full.group_size > Configs.TR_MIN_GROUP_SIZE)]
-    if Configs.TR_LOG_DIS:
-        df_full.dis_to_tum = np.log(df_full.dis_to_tum) + 1
+    df_full.dis_to_tum = np.log1p(df_full.dis_to_tum)
     df_train, df_valid, df_test = train_test_valid_split_patients_stratified(df_full, Configs.TR_TEST_SIZE,
                                                                              Configs.TR_VALID_SIZE, Configs.RANDOM_SEED)
 
@@ -68,9 +68,10 @@ def train():
                              persistent_workers=True, num_workers=Configs.TR_TRAINING_NUM_WORKERS,
                              worker_init_fn=set_worker_sharing_strategy)
     if Configs.TR_SAMPLE_WEIGHT:
-        y_value_counts = df_train.int_dis_to_tum.value_counts()
-        class_weight_dict = (y_value_counts / y_value_counts.sum()).to_dict()
-        class_weight_dict = defaultdict(lambda: 0.25).update(class_weight_dict)
+        y_value_counts = df_train.dis_to_tum.round(1).value_counts()
+        y_percentages_dict = (y_value_counts / y_value_counts.sum()).to_dict()
+        class_weight_dict = defaultdict(lambda: 0.25)  # default value
+        class_weight_dict.update(y_percentages_dict)
     else:
         class_weight_dict = None
 
@@ -91,6 +92,7 @@ def train():
                          num_sanity_val_steps=2,
                          max_epochs=Configs.TR_NUM_EPOCHS)
     trainer.fit(model, train_loader, valid_loader, ckpt_path=None)
+    trainer.save_checkpoint(Configs.TR_TRAINED_MODEL_PATH)
     Logger.log("Done Training.", log_importance=1)
     Logger.log("Starting Test.", log_importance=1)
     trainer.test(model, dataloaders=test_loader)
@@ -98,6 +100,8 @@ def train():
     Logger.log(f"Saving test results.", log_importance=1)
     # not nice code but whatever
     test_dataset.with_y = False
+    model = TumorRegressor.load_from_checkpoint(Configs.TR_TRAINED_MODEL_PATH, learning_rate=None,
+                                                class_weight_dict=None, dropout_value=Configs.TR_DROPOUT_VALUE)
     pred_writer = CustomWriter(output_dir=Configs.TR_PREDICT_OUTPUT_PATH,
                                write_interval="epoch", score_names=['y_pred', ],
                                dataset=test_dataset)
