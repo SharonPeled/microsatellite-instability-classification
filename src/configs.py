@@ -138,7 +138,7 @@ class TumorRegressionConfigs:
                                           f'tr_{TR_RUN_NAME}_test_pred')
     TR_TRAINED_MODEL_PATH = os.path.join(GeneralConfigs.ROOT, 'models', 'tumor_regression',
                                          f'tr_{TR_RUN_NAME}.ckpt')
-    TR_SAMPLE_WEIGHT = False
+    TR_SAMPLE_WEIGHT = True
     TR_DROPOUT_VALUE = 0.5
     TR_NUM_EPOCHS = 6
     TR_NUM_DEVICES = [0, ]
