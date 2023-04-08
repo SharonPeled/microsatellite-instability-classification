@@ -29,10 +29,9 @@ def train():
         transforms.RandomHorizontalFlip(),  # reverse 50% of images
         transforms.RandomVerticalFlip(),  # reverse 50% of images
 
-        transforms.RandomApply(
-            [transforms.ColorJitter(brightness=0.2, contrast=0.6, saturation=0.5, hue=0.15)], p=0.75),
-        transforms.RandomChoice([transforms.GaussianBlur(kernel_size=(5, 5), sigma=(0.4, 1)),
-                                 transforms.RandomAdjustSharpness(sharpness_factor=2)], p=[0.25, 0.25]),
+        transforms.RandomApply([transforms.ColorJitter(brightness=0.1, contrast=0.4, saturation=0.4, hue=0.1)], p=0.75),
+        transforms.RandomChoice([transforms.GaussianBlur(kernel_size=(5, 5), sigma=(0.25, 1)),
+                                 transforms.RandomAdjustSharpness(sharpness_factor=2)], p=[0.15, 0.15]),
         transforms.Resize(224),
         transforms.ToTensor(),
         # MacenkoNormalizerTransform(Configs.COLOR_NORM_REF_IMG),  # gets tensor and output PIL ...
