@@ -19,15 +19,15 @@ def train():
     set_sharing_strategy('file_system')
     set_start_method("spawn")
     train_transform = transforms.Compose([
-        transforms.RandomApply([transforms.RandomChoice([
-            transforms.GaussianBlur(kernel_size=(5, 5), sigma=(0.1, 3)),
-            transforms.RandomAdjustSharpness(sharpness_factor=2, p=1)
-        ], p=[0.5, 0.5])], p=0.25),
         transforms.RandomHorizontalFlip(),  # reverse 50% of images
         transforms.RandomVerticalFlip(),  # reverse 50% of images
+
+        transforms.RandomApply([transforms.ColorJitter(brightness=0.1, contrast=0.4, saturation=0.4, hue=0.1)], p=0.75),
+        transforms.RandomChoice([transforms.GaussianBlur(kernel_size=(5, 5), sigma=(0.25, 1)),
+                                 transforms.RandomAdjustSharpness(sharpness_factor=2)], p=[0.15, 0.15]),
         transforms.Resize(224),
         transforms.ToTensor(),
-        MacenkoNormalizerTransform(Configs.COLOR_NORM_REF_IMG),  # gets tensor and output PIL ...
+        # MacenkoNormalizerTransform(Configs.COLOR_NORM_REF_IMG),  # gets tensor and output PIL ...
         transforms.Normalize([0.485, 0.456, 0.406],
                              [0.229, 0.224, 0.225])
     ])
@@ -35,7 +35,7 @@ def train():
     test_transform = transforms.Compose([
         transforms.Resize(224),
         transforms.ToTensor(),
-        MacenkoNormalizerTransform(Configs.COLOR_NORM_REF_IMG),
+        # MacenkoNormalizerTransform(Configs.COLOR_NORM_REF_IMG),
         transforms.Normalize([0.485, 0.456, 0.406],
                              [0.229, 0.224, 0.225])
     ])

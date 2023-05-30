@@ -12,7 +12,7 @@ def predict():
     transform = transforms.Compose([
         transforms.Resize(224),
         transforms.ToTensor(),
-        MacenkoNormalizerTransform(Configs.COLOR_NORM_REF_IMG),
+        # MacenkoNormalizerTransform(Configs.COLOR_NORM_REF_IMG),
         transforms.Normalize([0.485, 0.456, 0.406],
                              [0.229, 0.224, 0.225])
     ])
