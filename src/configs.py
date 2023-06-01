@@ -84,7 +84,7 @@ class TumorClassificationConfigs:
 class SemanticSegConfigs:
     SS_EXPERIMENT_NAME = 'semantic_segmentation'
     SS_RUN_NAME = "sixth_try_wloss_aug_no_norm"
-    SS_RUN_DESCRIPTION = """SS NCT, weight loss with 0.5 on BACK and 2 to NORM and TUM.
+    SS_RUN_DESCRIPTION = """SS NCT, weight loss with 0.5 on BACK and 1.5 to NORM and TUM.
     Adding aug of random blurring and sharpening.
     Without normalization."""
     SS_RUN_OOD_NAME = f'OOD_IRCCS_validaiton_wloss'
@@ -103,14 +103,14 @@ class SemanticSegConfigs:
                                                       f'ss_{SS_RUN_OOD_NAME}_pred')
     SS_VALID_SIZE = 0.05
     SS_TRAINING_BATCH_SIZE = 32
-    SS_TRAINING_NUM_WORKERS = 1
+    SS_TRAINING_NUM_WORKERS = 16
     SS_INIT_LR = 1e-4
     SS_NUM_EPOCHS = 10
     SS_NUM_DEVICES = [0, ]
     SS_DEVICE = 'gpu'
     # alphabetical order as in ImageFolder (dicts preserve order in Python 3.7+)
     SS_CLASS_TO_IND = {'ADI': 0, 'BACK': 1, 'DEB': 2, 'LYM': 3, 'MUC': 4, 'MUS': 5, 'NORM': 6, 'STR': 7, 'TUM': 8}  # order does matter
-    SS_CLASS_TO_WEIGHT = {'ADI': 1, 'BACK': 0.5, 'DEB': 1, 'LYM': 1, 'MUC': 1, 'MUS': 1, 'NORM': 2, 'STR': 1, 'TUM': 2}
+    SS_CLASS_TO_WEIGHT = {'ADI': 1, 'BACK': 0.5, 'DEB': 1, 'LYM': 1, 'MUC': 1, 'MUS': 1, 'NORM': 1.5, 'STR': 1, 'TUM': 1.5}
     SS_OOD_CLASS_TRANSLATE = {'ADI': 'ADI', 'BACK': 'BACK', 'DEB': 'DEBRIS_MUCUS', 'LYM': 'LYM', 'MUC': 'DEBRIS_MUCUS',
                               'MUS': 'MUSC_STROMA', 'NORM': 'NORM', 'STR': 'MUSC_STROMA', 'TUM': 'TUM'}
     SS_CLASS_TO_COLOR = {'ADI': 'beige', 'BACK': 'silver', 'DEB': 'grey',
