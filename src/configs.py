@@ -122,7 +122,7 @@ class SemanticSegConfigs:
     SS_INFERENCE_MODEL_PATH = os.path.join(GeneralConfigs.ROOT, 'models',
                                            f'{SS_EXPERIMENT_NAME}_resnet50_{SS_NUM_EPOCHS}_epochs_{SS_RUN_NAME}.ckpt')
     SS_INFERENCE_BATCH_SIZE = 256
-    SS_INFERENCE_NUM_WORKERS = 5
+    SS_INFERENCE_NUM_WORKERS = 32
 
 
 class TumorRegressionConfigs:
@@ -149,6 +149,30 @@ class TumorRegressionConfigs:
     TR_TEST_SIZE = 0.2
     TR_VALID_SIZE = 0.05
     TR_INIT_LR = 1e-4
+
+
+class SubtypeClassificationConfigs:
+    SC_EXPERIMENT_NAME = 'molecular_subtype_classification'
+    SC_FORMULATION = 'thumbnail_CIS_GS'
+    SC_RUN_NAME = f"resnet_{SC_FORMULATION}"
+    SC_RUN_DESCRIPTION = f"""Resent50 backbone, regular thumbnail, CIN/GS prediction."""
+    SC_LABEL_DF_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
+                                    'TCGA_molecular_subtype.csv')
+    SC_TRAINED_MODEL_PATH = os.path.join(GeneralConfigs.ROOT, 'models', 'subtype_classification',
+                                         f'SC_{SC_RUN_NAME}.ckpt')
+    SC_CLASS_TO_IND = {'GS': 0, 'CIN': 1}
+    SC_DROPOUT_VALUE = 0.5
+    SC_NUM_EPOCHS = 6
+    SC_NUM_DEVICES = [0, ]
+    SC_DEVICE = 'gpu'
+    SC_TRAINING_BATCH_SIZE = 64
+    SC_TRAINING_NUM_WORKERS = 8
+    SC_TEST_SIZE = 0.2
+    SC_VALID_SIZE = 0.05
+    SC_INIT_LR = 1e-4
+
+
+
 
 
 @dataclass
