@@ -91,7 +91,9 @@ def generate_spatial_filter_mask(df, shape, attr):
 def bring_files(folder_in, file_format, folder_out):
     if not os.path.exists(folder_out):
         os.makedirs(folder_out)
-    filepaths = glob(f"{folder_in}/**/{file_format}", recursive=True)
+    filepaths = ['/home/sharonpe/microsatellite-instability-classification/data/slides/04d586ad-4f74-453f-a9c6-f8bd134ae11c/TCGA-4T-AA8H-01Z-00-DX1.A46C759C-74A2-4724-B6B5-DECA0D16E029.svs',
+       '/home/sharonpe/microsatellite-instability-classification/data/slides/5a3cd58b-f6ea-43fe-8a3d-1dcac76c3514/TCGA-AG-3608-01Z-00-DX1.aabf7424-6c66-489d-9715-8632d9a17cfc.svs',
+       '/home/sharonpe/microsatellite-instability-classification/data/slides/775c999e-8aaa-4c3a-aed5-af619532866d/TCGA-NH-A8F7-01Z-00-DX1.5CB8911D-07C3-4EF2-A97D-A62B441CF79E.svs']
     for i, filepath in enumerate(filepaths):
         basename = os.path.basename(filepath)
         parent_dir = os.path.basename(os.path.dirname(filepath))
