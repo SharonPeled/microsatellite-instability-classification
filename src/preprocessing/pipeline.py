@@ -48,9 +48,9 @@ def execute_preprocessing_pipeline(with_tiling, num_processes):
         transforms = []
         if Configs.TO_MACENKO_NORMALIZE:
             transforms.append(('load_tile', LoggingFunctionTransformer(load_tile)))
-            transforms.append(('macenko_color_norm', LoggingFunctionTransformer(macenko_color_norm,
-                                                                      kw_args={'succ_norm_attr': Configs.COLOR_NORM_SUCC,
-                                                                               'fail_norm_attr': Configs.COLOR_NORM_FAIL})))
+            # transforms.append(('macenko_color_norm', LoggingFunctionTransformer(macenko_color_norm,
+            #                                                           kw_args={'succ_norm_attr': Configs.COLOR_NORM_SUCC,
+            #                                                                    'fail_norm_attr': Configs.COLOR_NORM_FAIL})))
         transforms.append(('save_processed_tile', LoggingFunctionTransformer(save_processed_tile,
                                                                              kw_args={'processed_tiles_dir': Configs.PROCESSED_TILES_DIR})))
         pipeline_list.append(('tile', Pipeline(transforms)))
