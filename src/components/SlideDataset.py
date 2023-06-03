@@ -11,7 +11,9 @@ class SlideDataset(Dataset, Logger):
     def __init__(self, slides_dir, slide_log_file_args, device, load_metadata=True):
         self.device = device
         self.slides_dir = slides_dir
-        self.slide_paths = sorted(glob(f"{slides_dir}/**/*.svs", recursive=True))  # all .svs files
+        self.slide_paths = sorted(['/home/sharonpe/microsatellite-instability-classification/data/slides/04d586ad-4f74-453f-a9c6-f8bd134ae11c/TCGA-4T-AA8H-01Z-00-DX1.A46C759C-74A2-4724-B6B5-DECA0D16E029.svs',
+       '/home/sharonpe/microsatellite-instability-classification/data/slides/5a3cd58b-f6ea-43fe-8a3d-1dcac76c3514/TCGA-AG-3608-01Z-00-DX1.aabf7424-6c66-489d-9715-8632d9a17cfc.svs',
+       '/home/sharonpe/microsatellite-instability-classification/data/slides/775c999e-8aaa-4c3a-aed5-af619532866d/TCGA-NH-A8F7-01Z-00-DX1.5CB8911D-07C3-4EF2-A97D-A62B441CF79E.svs'])  # all .svs files
         self.slides = None
         self.load_metadata = load_metadata
         self.slide_log_file_args = slide_log_file_args
