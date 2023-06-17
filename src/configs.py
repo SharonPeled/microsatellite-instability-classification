@@ -31,7 +31,8 @@ class PreprocessingConfigs:
     TO_MACENKO_NORMALIZE = False
     PREPROCESSING_DEVICE = 'cpu'
     # Assuming TCGA folder structure, where each slide is in a separate dir and the dir is named after the slide ID
-    SLIDES_DIR = os.path.join(GeneralConfigs.ROOT, 'data', 'slides')
+    # SLIDES_DIR = os.path.join(GeneralConfigs.ROOT, 'data', 'slides')
+    SLIDES_DIR = '/mnt/data/users/sharonpe/slides'
     PROCESSED_TILES_DIR = os.path.join(GeneralConfigs.ROOT, 'data', 'processed_tiles_224')
     TILE_SIZE = 224  # should be divisible by downsample of reduced image, the easiest way is to set to be a power of 2
     REDUCED_LEVEL_TO_MEMORY = [3, 2]  # attempting to load according to order
