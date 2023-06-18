@@ -1,10 +1,11 @@
 /sandbox/
 /data/*
 !/data/*.txt
-/notebooks/*/
+/notebooks/
 .ipynb_checkpoints
 /.idea/
 **/__pycache__/
 log.txt
 nohup.out
 /models/
+*.out
