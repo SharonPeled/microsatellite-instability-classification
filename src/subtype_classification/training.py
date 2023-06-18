@@ -44,7 +44,7 @@ def train():
     df_labels = pd.read_csv(Configs.SC_LABEL_DF_PATH, sep='\t')
     df_labels = df_labels[df_labels[Configs.SC_LABEL_COL].isin(Configs.SC_CLASS_TO_IND.keys())]
     df_labels['y'] = df_labels[Configs.SC_LABEL_COL].apply(lambda s: Configs.SC_CLASS_TO_IND[s])
-    df_labels['y_to_be_stratified'] = df_labels['y'] + '_' + df_labels['cohort']
+    df_labels['y_to_be_stratified'] = df_labels['y'].astype(str) + '_' + df_labels['cohort']
     df_train, df_valid, df_test = train_test_valid_split_patients_stratified(df_labels, y_col='y_to_be_stratified',
                                                                              test_size=Configs.SC_TEST_SIZE,
                                                                              valid_size=Configs.SC_VALID_SIZE,
