@@ -4,13 +4,13 @@ import torch.nn.functional as F
 import pytorch_lightning as pl
 from torchvision.models import resnet50
 from torch.nn.functional import softmax
-from sklearn.metrics import precision_recall_fscore_support, roc_auc_score, classification_report
-from torch.optim.lr_scheduler import ReduceLROnPlateau, StepLR
-from ..utils import generate_confusion_matrix_figure
-from ..components.Logger import Logger
+from sklearn.metrics import roc_auc_score, classification_report
+from torch.optim.lr_scheduler import ReduceLROnPlateau
+from ...utils import generate_confusion_matrix_figure
+from src.components.Objects.Logger import Logger
 
 
-class TissueClassifier(pl.LightningModule):
+class TransferLearningClassifier(pl.LightningModule):
     def __init__(self, class_to_ind, learning_rate, class_to_weight=None):
         super().__init__()
         self.class_to_ind = class_to_ind
@@ -24,7 +24,7 @@ class TissueClassifier(pl.LightningModule):
         layers.append(nn.Flatten())
         layers.append(nn.Linear(num_filters, len(self.class_to_ind)))
         self.model = nn.Sequential(*layers)
-        Logger.log(f"""TissueClassifier created with loss weights: {self.class_weights}.""", log_importance=1)
+        Logger.log(f"""TransferLearningClassifier created with loss weights: {self.class_weights}.""", log_importance=1)
 
     def init_class_weights(self, class_to_ind):
         if class_to_ind is None:
@@ -72,7 +72,7 @@ class TissueClassifier(pl.LightningModule):
         logits = softmax(scores, dim=1).cpu().numpy()
         y_pred = torch.argmax(scores, dim=1).cpu().numpy()
         y_true = torch.concat([out["y"] for out in outputs]).cpu().numpy()
-        TissueClassifier.log_metrics(y_true, y_pred, logits, target_names=self.class_to_ind.keys(),
+        TransferLearningClassifier.log_metrics(y_true, y_pred, logits, target_names=self.class_to_ind.keys(),
                                      logger=self.logger, dataset_str=dataset_str, epoch=self.current_epoch)
 
     def validation_epoch_end(self, outputs):

@@ -1,9 +1,9 @@
 from sklearn.pipeline import Pipeline
-from ..components.SlideDataset import SlideDataset
-from ..components.LoggingFunctionTransformer import LoggingFunctionTransformer
+from src.components.Datasets.SlideDataset import SlideDataset
+from src.components.Transformers.LoggingFunctionTransformer import LoggingFunctionTransformer
 from .function_transformers import *
 from ..configs import Configs
-from ..components.ParallelProcessingManager import ParallelProcessingManager
+from src.components.Objects.ParallelProcessingManager import ParallelProcessingManager
 
 
 def execute_preprocessing_pipeline(with_tiling, num_processes):

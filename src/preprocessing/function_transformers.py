@@ -4,8 +4,8 @@ import pyvips
 import numpy as np
 from .pen_filter import get_pen_mask
 from ..utils import generate_spatial_filter_mask, center_crop_from_shape, center_crop_from_tile_size, conv2d_to_device
-from ..components.Tile import Tile
-from ..components.Logger import Logger
+from src.components.Objects.Tile import Tile
+from src.components.Objects.Logger import Logger
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 from torchvision import transforms

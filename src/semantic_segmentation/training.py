@@ -2,13 +2,12 @@ from torchvision import transforms
 from torch.utils.data import DataLoader
 from torchvision.datasets import ImageFolder
 import pytorch_lightning as pl
-from torch.multiprocessing import Pool, set_start_method, set_sharing_strategy
-from pytorch_lightning.loggers import TensorBoardLogger, MLFlowLogger
+from torch.multiprocessing import set_start_method, set_sharing_strategy
+from pytorch_lightning.loggers import MLFlowLogger
 from ..configs import Configs
 from src.utils import get_train_test_dataset
-from ..components.Logger import Logger
-from ..components.TissueClassifier import TissueClassifier
-from ..components.MacenkoNormalizerTransform import MacenkoNormalizerTransform
+from src.components.Objects.Logger import Logger
+from src.components.Models.TissueClassifier import TissueClassifier
 
 
 def set_worker_sharing_strategy(worker_id: int) -> None:

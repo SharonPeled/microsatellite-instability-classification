@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import torch
 import random
-from .components.Logger import Logger
+from src.components.Objects.Logger import Logger
 import datetime
 from glob import glob
 import shutil
@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap, BoundaryNorm
 import pyvips
 from sklearn.model_selection import StratifiedShuffleSplit
-from src.components.SubDataset import SubDataset
+from src.components.Datasets.SubDataset import SubDataset
 from torch.utils.data import Subset
 import seaborn as sns
 from sklearn.metrics import confusion_matrix

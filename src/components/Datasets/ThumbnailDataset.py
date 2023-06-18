@@ -3,7 +3,7 @@ from glob import glob
 import os
 import pandas as pd
 import pyvips
-from ..components.Logger import Logger
+from src.components.Objects.Logger import Logger
 from PIL import Image
 import numpy as np
 import torch

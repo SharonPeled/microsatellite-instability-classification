@@ -1,16 +1,14 @@
 from torchvision import transforms
 from torch.utils.data import DataLoader
 import pytorch_lightning as pl
-from torch.multiprocessing import Pool, set_start_method, set_sharing_strategy
-from pytorch_lightning.loggers import TensorBoardLogger, MLFlowLogger
+from torch.multiprocessing import set_start_method, set_sharing_strategy
+from pytorch_lightning.loggers import MLFlowLogger
 from ..configs import Configs
-from ..components.Logger import Logger
-from ..components.TumorRegressor import TumorRegressor
-from ..components.MacenkoNormalizerTransform import MacenkoNormalizerTransform
-from ..components.TumorRegressionDataset import TumorRegressionDataset
+from src.components.Objects.Logger import Logger
+from src.components.Models.TumorRegressor import TumorRegressor
+from src.components.Datasets.TumorRegressionDataset import TumorRegressionDataset
 import pandas as pd
-from sklearn.model_selection import train_test_split
-from ..components.CustomWriter import CustomWriter
+from src.components.Objects.CustomWriter import CustomWriter
 from pytorch_lightning.callbacks import LearningRateMonitor
 from ..utils import train_test_valid_split_patients_stratified
 from collections import defaultdict

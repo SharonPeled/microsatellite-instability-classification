@@ -1,7 +1,7 @@
 import torchstain
 from PIL import Image
 from torchvision import transforms
-from .Logger import Logger
+from src.components.Objects.Logger import Logger
 
 
 class MacenkoNormalizerTransform(object):

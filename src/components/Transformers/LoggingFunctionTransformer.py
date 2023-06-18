@@ -1,6 +1,5 @@
 from sklearn.preprocessing import FunctionTransformer
-import logging
-from .Logger import Logger
+from src.components.Objects.Logger import Logger
 
 
 class LoggingFunctionTransformer(FunctionTransformer, Logger):

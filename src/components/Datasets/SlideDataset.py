@@ -2,8 +2,8 @@ import os.path
 import os
 from torch.utils.data import Dataset
 from glob import glob
-from .Slide import Slide
-from .Logger import Logger
+from src.components.Objects.Slide import Slide
+from src.components.Objects.Logger import Logger
 import time
 
 
