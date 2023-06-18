@@ -31,10 +31,10 @@ class PreprocessingConfigs:
     TO_MACENKO_NORMALIZE = False
     PREPROCESSING_DEVICE = 'cpu'
     # Assuming TCGA folder structure, where each slide is in a separate dir and the dir is named after the slide ID
-    # SLIDES_DIR = os.path.join(GeneralConfigs.ROOT, 'data', 'slides')
-    # PROCESSED_TILES_DIR = os.path.join(GeneralConfigs.ROOT, 'data', 'processed_tiles_224')
-    SLIDES_DIR = '/mnt/data/users/sharonpe/slides'
-    PROCESSED_TILES_DIR = '/mnt/data/users/sharonpe/processed_tiles_224'
+    SLIDES_DIR = os.path.join(GeneralConfigs.ROOT, 'data', 'slides')
+    PROCESSED_TILES_DIR = os.path.join(GeneralConfigs.ROOT, 'data', 'processed_tiles_224')
+    # SLIDES_DIR = '/mnt/data/users/sharonpe/slides'
+    # PROCESSED_TILES_DIR = '/mnt/data/users/sharonpe/processed_tiles_224'
     TILE_SIZE = 224  # should be divisible by downsample of reduced image, the easiest way is to set to be a power of 2
     REDUCED_LEVEL_TO_MEMORY = [3, 2]  # attempting to load according to order
     TARGET_MAG_POWER = 20
@@ -154,21 +154,22 @@ class TumorRegressionConfigs:
 
 
 class SubtypeClassificationConfigs:
-    SC_EXPERIMENT_NAME = 'molecular_subtype_classification'
+    SC_EXPERIMENT_NAME = 'molecular_subtype_classification_thumbnail'
     SC_FORMULATION = 'thumbnail_CIS_GS'
     SC_RUN_NAME = f"resnet_{SC_FORMULATION}"
     SC_RUN_DESCRIPTION = f"""Resent50 backbone, regular thumbnail, CIN/GS prediction."""
     SC_LABEL_DF_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
-                                    'TCGA_molecular_subtype.csv')
+                                    'manifest_labeled_dx_molecular_subtype.tsv')
+    SC_LABEL_COL = 'subtype'
+    SC_THUMBNAIL_SIZE = 224
     SC_TRAINED_MODEL_PATH = os.path.join(GeneralConfigs.ROOT, 'models', 'subtype_classification',
                                          f'SC_{SC_RUN_NAME}.ckpt')
     SC_CLASS_TO_IND = {'GS': 0, 'CIN': 1}
-    SC_DROPOUT_VALUE = 0.5
     SC_NUM_EPOCHS = 6
-    SC_NUM_DEVICES = [0, ]
+    SC_NUM_DEVICES = [1, ]
     SC_DEVICE = 'gpu'
-    SC_TRAINING_BATCH_SIZE = 64
-    SC_TRAINING_NUM_WORKERS = 8
+    SC_TRAINING_BATCH_SIZE = 16
+    SC_TRAINING_NUM_WORKERS = 1
     SC_TEST_SIZE = 0.2
     SC_VALID_SIZE = 0.05
     SC_INIT_LR = 1e-4
@@ -178,7 +179,8 @@ class SubtypeClassificationConfigs:
 
 
 @dataclass
-class ConfigsClass(GeneralConfigs, PreprocessingConfigs, TumorClassificationConfigs, SemanticSegConfigs, TumorRegressionConfigs):
+class ConfigsClass(GeneralConfigs, PreprocessingConfigs, TumorClassificationConfigs, SemanticSegConfigs,
+                   TumorRegressionConfigs, SubtypeClassificationConfigs):
     def __init__(self):
         set_global_configs(verbose=self.VERBOSE,
                            log_file_args=self.PROGRAM_LOG_FILE_ARGS,

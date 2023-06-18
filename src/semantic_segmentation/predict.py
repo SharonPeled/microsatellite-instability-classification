@@ -1,10 +1,10 @@
-from src.components.Datasets.ProcessedTileDataset import ProcessedTileDataset
+from src.components.datasets.ProcessedTileDataset import ProcessedTileDataset
 from torch.utils.data import DataLoader
 from ..configs import Configs
 import pytorch_lightning as pl
-from src.components.Models.TissueClassifier import TissueClassifier
+from src.components.models.TissueClassifier import TissueClassifier
 from torchvision import transforms
-from src.components.Objects.CustomWriter import CustomWriter
+from src.components.objects.CustomWriter import CustomWriter
 
 
 def predict():

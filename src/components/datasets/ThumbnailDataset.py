@@ -3,43 +3,26 @@ from glob import glob
 import os
 import pandas as pd
 import pyvips
-from src.components.Objects.Logger import Logger
+from src.components.objects.Logger import Logger
 from PIL import Image
 import numpy as np
 import torch
 
 
 class ThumbnailDataset(Dataset, Logger):
-    """
-    labels_filepath: Must have patient_id
-    """
-    def __init__(self, labels_filepath, label_col, slides_dir, class_to_ind=None, transform=None, target_transform=None):
-        self.df = self._load_df(labels_filepath, slides_dir)
-        self.class_to_ind = class_to_ind
-        if self.class_to_ind is not None:
-            self.df = self.df[self.df[label_col].isin(class_to_ind.keys())]
-            self.df['y'] = self.df[label_col].apply(lambda s: class_to_ind[s])
-        else:
-            self.df['y'] = self.df[label_col]
+    def __init__(self, df_labels, size, transform=None, target_transform=None):
+        self.df = df_labels.reset_index(drop=True)
+        self.size = size
         self.transform = transform
         self.target_transform = target_transform
         self.log(f"""ThumbnailDataset created with {len(self.df)} slides.""", log_importance=1)
 
-    @staticmethod
-    def _load_df(labels_filepath, slides_dir):
-        df_labels = pd.read_csv(labels_filepath)
-        slides_path = glob(f"{slides_dir}/**/*.svs", recursive=True)
-        df = pd.DataFrame({'slide_path', slides_path})
-        df['patient_id'] = df.slide_path.apply(lambda s: s[:12])
-        df = df.merge(df_labels, on='patient_id', how='inner').reset_index(drop=True)
-        return df
-
     def __getitem__(self, index):
         row = self.df.iloc[index]
         path = row['slide_path']
-        thumb = pyvips.Image.thumbnail(path, 224)
+        thumb = pyvips.Image.thumbnail(path, self.size)
         img = Image.fromarray(thumb.numpy())
-        y = row['label']
+        y = row['y']
         if self.transform:
             img = self.transform(img)
         if self.target_transform:
@@ -48,6 +31,10 @@ class ThumbnailDataset(Dataset, Logger):
 
     def __len__(self):
         return len(self.df)
+
+    def join_metadata(self, df_pred, inds):
+        df_pred.loc[:, self.df.columns] = self.df.loc[inds].values
+        return df_pred
 
 
 class ThumbnailSegDataset(ThumbnailDataset):

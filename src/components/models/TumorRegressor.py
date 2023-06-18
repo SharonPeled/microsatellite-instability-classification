@@ -5,7 +5,7 @@ import pytorch_lightning as pl
 from torchvision.models import resnet50
 from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error, mean_absolute_percentage_error
 from torch.optim.lr_scheduler import ReduceLROnPlateau
-from src.components.Objects.Logger import Logger
+from src.components.objects.Logger import Logger
 import matplotlib.pyplot as plt
 
 

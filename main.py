@@ -9,6 +9,7 @@ from src.semantic_segmentation.predict import predict as predict_semantic_seg
 from src.tumor_distance_estimation.training import train as train_tumor_regression
 from src.utils import bring_files, bring_joined_log_file, delete_all_artifacts, \
     generate_thumbnails_with_tissue_classification, load_df_pred
+from src.subtype_classification.training import train as train_subtype_classification
 import signal
 import datetime
 from src.configs import Configs
@@ -39,6 +40,7 @@ def main():
     parser.add_argument('--train-tumor-classifier', action='store_true')
     parser.add_argument('--train-semantic-seg', action='store_true')
     parser.add_argument('--train-tumor-regression', action='store_true')
+    parser.add_argument('--train-subtype-classification', action='store_true')
     parser.add_argument('--OOD-validation-tumor-TCGA', action='store_true')
     parser.add_argument('--OOD-validation-ss-IRCCS', action='store_true')
     parser.add_argument('--inference-semantic-seg', action='store_true')
@@ -73,6 +75,8 @@ def main():
         predict_semantic_seg()
     if args.train_tumor_regression:
         train_tumor_regression()
+    if args.train_subtype_classification:
+        train_subtype_classification()
     if args.generate_tumor_thumbnails:
         df_pred = load_df_pred(pred_dir=Configs.TUMOR_PREDICT_OUTPUT_PATH,
                                class_to_index=Configs.TUMOR_CLASS_TO_IND)

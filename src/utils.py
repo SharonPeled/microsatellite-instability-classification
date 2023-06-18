@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import torch
 import random
-from src.components.Objects.Logger import Logger
+from src.components.objects.Logger import Logger
 import datetime
 from glob import glob
 import shutil
@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap, BoundaryNorm
 import pyvips
 from sklearn.model_selection import StratifiedShuffleSplit
-from src.components.Datasets.SubDataset import SubDataset
+from src.components.datasets.SubDataset import SubDataset
 from torch.utils.data import Subset
 import seaborn as sns
 from sklearn.metrics import confusion_matrix
@@ -148,14 +148,14 @@ def load_df_pred(pred_dir, class_to_index):
     return df
 
 
-def train_test_valid_split_patients_stratified(df_full, test_size, valid_size, random_seed):
+def train_test_valid_split_patients_stratified(df_full, y_col, test_size, valid_size, random_seed):
     splitter = StratifiedGroupKFold(n_splits=int(1/test_size), shuffle=True, random_state=random_seed)
-    split = splitter.split(X=df_full, y=df_full['int_dis_to_tum'], groups=df_full['patient_id'])
+    split = splitter.split(X=df_full, y=df_full[y_col], groups=df_full['patient_id'])
     train_inds, test_inds = next(split)
     df_train = df_full.iloc[train_inds].reset_index(drop=True)
     df_test = df_full.iloc[test_inds].reset_index(drop=True)
     splitter = StratifiedGroupKFold(n_splits=int(1/valid_size), shuffle=True, random_state=random_seed)
-    split = splitter.split(X=df_train, y=df_train['int_dis_to_tum'], groups=df_train['patient_id'])
+    split = splitter.split(X=df_train, y=df_train[y_col], groups=df_train['patient_id'])
     train_inds, valid_inds = next(split)
     df_valid = df_train.iloc[valid_inds].reset_index(drop=True)
     df_train = df_train.iloc[train_inds].reset_index(drop=True)

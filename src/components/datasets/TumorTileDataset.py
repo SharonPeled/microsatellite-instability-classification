@@ -1,7 +1,7 @@
 from torch.utils.data import Dataset
 from glob import glob
 from PIL import Image
-from src.components.Objects.Logger import Logger
+from src.components.objects.Logger import Logger
 import pandas as pd
 
 

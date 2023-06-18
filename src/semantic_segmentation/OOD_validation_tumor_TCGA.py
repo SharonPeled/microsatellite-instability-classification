@@ -2,16 +2,16 @@ import torch
 from torch.utils.data import DataLoader
 from ..configs import Configs
 import pytorch_lightning as pl
-from src.components.Models.TissueClassifier import TissueClassifier
+from src.components.models.TissueClassifier import TissueClassifier
 from torchvision import transforms
-from src.components.Objects.CustomWriter import CustomWriter
-from src.components.Transformers.MacenkoNormalizerTransform import MacenkoNormalizerTransform
-from src.components.Datasets.TumorTileDataset import TumorTileDataset
+from src.components.objects.CustomWriter import CustomWriter
+from src.components.transformers.MacenkoNormalizerTransform import MacenkoNormalizerTransform
+from src.components.datasets.TumorTileDataset import TumorTileDataset
 from ..utils import load_df_pred
 from pytorch_lightning.loggers import MLFlowLogger
 from ..utils import generate_confusion_matrix_figure
 from sklearn.metrics import precision_recall_fscore_support
-from src.components.Objects.Logger import Logger
+from src.components.objects.Logger import Logger
 
 
 def OOD_validation_tumor_TCGA():

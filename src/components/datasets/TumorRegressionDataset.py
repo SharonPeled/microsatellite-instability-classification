@@ -1,6 +1,6 @@
 from torch.utils.data import Dataset
 from PIL import Image
-from src.components.Objects.Logger import Logger
+from src.components.objects.Logger import Logger
 
 
 class TumorRegressionDataset(Dataset, Logger):

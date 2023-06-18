@@ -3,7 +3,7 @@ from glob import glob
 import os
 import pandas as pd
 from PIL import Image
-from src.components.Objects.Logger import Logger
+from src.components.objects.Logger import Logger
 
 
 class ProcessedTileDataset(Dataset, Logger):

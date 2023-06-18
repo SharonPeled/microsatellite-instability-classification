@@ -4,11 +4,11 @@ import pytorch_lightning as pl
 from torch.multiprocessing import set_start_method, set_sharing_strategy
 from pytorch_lightning.loggers import MLFlowLogger
 from ..configs import Configs
-from src.components.Objects.Logger import Logger
-from src.components.Models.TumorRegressor import TumorRegressor
-from src.components.Datasets.TumorRegressionDataset import TumorRegressionDataset
+from src.components.objects.Logger import Logger
+from src.components.models.TumorRegressor import TumorRegressor
+from src.components.datasets.TumorRegressionDataset import TumorRegressionDataset
 import pandas as pd
-from src.components.Objects.CustomWriter import CustomWriter
+from src.components.objects.CustomWriter import CustomWriter
 from pytorch_lightning.callbacks import LearningRateMonitor
 from ..utils import train_test_valid_split_patients_stratified
 from collections import defaultdict
@@ -48,7 +48,7 @@ def train():
     df_full = pd.read_csv(Configs.TR_LABEL_DF_PATH)
     df_full = df_full[(df_full.dis_to_tum >= Configs.TR_MIN_DIS_TO_TUM)&(df_full.group_size > Configs.TR_MIN_GROUP_SIZE)]
     df_full.dis_to_tum = np.log1p(df_full.dis_to_tum)
-    df_train, df_valid, df_test = train_test_valid_split_patients_stratified(df_full, Configs.TR_TEST_SIZE,
+    df_train, df_valid, df_test = train_test_valid_split_patients_stratified(df_full, 'int_dis_to_tum', Configs.TR_TEST_SIZE,
                                                                              Configs.TR_VALID_SIZE, Configs.RANDOM_SEED)
 
     train_dataset = TumorRegressionDataset(df_train, transform=train_transform)

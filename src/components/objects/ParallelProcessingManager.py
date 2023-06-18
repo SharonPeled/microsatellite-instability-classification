@@ -1,6 +1,6 @@
 from torch.multiprocessing import Pool, set_start_method
 from src.utils import set_global_configs
-from src.components.Objects.Logger import Logger
+from src.components.objects.Logger import Logger
 import traceback
 
 

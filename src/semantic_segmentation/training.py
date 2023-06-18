@@ -6,8 +6,8 @@ from torch.multiprocessing import set_start_method, set_sharing_strategy
 from pytorch_lightning.loggers import MLFlowLogger
 from ..configs import Configs
 from src.utils import get_train_test_dataset
-from src.components.Objects.Logger import Logger
-from src.components.Models.TissueClassifier import TissueClassifier
+from src.components.objects.Logger import Logger
+from src.components.models.TissueClassifier import TissueClassifier
 
 
 def set_worker_sharing_strategy(worker_id: int) -> None:
