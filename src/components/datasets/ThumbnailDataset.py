@@ -21,7 +21,8 @@ class ThumbnailDataset(Dataset, Logger):
         row = self.df.iloc[index]
         path = row['slide_path']
         thumb = pyvips.Image.thumbnail(path, self.size)
-        img = Image.fromarray(thumb.numpy())
+        # require to pad to desired size - not functional at the time
+        img = Image.fromarray(thumb.numpy()[:, :, :3]) # removing alpha channel
         y = row['y']
         if self.transform:
             img = self.transform(img)
