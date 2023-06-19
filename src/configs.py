@@ -168,7 +168,7 @@ class SubtypeClassificationConfigs:
     SC_NUM_DEVICES = [1, ]
     SC_DEVICE = 'gpu'
     SC_TRAINING_BATCH_SIZE = 32
-    SC_TRAINING_NUM_WORKERS = 10
+    SC_TRAINING_NUM_WORKERS = 16
     SC_TEST_SIZE = 0.2
     SC_VALID_SIZE = 0.05
     SC_INIT_LR = 1e-4
