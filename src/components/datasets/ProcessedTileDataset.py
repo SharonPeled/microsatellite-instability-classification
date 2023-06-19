@@ -7,24 +7,26 @@ from src.components.objects.Logger import Logger
 
 
 class ProcessedTileDataset(Dataset, Logger):
-    def __init__(self, processed_tiles_dir, transform=None):
-        self.processed_tiles_dir = processed_tiles_dir
+    def __init__(self, df_labels, transform=None, target_transform=None):
+        self.df_labels = df_labels.reset_index(drop=True)
         self.transform = transform
-        tile_paths = glob(f"{processed_tiles_dir}/**/*Tissue*.jpg", recursive=True)
-        self.df = pd.DataFrame(tile_paths, columns=['tile_path'])
-        self.df['slide_uuid'] = self.df.tile_path.apply(lambda p: os.path.basename(os.path.dirname(p)))
-        self.log(f"""ProcessedTileDataset created with {len(self.df)} tiles.""", log_importance=1)
+        self.target_transform = target_transform
+        self.log(f"""ProcessedTileDataset created with {self.df_labels.slide_uuid.nunique()} slides and {len(self.df_labels)} tiles.""", log_importance=1)
 
     def join_metadata(self, df_pred, inds):
-        df_pred.loc[:, self.df.columns] = self.df.loc[inds].values
+        df_pred.loc[:, self.df_labels.columns] = self.df_labels.loc[inds].values
         return df_pred
 
     def __getitem__(self, index):
-        path = self.df['tile_path'][index]
+        row = self.df_labels.iloc[index]
+        path = row['tile_path']
         img = Image.open(path)
+        y = row['y']
         if self.transform:
             img = self.transform(img)
-        return img
+        if self.target_transform:
+            y = self.target_transform(y)
+        return img, y
 
     def __len__(self):
-        return len(self.df)
+        return len(self.df_labels)

@@ -1,6 +1,6 @@
 from torchvision import transforms
 from torch.utils.data import DataLoader
-from src.components.datasets.ThumbnailDataset import ThumbnailDataset
+from src.components.datasets.ProcessedTileDataset import ProcessedTileDataset
 import pytorch_lightning as pl
 from torch.multiprocessing import set_start_method, set_sharing_strategy
 from pytorch_lightning.loggers import MLFlowLogger
@@ -11,6 +11,9 @@ import pandas as pd
 from src.utils import train_test_valid_split_patients_stratified
 from pytorch_lightning.callbacks import LearningRateMonitor
 from src.components.objects.CustomWriter import CustomWriter
+from glob import glob
+import os
+
 
 def set_worker_sharing_strategy(worker_id: int) -> None:
     set_sharing_strategy('file_system')
@@ -43,6 +46,7 @@ def train():
 
     df_labels = pd.read_csv(Configs.SC_LABEL_DF_PATH, sep='\t')
     df_labels = df_labels[df_labels[Configs.SC_LABEL_COL].isin(Configs.SC_CLASS_TO_IND.keys())]
+    df_labels['slide_uuid'] = df_labels.slide_path.apply(lambda p: os.path.basename(os.path.dirname(p)))
     df_labels['y'] = df_labels[Configs.SC_LABEL_COL].apply(lambda s: Configs.SC_CLASS_TO_IND[s])
     df_labels['y_to_be_stratified'] = df_labels['y'].astype(str) + '_' + df_labels['cohort']
     df_train, df_valid, df_test = train_test_valid_split_patients_stratified(df_labels, y_col='y_to_be_stratified',
@@ -50,9 +54,16 @@ def train():
                                                                              valid_size=Configs.SC_VALID_SIZE,
                                                                              random_seed=Configs.RANDOM_SEED)
 
-    train_dataset = ThumbnailDataset(df_labels=df_labels, size=Configs.SC_THUMBNAIL_SIZE, transform=train_transform)
-    valid_dataset = ThumbnailDataset(df_labels=df_valid, size=Configs.SC_THUMBNAIL_SIZE, transform=test_transform)
-    test_dataset = ThumbnailDataset(df_labels=df_test, size=Configs.SC_THUMBNAIL_SIZE, transform=test_transform)
+    tile_paths = glob(f"{Configs.PROCESSED_TILES_DIR}/**/*Tissue*.jpg", recursive=True)
+    df_tiles = pd.DataFrame(tile_paths, columns=['tile_path'])
+    df_tiles['slide_uuid'] = df_tiles.tile_path.apply(lambda p: os.path.basename(os.path.dirname(p)))
+    df_train = df_train.merge(df_tiles, how='inner', on='slide_uuid')
+    df_valid = df_valid.merge(df_tiles, how='inner', on='slide_uuid')
+    df_test = df_test.merge(df_tiles, how='inner', on='slide_uuid')
+
+    train_dataset = ProcessedTileDataset(df_labels=df_train, transform=train_transform)
+    valid_dataset = ProcessedTileDataset(df_labels=df_valid, transform=test_transform)
+    test_dataset = ProcessedTileDataset(df_labels=df_test, transform=test_transform)
 
     train_loader = DataLoader(train_dataset, batch_size=Configs.SC_TRAINING_BATCH_SIZE, shuffle=True,
                               persistent_workers=True, num_workers=Configs.SC_TRAINING_NUM_WORKERS,
