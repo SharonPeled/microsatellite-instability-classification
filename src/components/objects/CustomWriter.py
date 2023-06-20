@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import os
 from datetime import datetime
+from src.components.objects.Logger import Logger
 
 
 class CustomWriter(BasePredictionWriter):
@@ -24,4 +25,6 @@ class CustomWriter(BasePredictionWriter):
         df_pred['dataset_ind'] = batch_indices
         df_pred = self.dataset.join_metadata(df_pred, batch_indices)
         time_str = datetime.now().strftime('%d_%m_%Y_%H_%M')
-        df_pred.to_csv(os.path.join(self.output_dir, f"df_pred_{trainer.global_rank}_{time_str}.csv"), index=False)
+        df_pred_path = os.path.join(self.output_dir, f"df_pred_{trainer.global_rank}_{time_str}.csv")
+        df_pred.to_csv(df_pred_path, index=False)
+        Logger.log(f"""CustomWriter df_pred saved: {df_pred_path}.""", log_importance=1)

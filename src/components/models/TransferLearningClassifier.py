@@ -8,6 +8,7 @@ from sklearn.metrics import roc_auc_score, classification_report
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from ...utils import generate_confusion_matrix_figure
 from src.components.objects.Logger import Logger
+import numpy as np
 
 
 class TransferLearningClassifier(pl.LightningModule):
@@ -24,6 +25,7 @@ class TransferLearningClassifier(pl.LightningModule):
         layers.append(nn.Flatten())
         layers.append(nn.Linear(num_filters, len(self.class_to_ind)))
         self.model = nn.Sequential(*layers)
+        self.test_outputs = None
         Logger.log(f"""TransferLearningClassifier created with loss weights: {self.class_weights}.""", log_importance=1)
 
     def init_class_weights(self, class_to_weight):
@@ -65,15 +67,15 @@ class TransferLearningClassifier(pl.LightningModule):
     def test_step(self, batch, batch_idx):
         test_loss, scores, y = self.general_loop(batch, batch_idx)
         self.logger.experiment.log_metric(self.logger.run_id, "test_loss", test_loss)
-        return {"scores": scores, "y": y}
+        return {"scores": scores, "y": y, "batch_idx": batch_idx}
 
     def log_epoch_level_metrics(self, outputs, dataset_str):
-        scores = torch.concat([out["scores"] for out in outputs])
+        scores = torch.concat([out["scores"] for out in outputs]).cpu()
         logits = softmax(scores, dim=1).cpu().numpy()
         y_pred = torch.argmax(scores, dim=1).cpu().numpy()
         y_true = torch.concat([out["y"] for out in outputs]).cpu().numpy()
         TransferLearningClassifier.log_metrics(y_true, y_pred, logits, target_names=self.class_to_ind.keys(),
-                                     logger=self.logger, dataset_str=dataset_str, epoch=self.current_epoch)
+                                               logger=self.logger, dataset_str=dataset_str, epoch=self.current_epoch)
 
     def validation_epoch_end(self, outputs):
         self.log_epoch_level_metrics(outputs, dataset_str='valid')
@@ -82,6 +84,7 @@ class TransferLearningClassifier(pl.LightningModule):
 
     def test_epoch_end(self, outputs):
         self.log_epoch_level_metrics(outputs, dataset_str='test')
+        self.test_outputs = outputs
 
     def predict_step(self, batch, batch_idx, dataloader_idx=0):
         return self.forward(batch)
@@ -99,7 +102,7 @@ class TransferLearningClassifier(pl.LightningModule):
                                                   metric_val)
         if logits is not None:
             # auc
-            if set(target_names) == set(y_true):
+            if len(target_names) == len(np.unique(y_true)):
                 # in order to use auc y_true has to include all labels
                 # this condition may not be satisfied in the sanity check, where the sampling is not stratified
                 auc_scores = roc_auc_score(y_true, logits, multi_class='ovr', average=None)

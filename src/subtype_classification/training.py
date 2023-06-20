@@ -7,12 +7,21 @@ from pytorch_lightning.loggers import MLFlowLogger
 from ..configs import Configs
 from src.components.objects.Logger import Logger
 from src.components.models.TransferLearningClassifier import TransferLearningClassifier
+from src.components.objects.CheckpointEveryNSteps import CheckpointEveryNSteps
 import pandas as pd
 from src.utils import train_test_valid_split_patients_stratified
 from pytorch_lightning.callbacks import LearningRateMonitor
-from src.components.objects.CustomWriter import CustomWriter
-from glob import glob
 import os
+import torch
+from torch.nn.functional import softmax
+from datetime import datetime
+import numpy as np
+
+
+def batch_inx_to_batch_indices(batch_inx, batch_size, num_elements):
+    start_index = batch_inx * batch_size
+    end_index = min(start_index + batch_size, num_elements)
+    return list(range(start_index, end_index))
 
 
 def set_worker_sharing_strategy(worker_id: int) -> None:
@@ -47,32 +56,35 @@ def train():
     df_labels = pd.read_csv(Configs.SC_LABEL_DF_PATH, sep='\t')
     df_labels = df_labels[df_labels[Configs.SC_LABEL_COL].isin(Configs.SC_CLASS_TO_IND.keys())]
     df_labels['slide_uuid'] = df_labels.slide_path.apply(lambda p: os.path.basename(os.path.dirname(p)))
+    df_labels['num_tissue'] = df_labels.Tissue.apply(lambda t: eval(t)[-1])
     df_labels['y'] = df_labels[Configs.SC_LABEL_COL].apply(lambda s: Configs.SC_CLASS_TO_IND[s])
     df_labels['y_to_be_stratified'] = df_labels['y'].astype(str) + '_' + df_labels['cohort']
-    df_train, df_valid, df_test = train_test_valid_split_patients_stratified(df_labels, y_col='y_to_be_stratified',
+    # merging labels and tiles
+    df_tiles = pd.read_csv(Configs.SC_DF_TILE_PATHS_PATH)
+    df_labels_merged_tiles = df_labels.merge(df_tiles, how='inner', on='slide_uuid')
+    # sampling from each slide to reduce computational costs
+    df_labels_merged_tiles_sampled = df_labels_merged_tiles.groupby('cohort').apply(
+        lambda cohort_df: cohort_df.sample(n=Configs.SC_TILE_SAMPLE_LAMBDA_TRAIN(len(cohort_df)),
+                                           random_state=Configs.RANDOM_SEED)).reset_index(drop=True)
+    # split to train, valid, test
+    df_train, df_valid, df_test = train_test_valid_split_patients_stratified(df_labels_merged_tiles_sampled,
+                                                                             y_col='y_to_be_stratified',
                                                                              test_size=Configs.SC_TEST_SIZE,
                                                                              valid_size=Configs.SC_VALID_SIZE,
                                                                              random_seed=Configs.RANDOM_SEED)
-
-    tile_paths = glob(f"{Configs.PROCESSED_TILES_DIR}/**/*Tissue*.jpg", recursive=True)
-    df_tiles = pd.DataFrame(tile_paths, columns=['tile_path'])
-    df_tiles['slide_uuid'] = df_tiles.tile_path.apply(lambda p: os.path.basename(os.path.dirname(p)))
-    df_train = df_train.merge(df_tiles, how='inner', on='slide_uuid')
-    df_valid = df_valid.merge(df_tiles, how='inner', on='slide_uuid')
-    df_test = df_test.merge(df_tiles, how='inner', on='slide_uuid')
 
     train_dataset = ProcessedTileDataset(df_labels=df_train, transform=train_transform)
     valid_dataset = ProcessedTileDataset(df_labels=df_valid, transform=test_transform)
     test_dataset = ProcessedTileDataset(df_labels=df_test, transform=test_transform)
 
     train_loader = DataLoader(train_dataset, batch_size=Configs.SC_TRAINING_BATCH_SIZE, shuffle=True,
-                              persistent_workers=True, num_workers=Configs.SC_TRAINING_NUM_WORKERS,
+                              persistent_workers=True, num_workers=Configs.SC_NUM_WORKERS,
                               worker_init_fn=set_worker_sharing_strategy)
-    valid_loader = DataLoader(valid_dataset, batch_size=Configs.SC_TRAINING_BATCH_SIZE, shuffle=False,
-                              persistent_workers=True, num_workers=Configs.SC_TRAINING_NUM_WORKERS,
+    valid_loader = DataLoader(valid_dataset, batch_size=Configs.SC_TEST_BATCH_SIZE, shuffle=False,
+                              persistent_workers=True, num_workers=Configs.SC_NUM_WORKERS,
                               worker_init_fn=set_worker_sharing_strategy)
-    test_loader = DataLoader(test_dataset, batch_size=Configs.SC_TRAINING_BATCH_SIZE, shuffle=False,
-                             persistent_workers=True, num_workers=Configs.SC_TRAINING_NUM_WORKERS,
+    test_loader = DataLoader(test_dataset, batch_size=Configs.SC_TEST_BATCH_SIZE, shuffle=False,
+                             persistent_workers=True, num_workers=Configs.SC_NUM_WORKERS,
                              worker_init_fn=set_worker_sharing_strategy)
 
     model = TransferLearningClassifier(class_to_ind=Configs.SC_CLASS_TO_IND, learning_rate=Configs.SC_INIT_LR,
@@ -86,8 +98,10 @@ def train():
     Logger.log("Starting Training.", log_importance=1)
     trainer = pl.Trainer(devices=Configs.SC_NUM_DEVICES, accelerator=Configs.SC_DEVICE,
                          deterministic=True,
-                         check_val_every_n_epoch=1,
-                         callbacks=[lr_monitor],
+                         val_check_interval=Configs.SC_VAL_STEP_INTERVAL,
+                         callbacks=[lr_monitor, CheckpointEveryNSteps(
+                             prefix=Configs.SC_RUN_NAME,
+                             save_step_frequency=Configs.SC_SAVE_CHECKPOINT_STEP_INTERVAL)],
                          enable_checkpointing=True,
                          logger=mlflow_logger,
                          num_sanity_val_steps=2,
@@ -96,23 +110,28 @@ def train():
     trainer.save_checkpoint(Configs.SC_TRAINED_MODEL_PATH)
     Logger.log("Done Training.", log_importance=1)
     Logger.log("Starting Test.", log_importance=1)
-    trainer.test(model, dataloaders=test_loader)
+    trainer.test(model, test_loader)
     Logger.log(f"Done Test.", log_importance=1)
-    Logger.log(f"Saving test results.", log_importance=1)
-    # not nice code but whatever
-    test_dataset.with_y = False
-    model = TransferLearningClassifier.load_from_checkpoint(Configs.SC_TRAINED_MODEL_PATH,
-                                                            class_to_ind=Configs.SC_CLASS_TO_IND, learning_rate=None,
-                                                            class_to_weight=None)
-    pred_writer = CustomWriter(output_dir=Configs.SC_PREDICT_OUTPUT_PATH,
-                               write_interval="epoch", score_names=['y_pred', ],
-                               dataset=test_dataset)
-    test_loader = DataLoader(test_dataset, batch_size=Configs.SC_TRAINING_BATCH_SIZE, shuffle=False,
-                             persistent_workers=True, num_workers=Configs.SC_TRAINING_NUM_WORKERS,
-                             worker_init_fn=set_worker_sharing_strategy)
-    trainer = pl.Trainer(accelerator=Configs.SC_DEVICE, devices=Configs.SC_NUM_DEVICES, callbacks=[pred_writer],
-                         default_root_dir=Configs.SC_PREDICT_OUTPUT_PATH)
-    trainer.predict(model, test_loader, return_predictions=False)
+    Logger.log(f"Saving test results...", log_importance=1)
+    # since shuffle=False in test we can inference the batch_indices from batch_inx
+    dataset_indices = np.concatenate([batch_inx_to_batch_indices(out["batch_idx"], Configs.SC_TEST_BATCH_SIZE, len(test_dataset))
+                                      for out in model.test_outputs])
+    scores = torch.concat([out["scores"] for out in model.test_outputs]).cpu()
+    logits = softmax(scores, dim=1).cpu().numpy()
+    y_pred = torch.argmax(scores, dim=1).cpu().numpy()
+    y_true = torch.concat([out["y"] for out in model.test_outputs]).cpu().numpy()
+    df_pred = pd.DataFrame(data=logits, columns=list(Configs.SC_CLASS_TO_IND.keys()))
+    df_pred['y_pred'] = y_pred
+    df_pred['y_true'] = y_true
+    df_pred['dataset_ind'] = dataset_indices
+    df_pred = test_dataset.join_metadata(df_pred, dataset_indices)
+    time_str = datetime.now().strftime('%d_%m_%Y_%H_%M')
+    df_pred_path = os.path.join(Configs.SC_PREDICT_OUTPUT_PATH,
+                                f"df_pred_{time_str}.csv")
+    os.makedirs(os.path.dirname(df_pred_path), exist_ok=True)
+    df_pred.to_csv(df_pred_path, index=False)
+    Logger.log(f"""Saving Done, df_pred saved in: {df_pred_path}""", log_importance=1)
+    Logger.log(f"Finished.", log_importance=1)
 
 
 

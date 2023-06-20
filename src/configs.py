@@ -6,6 +6,7 @@ from .utils import set_global_configs
 import torch
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning, module="torchstain")
+from datetime import datetime
 
 
 @dataclass
@@ -17,6 +18,7 @@ class GeneralConfigs:
     LOG_IMPORTANCE = 1  # 0 (all), 1 or 2 (only high importance logs)
     LOG_FORMAT = {'format': '%(process)d  %(asctime)s  [%(name)s] - %(message)s', 'datefmt':'%d-%m-%y %H:%M:%S'}
     MLFLOW_SAVE_DIR = os.path.join(ROOT, 'models', 'mlruns')
+    START_TIME = datetime.now().strftime('%d_%m_%Y_%H_%M')
 
 
 @dataclass
@@ -31,10 +33,10 @@ class PreprocessingConfigs:
     TO_MACENKO_NORMALIZE = False
     PREPROCESSING_DEVICE = 'cpu'
     # Assuming TCGA folder structure, where each slide is in a separate dir and the dir is named after the slide ID
-    # SLIDES_DIR = os.path.join(GeneralConfigs.ROOT, 'data', 'slides')
-    # PROCESSED_TILES_DIR = os.path.join(GeneralConfigs.ROOT, 'data', 'processed_tiles_224')
-    SLIDES_DIR = '/mnt/data/users/sharonpe/slides'
-    PROCESSED_TILES_DIR = '/mnt/data/users/sharonpe/processed_tiles_224'
+    SLIDES_DIR = os.path.join(GeneralConfigs.ROOT, 'data', 'slides')
+    PROCESSED_TILES_DIR = os.path.join(GeneralConfigs.ROOT, 'data', 'processed_tiles_224')
+    # SLIDES_DIR = '/mnt/data/users/sharonpe/slides'
+    # PROCESSED_TILES_DIR = '/mnt/data/users/sharonpe/processed_tiles_224'
     TILE_SIZE = 224  # should be divisible by downsample of reduced image, the easiest way is to set to be a power of 2
     REDUCED_LEVEL_TO_MEMORY = [3, 2]  # attempting to load according to order
     TARGET_MAG_POWER = 20
@@ -156,25 +158,30 @@ class TumorRegressionConfigs:
 class SubtypeClassificationConfigs:
     SC_EXPERIMENT_NAME = 'subtype_classification_tile_based'
     SC_FORMULATION = 'tile_CIS_GS'
-    SC_RUN_NAME = f"resnet_{SC_FORMULATION}"
-    SC_RUN_DESCRIPTION = f"""Resent50 backbone, regular tile, CIN/GS prediction."""
+    SC_RUN_NAME = f"resnet_{SC_FORMULATION}_2"
+    SC_RUN_DESCRIPTION = f"""Resent50 backbone, regular tile, CIN/GS prediction. Sampling min(50%, 5000) and shuffling tiles."""
     SC_LABEL_DF_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                     'manifest_labeled_dx_molecular_subtype.tsv')
+    SC_DF_TILE_PATHS_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
+                                         'df_processed_tile_paths.csv')
     SC_LABEL_COL = 'subtype'
     SC_TRAINED_MODEL_PATH = os.path.join(GeneralConfigs.ROOT, 'models', 'subtype_classification',
-                                         f'SC_{SC_RUN_NAME}.ckpt')
+                                         f'SC_{SC_RUN_NAME}_{GeneralConfigs.START_TIME}.ckpt')
+    SC_PREDICT_OUTPUT_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
+                                          f'{SC_RUN_NAME}_test_pred')
     SC_CLASS_TO_IND = {'GS': 0, 'CIN': 1}
-    SC_NUM_EPOCHS = 10
+    SC_NUM_EPOCHS = 1
     SC_NUM_DEVICES = [1, ]
     SC_DEVICE = 'gpu'
-    SC_TRAINING_BATCH_SIZE = 32
-    SC_TRAINING_NUM_WORKERS = 16
+    SC_TEST_BATCH_SIZE = 256
+    SC_SAVE_CHECKPOINT_STEP_INTERVAL = 7000
+    SC_VAL_STEP_INTERVAL = 0.1  # 10 times an epoch
+    SC_TRAINING_BATCH_SIZE = 128
+    SC_NUM_WORKERS = 32
     SC_TEST_SIZE = 0.2
     SC_VALID_SIZE = 0.05
-    SC_INIT_LR = 1e-4
-
-
-
+    SC_INIT_LR = 1e-5
+    SC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count//2, 5000)
 
 
 @dataclass
