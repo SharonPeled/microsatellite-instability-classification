@@ -63,7 +63,7 @@ def train():
     df_tiles = pd.read_csv(Configs.SC_DF_TILE_PATHS_PATH)
     df_labels_merged_tiles = df_labels.merge(df_tiles, how='inner', on='slide_uuid')
     # sampling from each slide to reduce computational costs
-    df_labels_merged_tiles_sampled = df_labels_merged_tiles.groupby('cohort').apply(
+    df_labels_merged_tiles_sampled = df_labels_merged_tiles.groupby('slide_uuid').apply(
         lambda cohort_df: cohort_df.sample(n=Configs.SC_TILE_SAMPLE_LAMBDA_TRAIN(len(cohort_df)),
                                            random_state=Configs.RANDOM_SEED)).reset_index(drop=True)
     # split to train, valid, test
