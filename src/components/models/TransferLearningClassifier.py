@@ -32,7 +32,7 @@ class TransferLearningClassifier(pl.LightningModule):
         if class_to_weight is None:
             return None
         sum_w = float(sum(class_to_weight.values()))
-        return torch.Tensor([w/sum_w for w in class_to_weight.values()])
+        return torch.Tensor([w / sum_w for w in class_to_weight.values()])
 
     def forward(self, x):
         return self.model(x)
@@ -99,15 +99,21 @@ class TransferLearningClassifier(pl.LightningModule):
                 continue
             for metric_str, metric_val in class_metrics.items():
                 logger.experiment.log_metric(logger.run_id, f"{dataset_str}_{class_str}_{metric_str}",
-                                                  metric_val)
+                                             metric_val)
         if logits is not None:
             # auc
             if len(target_names) == len(np.unique(y_true)):
                 # in order to use auc y_true has to include all labels
                 # this condition may not be satisfied in the sanity check, where the sampling is not stratified
-                auc_scores = roc_auc_score(y_true, logits, multi_class='ovr', average=None)
-                for ind, class_str in enumerate(target_names):
-                    logger.experiment.log_metric(logger.run_id, f"{dataset_str}_{class_str}_auc", auc_scores[ind])
+                if len(target_names) == 2:
+                    # binary case
+                    for ind, class_str in enumerate(target_names):
+                        auc_score = roc_auc_score((y_true == ind).astype(int), logits[:, ind])
+                        logger.experiment.log_metric(logger.run_id, f"{dataset_str}_{class_str}_auc", auc_score)
+                else:
+                    auc_scores = roc_auc_score(y_true, logits, multi_class='ovr', average=None)
+                    for ind, class_str in enumerate(target_names):
+                        logger.experiment.log_metric(logger.run_id, f"{dataset_str}_{class_str}_auc", auc_scores[ind])
         # confusion matrix
         fig = generate_confusion_matrix_figure(y_true, y_pred, target_names)
         logger.experiment.log_figure(logger.run_id, fig, f"confusion_matrix_{dataset_str}_{epoch}.png")
