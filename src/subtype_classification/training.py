@@ -28,6 +28,27 @@ def set_worker_sharing_strategy(worker_id: int) -> None:
     set_sharing_strategy('file_system')
 
 
+def save_pred_outputs(outputs, dataset, batch_size, save_path, suffix=''):
+    dataset_indices = np.concatenate(
+        [batch_inx_to_batch_indices(out["batch_idx"], batch_size, len(dataset))
+         for out in outputs])
+    scores = torch.concat([out["scores"] for out in outputs]).cpu()
+    logits = softmax(scores, dim=1).cpu().numpy()
+    y_pred = torch.argmax(scores, dim=1).cpu().numpy()
+    y_true = torch.concat([out["y"] for out in outputs]).cpu().numpy()
+    df_pred = pd.DataFrame(data=logits, columns=list(Configs.SC_CLASS_TO_IND.keys()))
+    df_pred['y_pred'] = y_pred
+    df_pred['y_true'] = y_true
+    df_pred['dataset_ind'] = dataset_indices
+    df_pred = dataset.join_metadata(df_pred, dataset_indices)
+    time_str = datetime.now().strftime('%d_%m_%Y_%H_%M')
+    df_pred_path = os.path.join(save_path,
+                                f"df_pred_{suffix}_{time_str}.csv")
+    os.makedirs(os.path.dirname(df_pred_path), exist_ok=True)
+    df_pred.to_csv(df_pred_path, index=False)
+    return df_pred, df_pred_path
+
+
 def train():
     set_sharing_strategy('file_system')
     set_start_method("spawn")
@@ -113,23 +134,15 @@ def train():
     trainer.test(model, test_loader)
     Logger.log(f"Done Test.", log_importance=1)
     Logger.log(f"Saving test results...", log_importance=1)
-    # since shuffle=False in test we can inference the batch_indices from batch_inx
-    dataset_indices = np.concatenate([batch_inx_to_batch_indices(out["batch_idx"], Configs.SC_TEST_BATCH_SIZE, len(test_dataset))
-                                      for out in model.test_outputs])
-    scores = torch.concat([out["scores"] for out in model.test_outputs]).cpu()
-    logits = softmax(scores, dim=1).cpu().numpy()
-    y_pred = torch.argmax(scores, dim=1).cpu().numpy()
-    y_true = torch.concat([out["y"] for out in model.test_outputs]).cpu().numpy()
-    df_pred = pd.DataFrame(data=logits, columns=list(Configs.SC_CLASS_TO_IND.keys()))
-    df_pred['y_pred'] = y_pred
-    df_pred['y_true'] = y_true
-    df_pred['dataset_ind'] = dataset_indices
-    df_pred = test_dataset.join_metadata(df_pred, dataset_indices)
-    time_str = datetime.now().strftime('%d_%m_%Y_%H_%M')
-    df_pred_path = os.path.join(Configs.SC_PREDICT_OUTPUT_PATH,
-                                f"df_pred_{time_str}.csv")
-    os.makedirs(os.path.dirname(df_pred_path), exist_ok=True)
-    df_pred.to_csv(df_pred_path, index=False)
+    # since shuffle=False in test we can infer the batch_indices from batch_inx
+    _, df_pred_path = save_pred_outputs(model.test_outputs, test_dataset, Configs.SC_TEST_BATCH_SIZE,
+                                        save_path=Configs.SC_TEST_PREDICT_OUTPUT_PATH)
+    Logger.log(f"""Saved Test df_pred: {df_pred_path}""", log_importance=1)
+    trainer.validate(model, valid_loader)
+    for i, outputs in enumerate(model.valid_outputs):
+        _, df_pred_path = save_pred_outputs(outputs, valid_dataset, Configs.SC_TEST_BATCH_SIZE,
+                                            save_path=Configs.SC_VALID_PREDICT_OUTPUT_PATH, suffix=str(i))
+        Logger.log(f"""Saved valid {i} df_pred: {df_pred_path}""", log_importance=1)
     Logger.log(f"""Saving Done, df_pred saved in: {df_pred_path}""", log_importance=1)
     Logger.log(f"Finished.", log_importance=1)
 

@@ -26,6 +26,7 @@ class TransferLearningClassifier(pl.LightningModule):
         layers.append(nn.Linear(num_filters, len(self.class_to_ind)))
         self.model = nn.Sequential(*layers)
         self.test_outputs = None
+        self.valid_outputs = []
         Logger.log(f"""TransferLearningClassifier created with loss weights: {self.class_weights}.""", log_importance=1)
 
     def init_class_weights(self, class_to_weight):
@@ -62,7 +63,7 @@ class TransferLearningClassifier(pl.LightningModule):
         val_loss, scores, y = self.general_loop(batch, batch_idx)
         self.log("val_loss", val_loss, on_step=False, on_epoch=True, sync_dist=True)
         self.logger.experiment.log_metric(self.logger.run_id, "val_loss", val_loss)
-        return {"scores": scores, "y": y}
+        return {"scores": scores, "y": y, "batch_idx": batch_idx}
 
     def test_step(self, batch, batch_idx):
         test_loss, scores, y = self.general_loop(batch, batch_idx)
@@ -79,6 +80,7 @@ class TransferLearningClassifier(pl.LightningModule):
 
     def validation_epoch_end(self, outputs):
         self.log_epoch_level_metrics(outputs, dataset_str='valid')
+        self.valid_outputs.append(outputs)
         # self.logger.experiment.log_param(self.logger.run_id, f"lr_epoch_{self.current_epoch}",
         #                                  self.optimizers().optimizer.get_lr())
 
