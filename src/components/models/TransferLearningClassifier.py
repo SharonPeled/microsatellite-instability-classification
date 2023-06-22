@@ -12,19 +12,24 @@ import numpy as np
 
 
 class TransferLearningClassifier(pl.LightningModule):
-    def __init__(self, class_to_ind, learning_rate, class_to_weight=None):
+    def __init__(self, class_to_ind=None, model=None, learning_rate=1e-4, class_to_weight=None):
         super().__init__()
+        if model is None and class_to_ind is None:
+            raise "Invalid parameters."
         self.class_to_ind = class_to_ind
         self.class_weights = self.init_class_weights(class_to_weight)
         self.learning_rate = learning_rate
-        backbone = resnet50(weights="IMAGENET1K_V2")
-        num_filters = backbone.fc.in_features
-        layers = list(backbone.children())[:-1]
-        # for layer in layers:
-        #     layer.requires_grad_(False)
-        layers.append(nn.Flatten())
-        layers.append(nn.Linear(num_filters, len(self.class_to_ind)))
-        self.model = nn.Sequential(*layers)
+        if model is None:
+            backbone = resnet50(weights="IMAGENET1K_V2")
+            num_filters = backbone.fc.in_features
+            layers = list(backbone.children())[:-1]
+            # for layer in layers:
+            #     layer.requires_grad_(False)
+            layers.append(nn.Flatten())
+            layers.append(nn.Linear(num_filters, len(self.class_to_ind)))
+            self.model = nn.Sequential(*layers)
+        else:
+            self.model = model
         self.test_outputs = None
         self.valid_outputs = []
         Logger.log(f"""TransferLearningClassifier created with loss weights: {self.class_weights}.""", log_importance=1)
@@ -38,10 +43,10 @@ class TransferLearningClassifier(pl.LightningModule):
     def forward(self, x):
         return self.model(x)
 
-    def loss(self, scores, targets):
+    def loss(self, scores, y):
         if self.class_weights is None:
-            return F.cross_entropy(scores, targets)
-        return F.cross_entropy(scores, targets, weight=self.class_weights.to(scores.device))
+            return F.cross_entropy(scores, y)
+        return F.cross_entropy(scores, y, weight=self.class_weights.to(scores.device))
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate)
@@ -75,8 +80,7 @@ class TransferLearningClassifier(pl.LightningModule):
         logits = softmax(scores, dim=1).cpu().numpy()
         y_pred = torch.argmax(scores, dim=1).cpu().numpy()
         y_true = torch.concat([out["y"] for out in outputs]).cpu().numpy()
-        TransferLearningClassifier.log_metrics(y_true, y_pred, logits, target_names=self.class_to_ind.keys(),
-                                               logger=self.logger, dataset_str=dataset_str, epoch=self.current_epoch)
+        self.log_metrics(y_true, y_pred, logits, dataset_str=dataset_str)
 
     def validation_epoch_end(self, outputs):
         self.log_epoch_level_metrics(outputs, dataset_str='valid')
@@ -91,8 +95,10 @@ class TransferLearningClassifier(pl.LightningModule):
     def predict_step(self, batch, batch_idx, dataloader_idx=0):
         return self.forward(batch)
 
-    @staticmethod
-    def log_metrics(y_true, y_pred, logits, target_names, logger, dataset_str, epoch=0):
+    def log_metrics(self, y_true, y_pred, logits, dataset_str):
+        if self.class_to_ind is None:
+            return
+        target_names = self.class_to_ind.keys()
         # precision, recall, f1 per class
         metrics = classification_report(y_true, y_pred, output_dict=True,
                                         target_names=target_names)
@@ -100,8 +106,8 @@ class TransferLearningClassifier(pl.LightningModule):
             if class_str not in target_names:
                 continue
             for metric_str, metric_val in class_metrics.items():
-                logger.experiment.log_metric(logger.run_id, f"{dataset_str}_{class_str}_{metric_str}",
-                                             metric_val)
+                self.logger.experiment.log_metric(self.logger.run_id, f"{dataset_str}_{class_str}_{metric_str}",
+                                                  metric_val)
         if logits is not None:
             # auc
             if len(target_names) == len(np.unique(y_true)):
@@ -111,11 +117,14 @@ class TransferLearningClassifier(pl.LightningModule):
                     # binary case
                     for ind, class_str in enumerate(target_names):
                         auc_score = roc_auc_score((y_true == ind).astype(int), logits[:, ind])
-                        logger.experiment.log_metric(logger.run_id, f"{dataset_str}_{class_str}_auc", auc_score)
+                        self.logger.experiment.log_metric(self.logger.run_id, f"{dataset_str}_{class_str}_auc",
+                                                          auc_score)
                 else:
                     auc_scores = roc_auc_score(y_true, logits, multi_class='ovr', average=None)
                     for ind, class_str in enumerate(target_names):
-                        logger.experiment.log_metric(logger.run_id, f"{dataset_str}_{class_str}_auc", auc_scores[ind])
+                        self.logger.experiment.log_metric(self.logger.run_id, f"{dataset_str}_{class_str}_auc",
+                                                          auc_scores[ind])
         # confusion matrix
         fig = generate_confusion_matrix_figure(y_true, y_pred, target_names)
-        logger.experiment.log_figure(logger.run_id, fig, f"confusion_matrix_{dataset_str}_{epoch}.png")
+        self.logger.experiment.log_figure(self.logger.run_id, fig,
+                                          f"confusion_matrix_{dataset_str}_{self.current_epoch}.png")
