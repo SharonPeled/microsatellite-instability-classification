@@ -31,15 +31,15 @@ class VariantClassifier(TransferLearningClassifier):
         scores = scores.reshape(scores.shape[0], self.output_shape[0], self.output_shape[1])
         return F.cross_entropy(scores, y)
 
-    def test_epoch_end(self, outputs):
-        super(VariantClassifier, self).test_epoch_end(outputs)
-        self.reshape_outputs(self.test_outputs, out_shape=[-1] + self.output_shape,
-                             num_snps=self.output_shape[1])
+    # def test_epoch_end(self, outputs):
+    #     super(VariantClassifier, self).test_epoch_end(outputs)
+    #     self.reshape_outputs(self.test_outputs, out_shape=[-1] + self.output_shape,
+    #                          num_snps=self.output_shape[1])
 
-    def validation_epoch_end(self, outputs):
-        super(VariantClassifier, self).validation_epoch_end(outputs)
-        self.reshape_outputs(self.valid_outputs[-1], out_shape=[-1] + self.output_shape,
-                             num_snps=self.output_shape[1])
+    # def validation_epoch_end(self, outputs):
+    #     super(VariantClassifier, self).validation_epoch_end(outputs)
+    #     self.reshape_outputs(self.valid_outputs[-1], out_shape=[-1] + self.output_shape,
+    #                          num_snps=self.output_shape[1])
 
     def log_epoch_level_metrics(self, outputs, dataset_str):
         scores = torch.concat([out["scores"].reshape(-1, self.output_shape[0], self.output_shape[1])
@@ -49,9 +49,9 @@ class VariantClassifier(TransferLearningClassifier):
         y_true = torch.concat([out["y"] for out in outputs]).flatten().cpu().numpy()
         self.log_metrics(y_true, y_pred, logits, dataset_str=dataset_str)
 
-    @staticmethod
-    def reshape_outputs(outputs, out_shape, num_snps):
-        for i in range(len(outputs)):
-            outputs[i]['scores'] = outputs[i]['scores'].reshape(out_shape)
-            outputs[i]['batch_idx'] = outputs[i]['scores'].repeat_interleave(num_snps)
+    # @staticmethod
+    # def reshape_outputs(outputs, out_shape, num_snps):
+    #     for i in range(len(outputs)):
+    #         outputs[i]['scores'] = outputs[i]['scores'].reshape(out_shape)
+    #         outputs[i]['batch_idx'] = outputs[i]['scores'].repeat_interleave(num_snps)
 
