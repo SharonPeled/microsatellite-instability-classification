@@ -76,21 +76,31 @@ class TransferLearningClassifier(pl.LightningModule):
         return {"scores": scores, "y": y, "batch_idx": batch_idx}
 
     def log_epoch_level_metrics(self, outputs, dataset_str):
-        scores = torch.concat([out["scores"] for out in outputs]).cpu()
-        logits = softmax(scores, dim=1).cpu().numpy()
-        y_pred = torch.argmax(scores, dim=1).cpu().numpy()
-        y_true = torch.concat([out["y"] for out in outputs]).cpu().numpy()
+        scores = torch.concat([out["scores"] for out in outputs])
+        logits = softmax(scores, dim=1).numpy()
+        y_pred = torch.argmax(scores, dim=1).numpy()
+        y_true = torch.concat([out["y"] for out in outputs]).numpy()
         self.log_metrics(y_true, y_pred, logits, dataset_str=dataset_str)
 
     def validation_epoch_end(self, outputs):
-        self.log_epoch_level_metrics(outputs, dataset_str='valid')
-        self.valid_outputs.append(outputs)
+        outputs_cpu = [{"scores": outputs[i]['scores'].cpu(),
+                        "y": outputs[i]['y'].cpu(),
+                        "batch_idx": outputs[i]['batch_idx']}
+                       for i in range(len(outputs))]
+        self.log_epoch_level_metrics(outputs_cpu, dataset_str='valid')
+        self.valid_outputs.append(outputs_cpu)
+        del outputs  # free from CUDA
         # self.logger.experiment.log_param(self.logger.run_id, f"lr_epoch_{self.current_epoch}",
         #                                  self.optimizers().optimizer.get_lr())
 
     def test_epoch_end(self, outputs):
-        self.log_epoch_level_metrics(outputs, dataset_str='test')
-        self.test_outputs = outputs
+        outputs_cpu = [{"scores": outputs[i]['scores'].cpu(),
+                        "y": outputs[i]['y'].cpu(),
+                        "batch_idx": outputs[i]['batch_idx']}
+                       for i in range(len(outputs))]
+        self.log_epoch_level_metrics(outputs_cpu, dataset_str='test')
+        self.test_outputs = outputs_cpu
+        del outputs  # free from CUDA
 
     def predict_step(self, batch, batch_idx, dataloader_idx=0):
         return self.forward(batch)
