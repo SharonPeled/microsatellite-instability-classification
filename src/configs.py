@@ -34,7 +34,7 @@ class PreprocessingConfigs:
     PREPROCESSING_DEVICE = 'cpu'
     # Assuming TCGA folder structure, where each slide is in a separate dir and the dir is named after the slide ID
     SLIDES_DIR = os.path.join(GeneralConfigs.ROOT, 'data', 'slides')
-    PROCESSED_TILES_DIR = os.path.join(GeneralConfigs.ROOT, 'data', 'processed_tiles_224')
+    PROCESSED_TILES_DIR = os.path.join(GeneralConfigs.ROOT, 'data', f'processed_tiles_{PREPROCESS_RUN_NAME}')
     # SLIDES_DIR = '/mnt/data/users/sharonpe/slides'
     # PROCESSED_TILES_DIR = '/mnt/data/users/sharonpe/processed_tiles_224'
     TILE_SIZE = 224  # should be divisible by downsample of reduced image, the easiest way is to set to be a power of 2
@@ -187,9 +187,40 @@ class SubtypeClassificationConfigs:
     SC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count//2, 5000)
 
 
+class VariantClassificationConfigs:
+    VC_EXPERIMENT_NAME = 'variant_classification_tile_based'
+    VC_FORMULATION = 'variant_CE'
+    VC_RUN_NAME = f"resnet_{VC_FORMULATION}_0"
+    VC_RUN_DESCRIPTION = f"""Resent50 backbone, regular tile, variant prediction. Sampling min(50%, 5000) and shuffling tiles.
+    0. Resolve conflicts according to avg entropy. Analyzing the results."""
+    VC_LABEL_DF_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'variant_classification',
+                                    'variant_labels_0.csv')
+    VC_DF_TILE_PATHS_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'variant_classification',
+                                         'df_processed_tile_paths_merged.csv')
+    VC_TRAINED_MODEL_PATH = os.path.join(GeneralConfigs.ROOT, 'models', 'variant_classification',
+                                         f'VC_{VC_RUN_NAME}_{GeneralConfigs.START_TIME}.ckpt')
+    VC_TEST_PREDICT_OUTPUT_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'variant_classification',
+                                               f'{VC_RUN_NAME}_pred', 'test')
+    VC_VALID_PREDICT_OUTPUT_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'variant_classification',
+                                                f'{VC_RUN_NAME}_pred', 'valid')
+    VC_CLASS_TO_IND = {'GT0': 0, 'GT1': 1, 'GT2': 2}
+    VC_NUM_EPOCHS = 1
+    VC_NUM_DEVICES = [1, ]
+    VC_DEVICE = 'gpu'
+    VC_TEST_BATCH_SIZE = 256
+    VC_SAVE_CHECKPOINT_STEP_INTERVAL = 7000
+    VC_VAL_STEP_INTERVAL = 0.1  # 10 times an epoch
+    VC_TRAINING_BATCH_SIZE = 128
+    VC_NUM_WORKERS = 32
+    VC_TEST_SIZE = 0.2
+    VC_VALID_SIZE = 0.05
+    VC_INIT_LR = 1e-5
+    VC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count//2, 7500)
+    
+
 @dataclass
 class ConfigsClass(GeneralConfigs, PreprocessingConfigs, TumorClassificationConfigs, SemanticSegConfigs,
-                   TumorRegressionConfigs, SubtypeClassificationConfigs):
+                   TumorRegressionConfigs, SubtypeClassificationConfigs, VariantClassificationConfigs):
     def __init__(self):
         set_global_configs(verbose=self.VERBOSE,
                            log_file_args=self.PROGRAM_LOG_FILE_ARGS,

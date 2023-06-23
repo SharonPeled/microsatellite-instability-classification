@@ -9,7 +9,7 @@ from src.components.objects.Logger import Logger
 from src.components.models.TransferLearningClassifier import TransferLearningClassifier
 from src.components.objects.CheckpointEveryNSteps import CheckpointEveryNSteps
 import pandas as pd
-from src.utils import train_test_valid_split_patients_stratified
+from src.utils import train_test_valid_split_patients_stratified, save_pred_outputs
 from pytorch_lightning.callbacks import LearningRateMonitor
 import os
 import torch
@@ -18,35 +18,8 @@ from datetime import datetime
 import numpy as np
 
 
-def batch_inx_to_batch_indices(batch_inx, batch_size, num_elements):
-    start_index = batch_inx * batch_size
-    end_index = min(start_index + batch_size, num_elements)
-    return list(range(start_index, end_index))
-
-
 def set_worker_sharing_strategy(worker_id: int) -> None:
     set_sharing_strategy('file_system')
-
-
-def save_pred_outputs(outputs, dataset, batch_size, save_path, suffix=''):
-    dataset_indices = np.concatenate(
-        [batch_inx_to_batch_indices(out["batch_idx"], batch_size, len(dataset))
-         for out in outputs])
-    scores = torch.concat([out["scores"] for out in outputs]).cpu()
-    logits = softmax(scores, dim=1).cpu().numpy()
-    y_pred = torch.argmax(scores, dim=1).cpu().numpy()
-    y_true = torch.concat([out["y"] for out in outputs]).cpu().numpy()
-    df_pred = pd.DataFrame(data=logits, columns=list(Configs.SC_CLASS_TO_IND.keys()))
-    df_pred['y_pred'] = y_pred
-    df_pred['y_true'] = y_true
-    df_pred['dataset_ind'] = dataset_indices
-    df_pred = dataset.join_metadata(df_pred, dataset_indices)
-    time_str = datetime.now().strftime('%d_%m_%Y_%H_%M')
-    df_pred_path = os.path.join(save_path,
-                                f"df_pred_{suffix}_{time_str}.csv")
-    os.makedirs(os.path.dirname(df_pred_path), exist_ok=True)
-    df_pred.to_csv(df_pred_path, index=False)
-    return df_pred, df_pred_path
 
 
 def train():
@@ -73,11 +46,10 @@ def train():
         transforms.Normalize([0.485, 0.456, 0.406],
                              [0.229, 0.224, 0.225])
     ])
-
+    Logger.log("Loading Datasets..", log_importance=1)
     df_labels = pd.read_csv(Configs.SC_LABEL_DF_PATH, sep='\t')
     df_labels = df_labels[df_labels[Configs.SC_LABEL_COL].isin(Configs.SC_CLASS_TO_IND.keys())]
     df_labels['slide_uuid'] = df_labels.slide_path.apply(lambda p: os.path.basename(os.path.dirname(p)))
-    df_labels['num_tissue'] = df_labels.Tissue.apply(lambda t: eval(t)[-1])
     df_labels['y'] = df_labels[Configs.SC_LABEL_COL].apply(lambda s: Configs.SC_CLASS_TO_IND[s])
     df_labels['y_to_be_stratified'] = df_labels['y'].astype(str) + '_' + df_labels['cohort']
     # merging labels and tiles
@@ -85,8 +57,8 @@ def train():
     df_labels_merged_tiles = df_labels.merge(df_tiles, how='inner', on='slide_uuid')
     # sampling from each slide to reduce computational costs
     df_labels_merged_tiles_sampled = df_labels_merged_tiles.groupby('slide_uuid').apply(
-        lambda cohort_df: cohort_df.sample(n=Configs.SC_TILE_SAMPLE_LAMBDA_TRAIN(len(cohort_df)),
-                                           random_state=Configs.RANDOM_SEED)).reset_index(drop=True)
+        lambda slide_df: slide_df.sample(n=Configs.SC_TILE_SAMPLE_LAMBDA_TRAIN(len(slide_df)),
+                                         random_state=Configs.RANDOM_SEED)).reset_index(drop=True)
     # split to train, valid, test
     df_train, df_valid, df_test = train_test_valid_split_patients_stratified(df_labels_merged_tiles_sampled,
                                                                              y_col='y_to_be_stratified',
@@ -136,12 +108,14 @@ def train():
     Logger.log(f"Saving test results...", log_importance=1)
     # since shuffle=False in test we can infer the batch_indices from batch_inx
     _, df_pred_path = save_pred_outputs(model.test_outputs, test_dataset, Configs.SC_TEST_BATCH_SIZE,
-                                        save_path=Configs.SC_TEST_PREDICT_OUTPUT_PATH)
+                                        save_path=Configs.SC_TEST_PREDICT_OUTPUT_PATH,
+                                        class_to_ind=Configs.SC_CLASS_TO_IND)
     Logger.log(f"""Saved Test df_pred: {df_pred_path}""", log_importance=1)
     trainer.validate(model, valid_loader)
     for i, outputs in enumerate(model.valid_outputs):
         _, df_pred_path = save_pred_outputs(outputs, valid_dataset, Configs.SC_TEST_BATCH_SIZE,
-                                            save_path=Configs.SC_VALID_PREDICT_OUTPUT_PATH, suffix=str(i))
+                                            save_path=Configs.SC_VALID_PREDICT_OUTPUT_PATH,
+                                            class_to_ind=Configs.SC_CLASS_TO_IND, suffix=str(i))
         Logger.log(f"""Saved valid {i} df_pred: {df_pred_path}""", log_importance=1)
     Logger.log(f"""Saving Done, df_pred saved in: {df_pred_path}""", log_importance=1)
     Logger.log(f"Finished.", log_importance=1)

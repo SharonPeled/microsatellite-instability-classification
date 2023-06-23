@@ -24,6 +24,12 @@ def set_global_configs(verbose, log_file_args, log_importance, log_format, rando
     set_random_seed(random_seed)
 
 
+def batch_inx_to_batch_indices(batch_inx, batch_size, num_elements):
+    start_index = batch_inx * batch_size
+    end_index = min(start_index + batch_size, num_elements)
+    return list(range(start_index, end_index))
+
+
 def conv2d_to_device(img_np, kernel_size, stride, device):
     if len(img_np.shape) == 2:
         new_shape = (1, 1, *img_np.shape)
@@ -131,6 +137,36 @@ def remove_artifact(path):
             os.remove(path)
         else:
             shutil.rmtree(path)
+
+
+def save_pred_outputs(outputs, dataset, batch_size, save_path, class_to_ind, suffix='', saving_raw=False):
+    # since shuffle=False in test we can infer the batch_indices from batch_inx
+    time_str = datetime.datetime.now().strftime('%d_%m_%Y_%H_%M')
+    if saving_raw:
+        outputs_path = os.path.join(save_path, f"outputs_{suffix}_{time_str}.csv")
+        dataset_df_path = os.path.join(save_path, f"dataset_df_{suffix}_{time_str}.csv")
+        os.makedirs(os.path.dirname(outputs_path), exist_ok=True)
+        os.makedirs(os.path.dirname(dataset_df_path), exist_ok=True)
+        torch.save(outputs, outputs_path)
+        dataset.df_labels.to_csv(dataset_df_path, index=False)
+        return None, outputs_path
+    dataset_indices = np.concatenate(
+        [batch_inx_to_batch_indices(out["batch_idx"], batch_size, len(dataset))
+         for out in outputs])
+    scores = torch.concat([out["scores"] for out in outputs]).cpu()
+    logits = softmax(scores, dim=1).cpu().numpy()
+    y_pred = torch.argmax(scores, dim=1).cpu().numpy()
+    y_true = torch.concat([out["y"] for out in outputs]).cpu().numpy()
+    df_pred = pd.DataFrame(data=logits, columns=list(class_to_ind.keys()))
+    df_pred['y_pred'] = y_pred
+    df_pred['y_true'] = y_true
+    df_pred['dataset_ind'] = dataset_indices
+    df_pred = dataset.join_metadata(df_pred, dataset_indices)
+    df_pred_path = os.path.join(save_path,
+                                f"df_pred_{suffix}_{time_str}.csv")
+    os.makedirs(os.path.dirname(df_pred_path), exist_ok=True)
+    df_pred.to_csv(df_pred_path, index=False)
+    return df_pred, df_pred_path
 
 
 def load_df_pred(pred_dir, class_to_index):

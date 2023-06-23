@@ -15,7 +15,7 @@ import numpy as np
 class VariantClassifier(TransferLearningClassifier):
     # output_shape: #classes, #variants
     def __init__(self, output_shape, learning_rate, class_to_ind):
-        self.output_shape = output_shape
+        self.output_shape = list(output_shape)
         self.output_size = self.output_shape[0] * self.output_shape[1]
         backbone = resnet50(weights="IMAGENET1K_V2")
         num_filters = backbone.fc.in_features
@@ -38,15 +38,15 @@ class VariantClassifier(TransferLearningClassifier):
 
     def validation_epoch_end(self, outputs):
         super(VariantClassifier, self).validation_epoch_end(outputs)
-        self.reshape_outputs(self.self.valid_outputs[-1], out_shape=[-1] + self.output_shape,
+        self.reshape_outputs(self.valid_outputs[-1], out_shape=[-1] + self.output_shape,
                              num_snps=self.output_shape[1])
 
     def log_epoch_level_metrics(self, outputs, dataset_str):
-        scores = torch.concat([out["scores"].reshape(self.output_shape[0], self.output_shape[1])
+        scores = torch.concat([out["scores"].reshape(-1, self.output_shape[0], self.output_shape[1])
                                for out in outputs]).cpu()
-        logits = softmax(scores, dim=1).cpu().numpy()
-        y_pred = torch.argmax(scores, dim=1).cpu().numpy()
-        y_true = torch.concat([out["y"] for out in outputs]).cpu().numpy()
+        logits = softmax(scores, dim=1).permute(0, 2, 1).reshape(-1, self.output_shape[0]).cpu().numpy()
+        y_pred = torch.argmax(scores, dim=1).flatten().cpu().numpy()
+        y_true = torch.concat([out["y"] for out in outputs]).flatten().cpu().numpy()
         self.log_metrics(y_true, y_pred, logits, dataset_str=dataset_str)
 
     @staticmethod
