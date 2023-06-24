@@ -215,7 +215,7 @@ class VariantClassificationConfigs:
     VC_TEST_SIZE = 0.2
     VC_VALID_SIZE = 0.05
     VC_INIT_LR = 1e-5
-    VC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count//2, 2000)
+    VC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count//2, 10000)
     
 
 @dataclass
