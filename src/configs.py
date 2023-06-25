@@ -189,7 +189,7 @@ class SubtypeClassificationConfigs:
 
 class VariantClassificationConfigs:
     VC_EXPERIMENT_NAME = 'variant_classification_tile_based'
-    VC_FORMULATION = 'variant_CE'
+    VC_FORMULATION = 'variant_CE_5_SNPs'
     VC_RUN_NAME = f"resnet_{VC_FORMULATION}_0"
     VC_RUN_DESCRIPTION = f"""Resent50 backbone, regular tile, variant prediction. Sampling min(50%, 5000) and shuffling tiles.
     0. Resolve conflicts according to avg entropy. Analyzing the results."""
