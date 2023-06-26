@@ -17,6 +17,7 @@ from torch.utils.data import Subset
 import seaborn as sns
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import StratifiedGroupKFold
+from torch import nn
 
 
 def set_global_configs(verbose, log_file_args, log_importance, log_format, random_seed, tile_progress_log_freq):
@@ -50,6 +51,20 @@ def get_train_test_dataset(dataset, test_size, random_state):
     train_dataset = SubDataset(Subset(dataset, train_inds))
     test_dataset = SubDataset(Subset(dataset, test_inds))
     return train_dataset, test_dataset
+
+
+def modify_model_for_transfer_learning(model, num_classes=None, freezing_backbone=False):
+    layers = list(model.children())[0]
+    num_filters = layers[-1].in_features
+    model = nn.Sequential(*layers[:-1])
+    if freezing_backbone:
+        # freezing encoder
+        for param in model.parameters():
+            param.requires_grad = False
+    if num_classes is None:
+        return model
+    new_head = nn.Linear(num_filters, num_classes)  # requires grad
+    return nn.Sequential(model, new_head)
 
 
 def get_time():

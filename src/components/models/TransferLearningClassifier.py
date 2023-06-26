@@ -23,8 +23,6 @@ class TransferLearningClassifier(pl.LightningModule):
             backbone = resnet50(weights="IMAGENET1K_V2")
             num_filters = backbone.fc.in_features
             layers = list(backbone.children())[:-1]
-            # for layer in layers:
-            #     layer.requires_grad_(False)
             layers.append(nn.Flatten())
             layers.append(nn.Linear(num_filters, len(self.class_to_ind)))
             self.model = nn.Sequential(*layers)
@@ -90,8 +88,8 @@ class TransferLearningClassifier(pl.LightningModule):
         self.log_epoch_level_metrics(outputs_cpu, dataset_str='valid')
         self.valid_outputs.append(outputs_cpu)
         del outputs  # free from CUDA
-        # self.logger.experiment.log_param(self.logger.run_id, f"lr_epoch_{self.current_epoch}",
-        #                                  self.optimizers().optimizer.get_lr())
+        self.logger.experiment.log_param(self.logger.run_id, f"lr_epoch_{self.current_epoch}",
+                                         self.optimizers().optimizer.defaults['lr'])
 
     def test_epoch_end(self, outputs):
         outputs_cpu = [{"scores": outputs[i]['scores'].cpu(),
@@ -106,7 +104,7 @@ class TransferLearningClassifier(pl.LightningModule):
         return self.forward(batch)
 
     def log_metrics(self, y_true, y_pred, logits, dataset_str):
-        if self.class_to_ind is None:
+        if self.class_to_ind is None or len(np.unique(y_true))==1:
             return
         target_names = self.class_to_ind.keys()
         # precision, recall, f1 per class
