@@ -52,6 +52,8 @@ class TransferLearningClassifier(pl.LightningModule):
         return {'optimizer': optimizer, 'lr_scheduler': scheduler, 'monitor': 'val_loss'}
 
     def general_loop(self, batch, batch_idx):
+        if isinstance(batch, list) and len(batch) == 1:
+            batch = batch[0]
         x, y = batch
         scores = self.forward(x)
         loss = self.loss(scores, y)
