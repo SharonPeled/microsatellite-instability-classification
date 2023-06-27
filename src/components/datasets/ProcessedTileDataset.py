@@ -12,6 +12,7 @@ class ProcessedTileDataset(Dataset, Logger):
         self.target_transform = target_transform
         self.group_size = group_size
         if self.group_size > 1:
+            # TODO: random state here
             self.df_labels = self.df_labels.sample(frac=1, random_state=None).reset_index(drop=True)
             self.df_labels['group_id'] = self.df_labels.groupby('slide_uuid').cumcount() // group_size
             self.df_labels = self.df_labels.groupby(['slide_uuid', 'group_id']).filter(lambda x: len(x) == group_size)
@@ -21,7 +22,7 @@ class ProcessedTileDataset(Dataset, Logger):
         self.dataset_full_length = self.df_labels.index.nunique()
         self.dataset_length = self.dataset_full_length
         self.log(f"ProcessedTileDataset created with {self.df_labels.slide_uuid.nunique()} slides, " +
-                 f"{np.ceil(len(self.df_labels)/self.group_size)} groups, and {len(self.df_labels)} tiles.",
+                 f"{self.dataset_full_length} groups, and {len(self.df_labels)} tiles.",
                  log_importance=1)
 
     def deploy_dataset_limits(self, dataset_limits):
@@ -30,9 +31,10 @@ class ProcessedTileDataset(Dataset, Logger):
         """
         self.index_shift = dataset_limits[0]
         if dataset_limits[1] == -1:
-            self.dataset_length = self.df_labels.index.nunique() - self.index_shift
+            self.dataset_length = self.dataset_full_length - self.index_shift
         else:
             self.dataset_length = dataset_limits[1]
+        self.log(f"ProcessedTileDataset was limited to steps from {self.index_shift} to {self.index_shift+self.dataset_length} ", log_importance=1)
 
     def join_metadata(self, df_pred, inds):
         if self.group_size > 1:

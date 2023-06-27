@@ -25,7 +25,7 @@ class MIL_VIT(TransferLearningClassifier):
             MIL_VIT.grad_config(self.tile_encoder, requires_grad=False)
             MIL_VIT.grad_config(self.adapter, requires_grad=True)
             MIL_VIT.grad_config(self.vit_model, requires_grad=False)
-            MIL_VIT.grad_config(self.vit_model.heads, requires_grad=False)
+            MIL_VIT.grad_config(self.vit_model.heads, requires_grad=True)
         if self.training_phase == 1:
             MIL_VIT.grad_config(self.tile_encoder, requires_grad=False)
             MIL_VIT.grad_config(self.adapter, requires_grad=True)

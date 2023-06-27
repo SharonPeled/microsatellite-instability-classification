@@ -7,15 +7,12 @@ from pytorch_lightning.loggers import MLFlowLogger
 from ..configs import Configs
 from src.components.objects.Logger import Logger
 from src.components.models.TransferLearningClassifier import TransferLearningClassifier
+from src.components.models.MIL_VIT import MIL_VIT
 from src.components.objects.CheckpointEveryNSteps import CheckpointEveryNSteps
 import pandas as pd
-from src.utils import train_test_valid_split_patients_stratified, save_pred_outputs
+from src.utils import train_test_valid_split_patients_stratified, save_pred_outputs, modify_model_for_transfer_learning
 from pytorch_lightning.callbacks import LearningRateMonitor
 import os
-import torch
-from torch.nn.functional import softmax
-from datetime import datetime
-import numpy as np
 
 
 def set_worker_sharing_strategy(worker_id: int) -> None:
@@ -66,40 +63,58 @@ def train():
                                                                              valid_size=Configs.SC_VALID_SIZE,
                                                                              random_seed=Configs.RANDOM_SEED)
 
-    train_dataset = ProcessedTileDataset(df_labels=df_train, transform=train_transform)
-    valid_dataset = ProcessedTileDataset(df_labels=df_valid, transform=test_transform)
-    test_dataset = ProcessedTileDataset(df_labels=df_test, transform=test_transform)
+    # t = pd.read_csv('/home/sharonpe/microsatellite-instability-classification/data/subtype_classification/resnet_tile_CIS_GS_2/test/df_pred_21_06_2023_05_41.csv')
+    # df_test.tile_path.isin(t.tile_path).all() and t.tile_path.isin(df_test.tile_path).all()  # no filtered should be applied. should be exactly the same.
+    train_dataset = ProcessedTileDataset(df_labels=df_train, transform=train_transform,
+                                         group_size=Configs.SC_MIL_GROUP_SIZE)
+    valid_dataset = ProcessedTileDataset(df_labels=df_valid, transform=test_transform,
+                                         group_size=Configs.SC_MIL_GROUP_SIZE)
+    test_dataset = ProcessedTileDataset(df_labels=df_test, transform=test_transform,
+                                        group_size=Configs.SC_MIL_GROUP_SIZE)
 
-    train_loader = DataLoader(train_dataset, batch_size=Configs.SC_TRAINING_BATCH_SIZE, shuffle=True,
-                              persistent_workers=True, num_workers=Configs.SC_NUM_WORKERS,
-                              worker_init_fn=set_worker_sharing_strategy)
     valid_loader = DataLoader(valid_dataset, batch_size=Configs.SC_TEST_BATCH_SIZE, shuffle=False,
                               persistent_workers=True, num_workers=Configs.SC_NUM_WORKERS,
                               worker_init_fn=set_worker_sharing_strategy)
     test_loader = DataLoader(test_dataset, batch_size=Configs.SC_TEST_BATCH_SIZE, shuffle=False,
                              persistent_workers=True, num_workers=Configs.SC_NUM_WORKERS,
                              worker_init_fn=set_worker_sharing_strategy)
-
-    model = TransferLearningClassifier(class_to_ind=Configs.SC_CLASS_TO_IND, learning_rate=Configs.SC_INIT_LR,
-                                       class_to_weight=None)
-    mlflow_logger = MLFlowLogger(experiment_name=Configs.SC_EXPERIMENT_NAME, run_name=Configs.SC_RUN_NAME,
-                                 save_dir=Configs.MLFLOW_SAVE_DIR,
-                                 artifact_location=Configs.MLFLOW_SAVE_DIR,
-                                 log_model='all',
-                                 tags={"mlflow.note.content": Configs.SC_RUN_DESCRIPTION})
-    lr_monitor = LearningRateMonitor(logging_interval='epoch')
-    Logger.log("Starting Training.", log_importance=1)
-    trainer = pl.Trainer(devices=Configs.SC_NUM_DEVICES, accelerator=Configs.SC_DEVICE,
-                         deterministic=True,
-                         val_check_interval=Configs.SC_VAL_STEP_INTERVAL,
-                         callbacks=[lr_monitor, CheckpointEveryNSteps(
-                             prefix=Configs.SC_RUN_NAME,
-                             save_step_frequency=Configs.SC_SAVE_CHECKPOINT_STEP_INTERVAL)],
-                         enable_checkpointing=True,
-                         logger=mlflow_logger,
-                         num_sanity_val_steps=2,
-                         max_epochs=Configs.SC_NUM_EPOCHS)
-    trainer.fit(model, train_loader, valid_loader, ckpt_path=None)
+    tile_encoder = TransferLearningClassifier.load_from_checkpoint(Configs.SC_TILE_BASED_TRAINED_MODEL,
+                                                                   class_to_ind=Configs.SC_CLASS_TO_IND,
+                                                                   learning_rate=None)
+    # tile_encoder = modify_model_for_transfer_learning(tile_encoder, num_classes=None, freezing_backbone=True)
+    model = MIL_VIT(class_to_ind=Configs.SC_CLASS_TO_IND, learning_rate=Configs.SC_INIT_LR,
+                    tile_encoder=tile_encoder,
+                    vit_variant=Configs.SC_MIL_VIT_MODEL_VARIANT, pretrained=Configs.SC_MIL_VIT_MODEL_PRETRAINED)
+    steps_done = 0
+    for phase_config in Configs.SC_TRAINING_PHASES:
+        num_steps = phase_config['num_steps']
+        if num_steps == 0:
+            continue
+        train_dataset.deploy_dataset_limits(dataset_limits=(steps_done, num_steps))
+        train_loader = DataLoader(train_dataset, batch_size=Configs.SC_TRAINING_BATCH_SIZE, shuffle=True,
+                                  persistent_workers=True, num_workers=Configs.SC_NUM_WORKERS,
+                                  worker_init_fn=set_worker_sharing_strategy)
+        model.next_training_phase()
+        model.learning_rate = phase_config['lr']
+        mlflow_logger = MLFlowLogger(experiment_name=Configs.SC_EXPERIMENT_NAME, run_name=Configs.SC_RUN_NAME + phase_config['run_suffix'],
+                                     save_dir=Configs.MLFLOW_SAVE_DIR,
+                                     artifact_location=Configs.MLFLOW_SAVE_DIR,
+                                     log_model='all',
+                                     tags={"mlflow.note.content": Configs.SC_RUN_DESCRIPTION})
+        lr_monitor = LearningRateMonitor(logging_interval='epoch')
+        Logger.log("Starting Training.", log_importance=1)
+        trainer = pl.Trainer(devices=Configs.SC_NUM_DEVICES, accelerator=Configs.SC_DEVICE,
+                             deterministic=True,
+                             val_check_interval=Configs.SC_VAL_STEP_INTERVAL,
+                             callbacks=[lr_monitor, CheckpointEveryNSteps(
+                                 prefix=Configs.SC_RUN_NAME + phase_config['run_suffix'],
+                                 save_step_frequency=Configs.SC_SAVE_CHECKPOINT_STEP_INTERVAL)],
+                             enable_checkpointing=True,
+                             logger=mlflow_logger,
+                             num_sanity_val_steps=2,
+                             max_epochs=1)
+        trainer.fit(model, train_loader, valid_loader, ckpt_path=None) # Change this
+        steps_done += num_steps
     trainer.save_checkpoint(Configs.SC_TRAINED_MODEL_PATH)
     Logger.log("Done Training.", log_importance=1)
     Logger.log("Starting Test.", log_importance=1)
