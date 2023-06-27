@@ -113,7 +113,7 @@ def train():
                              logger=mlflow_logger,
                              num_sanity_val_steps=2,
                              max_epochs=1)
-        trainer.fit(model, train_loader, valid_loader, ckpt_path=None) # Change this
+        trainer.fit(model, train_loader, valid_loader, ckpt_path=None)
         steps_done += num_steps
     trainer.save_checkpoint(Configs.SC_TRAINED_MODEL_PATH)
     Logger.log("Done Training.", log_importance=1)

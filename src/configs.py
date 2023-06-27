@@ -160,7 +160,7 @@ class SubtypeClassificationConfigs:
     SC_FORMULATION = 'group_tile_CIS_GS'
     SC_RUN_NAME = f"resnet_adapter_vit_{SC_FORMULATION}_0"
     SC_RUN_DESCRIPTION = f"""Pretrained on tiles resnet50, 2-layered adaptor and vit_16.
-    3 phase training - adaptors, vit, all together.
+    3 phase training - adaptors, vit, all together. Hoping to 256 batch_size, maybe 128.
      Sampling min(50%, 7500) and shuffling tiles."""
     SC_LABEL_DF_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                     'manifest_labeled_dx_molecular_subtype.tsv')
@@ -177,16 +177,16 @@ class SubtypeClassificationConfigs:
     SC_NUM_EPOCHS = 1
     SC_NUM_DEVICES = [0, ]
     SC_DEVICE = 'gpu'
-    SC_TEST_BATCH_SIZE = 16
+    SC_TEST_BATCH_SIZE = 8
     SC_SAVE_CHECKPOINT_STEP_INTERVAL = 3000
     SC_VAL_STEP_INTERVAL = 0.2  # 10 times an epoch
-    SC_TRAINING_BATCH_SIZE = 8
+    SC_TRAINING_BATCH_SIZE = 4
     SC_NUM_WORKERS = 48
     SC_TEST_SIZE = 0.2
     SC_VALID_SIZE = 0.05
     SC_INIT_LR = 1e-5
     SC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count//2, 7500)
-    SC_MIL_GROUP_SIZE = 256
+    SC_MIL_GROUP_SIZE = 128
     SC_MIL_VIT_MODEL_VARIANT = 'vit_b_16'
     SC_MIL_VIT_MODEL_PRETRAINED = True
     SC_TILE_BASED_TRAINED_MODEL = '/home/sharonpe/microsatellite-instability-classification/models/subtype_classification/SC_resnet_tile_CIS_GS_2_20_06_2023_19_26.ckpt'
