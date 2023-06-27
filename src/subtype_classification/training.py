@@ -91,7 +91,7 @@ def train():
         if num_steps == 0:
             continue
         train_dataset.deploy_dataset_limits(dataset_limits=(steps_done, num_steps))
-        train_loader = DataLoader(train_dataset, batch_size=Configs.SC_TRAINING_BATCH_SIZE, shuffle=True,
+        train_loader = DataLoader(train_dataset, batch_size=1, shuffle=True,
                                   persistent_workers=True, num_workers=Configs.SC_NUM_WORKERS,
                                   worker_init_fn=set_worker_sharing_strategy)
         model.next_training_phase()
@@ -111,8 +111,9 @@ def train():
                                  save_step_frequency=Configs.SC_SAVE_CHECKPOINT_STEP_INTERVAL)],
                              enable_checkpointing=True,
                              logger=mlflow_logger,
-                             num_sanity_val_steps=2,
-                             max_epochs=1)
+                             num_sanity_val_steps=1,
+                             max_epochs=1,
+                             accumulate_grad_batches=Configs.SC_TRAINING_BATCH_SIZE)
         trainer.fit(model, train_loader, valid_loader, ckpt_path=None)
         steps_done += num_steps
     trainer.save_checkpoint(Configs.SC_TRAINED_MODEL_PATH)
