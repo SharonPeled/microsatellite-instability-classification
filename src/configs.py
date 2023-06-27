@@ -181,7 +181,7 @@ class SubtypeClassificationConfigs:
     SC_SAVE_CHECKPOINT_STEP_INTERVAL = 3000
     SC_VAL_STEP_INTERVAL = 0.2  # 10 times an epoch
     SC_TRAINING_BATCH_SIZE = 16  # accumulating gradients
-    SC_NUM_WORKERS = 48
+    SC_NUM_WORKERS = 32
     SC_TEST_SIZE = 0.2
     SC_VALID_SIZE = 0.05
     SC_INIT_LR = 1e-5
