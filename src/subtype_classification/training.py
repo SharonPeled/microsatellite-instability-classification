@@ -92,13 +92,16 @@ def train():
                                              vit_variant=Configs.SC_MIL_VIT_MODEL_VARIANT, pretrained=Configs.SC_MIL_VIT_MODEL_PRETRAINED)
     steps_done = 0
     for phase_config in Configs.SC_TRAINING_PHASES:
+        Logger.log(f"Training phase {model.training_phase}, dataset_limits: ({steps_done}, {phase_config['num_steps']})",
+                   log_importance=1)
         if Configs.SC_CHECKPOINT[1] is not None:
             if model.training_phase < Configs.SC_CHECKPOINT[1]:
                 model.next_training_phase()
+                steps_done += phase_config['num_steps']
                 continue
-        num_steps = phase_config['num_steps']
-        if num_steps == 0:
+        if phase_config['num_steps'] == 0:
             continue
+        num_steps = phase_config['num_steps']
         train_dataset.deploy_dataset_limits(dataset_limits=(steps_done, num_steps))
         train_loader = DataLoader(train_dataset, batch_size=1, shuffle=True,
                                   persistent_workers=True, num_workers=Configs.SC_NUM_WORKERS,
@@ -125,7 +128,9 @@ def train():
                              accumulate_grad_batches=Configs.SC_TRAINING_BATCH_SIZE)
         trainer.fit(model, train_loader, valid_loader, ckpt_path=None)
         steps_done += num_steps
-        trainer.save_checkpoint(Configs.SC_TRAINED_MODEL_PATH)
+        saving_path = Configs.SC_TRAINED_MODEL_PATH.format(run_suffix=phase_config['run_suffix'])
+        trainer.save_checkpoint(saving_path)
+        Logger.log(f"Save Checkpoint in {saving_path}", log_importance=1)
     Logger.log("Done Training.", log_importance=1)
     Logger.log("Starting Test.", log_importance=1)
     trainer.test(model, test_loader)

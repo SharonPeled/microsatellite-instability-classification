@@ -168,7 +168,7 @@ class SubtypeClassificationConfigs:
                                          'df_processed_tile_paths.csv')
     SC_LABEL_COL = 'subtype'
     SC_TRAINED_MODEL_PATH = os.path.join(GeneralConfigs.ROOT, 'models', 'subtype_classification',
-                                         f'SC_{SC_RUN_NAME}_{GeneralConfigs.START_TIME}.ckpt')
+                                         f'SC_{SC_RUN_NAME}_{GeneralConfigs.START_TIME}' + '{run_suffix}.ckpt')
     SC_TEST_PREDICT_OUTPUT_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                                f'{SC_RUN_NAME}_pred', 'test')
     SC_VALID_PREDICT_OUTPUT_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
@@ -193,7 +193,7 @@ class SubtypeClassificationConfigs:
     SC_TRAINING_PHASES = [{'num_steps': 7000, 'lr': 1e-4, 'run_suffix': '_adaptors'},
                           {'num_steps': 5000, 'lr': 1e-5, 'run_suffix': '_vit'},
                           {'num_steps': -1, 'lr': 1e-6, 'run_suffix': '_all'}]
-    SC_CHECKPOINT = ['/home/sharonpe/microsatellite-instability-classification/models/mlruns/402162641977151002/3e500de5fd27455da3e5c59d2f35a1eb/checkpoints/resnet_adapter_vit_group_tile_CIS_GS_0_vit_epoch=0_global_step=0.ckpt',
+    SC_CHECKPOINT = ["/home/sharonpe/microsatellite-instability-classification/models/subtype_classification/SC_resnet_adapter_vit_group_tile_CIS_GS_0_28_06_2023_08_26.ckpt",
                      1]
 
 
