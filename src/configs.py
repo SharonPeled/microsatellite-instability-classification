@@ -178,10 +178,10 @@ class SubtypeClassificationConfigs:
     SC_NUM_DEVICES = [0, ]
     SC_DEVICE = 'gpu'
     SC_TEST_BATCH_SIZE = 1
-    SC_SAVE_CHECKPOINT_STEP_INTERVAL = 3000
+    SC_SAVE_CHECKPOINT_STEP_INTERVAL = 500000
     SC_VAL_STEP_INTERVAL = 0.333  # 10 times an epoch
     SC_TRAINING_BATCH_SIZE = 16  # accumulating gradients
-    SC_NUM_WORKERS = 32
+    SC_NUM_WORKERS = 10
     SC_TEST_SIZE = 0.2
     SC_VALID_SIZE = 0.05
     SC_INIT_LR = 1e-5
