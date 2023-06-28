@@ -85,8 +85,17 @@ def train():
     model = MIL_VIT(class_to_ind=Configs.SC_CLASS_TO_IND, learning_rate=Configs.SC_INIT_LR,
                     tile_encoder=tile_encoder,
                     vit_variant=Configs.SC_MIL_VIT_MODEL_VARIANT, pretrained=Configs.SC_MIL_VIT_MODEL_PRETRAINED)
+    if Configs.SC_CHECKPOINT[0] is not None:
+        model = MIL_VIT.load_from_checkpoint(Configs.SC_CHECKPOINT[0], class_to_ind=Configs.SC_CLASS_TO_IND,
+                                             learning_rate=Configs.SC_INIT_LR,
+                                             tile_encoder=tile_encoder,
+                                             vit_variant=Configs.SC_MIL_VIT_MODEL_VARIANT, pretrained=Configs.SC_MIL_VIT_MODEL_PRETRAINED)
     steps_done = 0
     for phase_config in Configs.SC_TRAINING_PHASES:
+        if Configs.SC_CHECKPOINT[1] is not None:
+            if model.training_phase < Configs.SC_CHECKPOINT[1]:
+                model.next_training_phase()
+                continue
         num_steps = phase_config['num_steps']
         if num_steps == 0:
             continue
@@ -116,7 +125,7 @@ def train():
                              accumulate_grad_batches=Configs.SC_TRAINING_BATCH_SIZE)
         trainer.fit(model, train_loader, valid_loader, ckpt_path=None)
         steps_done += num_steps
-    trainer.save_checkpoint(Configs.SC_TRAINED_MODEL_PATH)
+        trainer.save_checkpoint(Configs.SC_TRAINED_MODEL_PATH)
     Logger.log("Done Training.", log_importance=1)
     Logger.log("Starting Test.", log_importance=1)
     trainer.test(model, test_loader)

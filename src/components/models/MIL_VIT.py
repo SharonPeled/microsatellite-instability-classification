@@ -2,6 +2,7 @@ from torchvision.models import vit_b_16, ViT_B_16_Weights
 import torch
 import torch.nn as nn
 from src.components.models.TransferLearningClassifier import TransferLearningClassifier
+from src.components.objects.Logger import Logger
 
 
 class MIL_VIT(TransferLearningClassifier):
@@ -35,6 +36,7 @@ class MIL_VIT(TransferLearningClassifier):
             MIL_VIT.grad_config(self.adapter, requires_grad=True)
             MIL_VIT.grad_config(self.vit_model, requires_grad=True)
         self.training_phase += 1
+        Logger.log(f"""MIL_VIT training phase {self.training_phase}.""", log_importance=1)
 
     @staticmethod
     def grad_config(model, requires_grad):
