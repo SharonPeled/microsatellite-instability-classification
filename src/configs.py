@@ -192,7 +192,7 @@ class SubtypeClassificationConfigs:
     SC_TILE_BASED_TRAINED_MODEL = '/home/sharonpe/microsatellite-instability-classification/models/subtype_classification/SC_resnet_tile_CIS_GS_2_20_06_2023_19_26.ckpt'
     SC_TRAINING_PHASES = [{'num_steps': 7000, 'lr': 1e-4, 'run_suffix': '_adaptors'},
                           {'num_steps': 5000, 'lr': 1e-5, 'run_suffix': '_vit'},
-                          {'num_steps': -1, 'lr': 1e-6, 'run_suffix': '_all'}]
+                          {'num_steps': -1, 'lr': 1e-6, 'run_suffix': '_rest_vit'}]
     SC_CHECKPOINT = [
         '/home/sharonpe/microsatellite-instability-classification/models/subtype_classification/SC_resnet_adapter_vit_group_tile_CIS_GS_0_29_06_2023_09_06_vit.ckpt',
         2]
