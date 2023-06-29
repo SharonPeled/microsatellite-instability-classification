@@ -200,7 +200,7 @@ class SubtypeClassificationConfigs:
 
 class VariantClassificationConfigs:
     VC_EXPERIMENT_NAME = 'variant_classification_tile_based'
-    VC_FORMULATION = 'variant_CE_5_SNPs'
+    VC_FORMULATION = 'variant_CE_5_high_AUC_SNPs'
     VC_RUN_NAME = f"resnet_{VC_FORMULATION}_0"
     VC_RUN_DESCRIPTION = f"""Resent50 backbone, regular tile, variant prediction. Sampling min(50%, 5000) and shuffling tiles.
     0. Resolve conflicts according to avg entropy. Analyzing the results."""
@@ -216,13 +216,13 @@ class VariantClassificationConfigs:
                                                 f'{VC_RUN_NAME}_pred', 'valid')
     VC_CLASS_TO_IND = {'GT0': 0, 'GT1': 1, 'GT2': 2}
     VC_NUM_EPOCHS = 1
-    VC_NUM_DEVICES = [1, ]
+    VC_NUM_DEVICES = [0, ]
     VC_DEVICE = 'gpu'
     VC_TEST_BATCH_SIZE = 256
     VC_SAVE_CHECKPOINT_STEP_INTERVAL = 7000
-    VC_VAL_STEP_INTERVAL = 0.1  # 10 times an epoch
+    VC_VAL_STEP_INTERVAL = 0.2  # 10 times an epoch
     VC_TRAINING_BATCH_SIZE = 128
-    VC_NUM_WORKERS = 32
+    VC_NUM_WORKERS = 10
     VC_TEST_SIZE = 0.2
     VC_VALID_SIZE = 0.05
     VC_INIT_LR = 1e-5
