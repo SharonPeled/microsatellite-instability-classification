@@ -44,12 +44,10 @@ def train():
                              [0.229, 0.224, 0.225])
     ])
 
-    y_transform =transforms.Compose([
-        transforms.ToTensor()])
     Logger.log("Loading Datasets..", log_importance=1)
     df_labels = pd.read_csv(Configs.VC_LABEL_DF_PATH)
     df_labels.rename(columns={'GT_array': 'y'}, inplace=True)
-    df_labels.y = df_labels.y.apply(lambda a: torch.Tensor(eval(a))[[20, 22, 65, 305, 580]].long())
+    df_labels.y = df_labels.y.apply(lambda a: torch.Tensor(eval(a))[[121, 274, 95, 159, 315]].long())
     # split to train, valid, test - sample_id and patient_id are 1-1
     train_samples, test_samples = train_test_split(df_labels.sample_id, test_size=Configs.VC_TEST_SIZE,
                                                      random_state=Configs.RANDOM_SEED)
