@@ -194,8 +194,8 @@ class SubtypeClassificationConfigs:
                           {'num_steps': 5000, 'lr': 1e-5, 'run_suffix': '_vit'},
                           {'num_steps': -1, 'lr': 1e-6, 'run_suffix': '_rest_vit'}]
     SC_CHECKPOINT = [
-        '/home/sharonpe/microsatellite-instability-classification/models/subtype_classification/SC_resnet_adapter_vit_group_tile_CIS_GS_0_29_06_2023_09_06_vit.ckpt',
-        2]
+        '/home/sharonpe/microsatellite-instability-classification/models/subtype_classification/SC_resnet_adapter_vit_group_tile_CIS_GS_0_29_06_2023_15_33_rest_vit.ckpt',
+        3]
 
 
 class VariantClassificationConfigs:
