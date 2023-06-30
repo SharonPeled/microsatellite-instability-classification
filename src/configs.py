@@ -175,9 +175,9 @@ class SubtypeClassificationConfigs:
                                                 f'{SC_RUN_NAME}_pred', 'valid')
     SC_CLASS_TO_IND = {'GS': 0, 'CIN': 1}
     SC_NUM_EPOCHS = 1
-    SC_NUM_DEVICES = [0, 1]
+    SC_NUM_DEVICES = [0, ]
     SC_DEVICE = 'gpu'
-    SC_TEST_BATCH_SIZE = 2
+    SC_TEST_BATCH_SIZE = 1
     SC_SAVE_CHECKPOINT_STEP_INTERVAL = 2500
     SC_VAL_STEP_INTERVAL = 0.333  # 10 times an epoch
     SC_TRAINING_BATCH_SIZE = 16  # accumulating gradients
@@ -185,17 +185,15 @@ class SubtypeClassificationConfigs:
     SC_TEST_SIZE = 0.2
     SC_VALID_SIZE = 0.05
     SC_INIT_LR = 1e-5
-    SC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count//2, 7500)
+    SC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count//2, 5000)
     SC_MIL_GROUP_SIZE = 256
     SC_MIL_VIT_MODEL_VARIANT = 'vit_b_16'
     SC_MIL_VIT_MODEL_PRETRAINED = True
     SC_TILE_BASED_TRAINED_MODEL = '/home/sharonpe/microsatellite-instability-classification/models/subtype_classification/SC_resnet_tile_CIS_GS_2_20_06_2023_19_26.ckpt'
+    SC_TILE_BASED_TEST_SET = '/home/sharonpe/microsatellite-instability-classification/data/subtype_classification/resnet_tile_CIS_GS_2/test/df_pred_21_06_2023_05_41.csv'
     SC_TRAINING_PHASES = [{'num_steps': 7000, 'lr': 1e-4, 'run_suffix': '_adaptors'},
-                          {'num_steps': 5000, 'lr': 1e-5, 'run_suffix': '_vit'},
-                          {'num_steps': -1, 'lr': 1e-6, 'run_suffix': '_all'}]
-    SC_CHECKPOINT = [
-        '/home/sharonpe/microsatellite-instability-classification/models/subtype_classification/SC_resnet_adapter_vit_group_tile_CIS_GS_0_29_06_2023_09_06_vit.ckpt',
-        2]
+                          {'num_steps': -1, 'lr': 1e-5, 'run_suffix': '_rest_vit'}]
+    SC_CHECKPOINT = [None, None]
 
 
 class VariantClassificationConfigs:

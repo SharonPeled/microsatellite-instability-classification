@@ -19,6 +19,12 @@ def set_worker_sharing_strategy(worker_id: int) -> None:
     set_sharing_strategy('file_system')
 
 
+def verify_no_test_leakage(df_curr_test, df_past_test):
+    assert df_curr_test.tile_path.isin(df_past_test.tile_path).all() and \
+           df_past_test.tile_path.isin(df_curr_test.tile_path).all()
+    Logger.log(f"Verification of no test leakage successful.", log_importance=1)
+
+
 def train():
     set_sharing_strategy('file_system')
     set_start_method("spawn")
@@ -62,9 +68,7 @@ def train():
                                                                              test_size=Configs.SC_TEST_SIZE,
                                                                              valid_size=Configs.SC_VALID_SIZE,
                                                                              random_seed=Configs.RANDOM_SEED)
-
-    # t = pd.read_csv('/home/sharonpe/microsatellite-instability-classification/data/subtype_classification/resnet_tile_CIS_GS_2/test/df_pred_21_06_2023_05_41.csv')
-    # df_test.tile_path.isin(t.tile_path).all() and t.tile_path.isin(df_test.tile_path).all()  # no filtered should be applied. should be exactly the same.
+    verify_no_test_leakage(df_curr_test=df_test, df_past_test=pd.read_csv(Configs.SC_TILE_BASED_TEST_SET))
     train_dataset = ProcessedTileDataset(df_labels=df_train, transform=train_transform,
                                          group_size=Configs.SC_MIL_GROUP_SIZE)
     valid_dataset = ProcessedTileDataset(df_labels=df_valid, transform=test_transform,
