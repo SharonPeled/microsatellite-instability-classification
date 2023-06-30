@@ -32,6 +32,10 @@ class VariantClassifier(TransferLearningClassifier):
         scores = scores.reshape(scores.shape[0], self.output_shape[0], self.output_shape[1])
         return F.cross_entropy(scores, y)
 
+    def configure_optimizers(self):
+        optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate)
+        return {'optimizer': optimizer}
+
     # def test_epoch_end(self, outputs):
     #     super(VariantClassifier, self).test_epoch_end(outputs)
     #     self.reshape_outputs(self.test_outputs, out_shape=[-1] + self.output_shape,

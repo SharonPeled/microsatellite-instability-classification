@@ -11,6 +11,7 @@ from src.utils import bring_files, bring_joined_log_file, delete_all_artifacts, 
     generate_thumbnails_with_tissue_classification, load_df_pred
 from src.subtype_classification.training import train as train_subtype_classification
 from src.variant_classification.training import train as train_variant_classification
+from src.variant_classification.permutaion_test import train as permutation_variant_classification
 import signal
 import datetime
 from src.configs import Configs
@@ -43,6 +44,7 @@ def main():
     parser.add_argument('--train-tumor-regression', action='store_true')
     parser.add_argument('--train-subtype-classification', action='store_true')
     parser.add_argument('--train-variant-classification', action='store_true')
+    parser.add_argument('--permutation-variant-classification', action='store_true')
     parser.add_argument('--OOD-validation-tumor-TCGA', action='store_true')
     parser.add_argument('--OOD-validation-ss-IRCCS', action='store_true')
     parser.add_argument('--inference-semantic-seg', action='store_true')
@@ -81,6 +83,8 @@ def main():
         train_subtype_classification()
     if args.train_variant_classification:
         train_variant_classification()
+    if args.permutation_variant_classification:
+        permutation_variant_classification()
     if args.generate_tumor_thumbnails:
         df_pred = load_df_pred(pred_dir=Configs.TUMOR_PREDICT_OUTPUT_PATH,
                                class_to_index=Configs.TUMOR_CLASS_TO_IND)

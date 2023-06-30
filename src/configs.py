@@ -197,11 +197,11 @@ class SubtypeClassificationConfigs:
 
 
 class VariantClassificationConfigs:
-    VC_EXPERIMENT_NAME = 'variant_classification_tile_based'
-    VC_FORMULATION = 'variant_CE_5_high_AUC_SNPs'
-    VC_RUN_NAME = f"resnet_{VC_FORMULATION}_0"
-    VC_RUN_DESCRIPTION = f"""Resent50 backbone, regular tile, variant prediction. Sampling min(50%, 5000) and shuffling tiles.
-    0. Resolve conflicts according to avg entropy. Analyzing the results."""
+    VC_EXPERIMENT_NAME = 'variant_classification_tile_based_permutation'
+    VC_FORMULATION = 'CE_5_high_AUC_SNPs'
+    VC_RUN_NAME = f"resnet_" + VC_FORMULATION + '_{permutation_num}'
+    VC_RUN_DESCRIPTION = f"""Resent50 backbone, regular tile, variant prediction. Sampling min(50%, 1000) and shuffling tiles.
+    0. Only 5 variant of the best performing AUCs, TYPED only."""
     VC_LABEL_DF_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'variant_classification',
                                     'variant_labels_0.csv')
     VC_DF_TILE_PATHS_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'variant_classification',
@@ -214,7 +214,7 @@ class VariantClassificationConfigs:
                                                 f'{VC_RUN_NAME}_pred', 'valid')
     VC_CLASS_TO_IND = {'GT0': 0, 'GT1': 1, 'GT2': 2}
     VC_NUM_EPOCHS = 1
-    VC_NUM_DEVICES = [0, ]
+    VC_NUM_DEVICES = [1, ]
     VC_DEVICE = 'gpu'
     VC_TEST_BATCH_SIZE = 256
     VC_SAVE_CHECKPOINT_STEP_INTERVAL = 7000
@@ -224,7 +224,8 @@ class VariantClassificationConfigs:
     VC_TEST_SIZE = 0.2
     VC_VALID_SIZE = 0.05
     VC_INIT_LR = 1e-5
-    VC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count//2, 5000)
+    VC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count//2, 1000)
+    VC_NUM_PERMUTATIONS = 10
     
 
 @dataclass
