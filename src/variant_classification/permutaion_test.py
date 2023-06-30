@@ -126,7 +126,7 @@ def train():
                                                             slide_df.sample(
                                                                 n=Configs.VC_TILE_SAMPLE_LAMBDA_TRAIN(len(slide_df)),
                                                                 random_state=Configs.RANDOM_SEED)).reset_index(
-        drop=True)[:5000]
+        drop=True)
     # permutation loop
     for i in range(Configs.VC_NUM_PERMUTATIONS+1):
         training_step(df_labels, df_tiles_sampled, permutation_num=i, train_transform=train_transform,
