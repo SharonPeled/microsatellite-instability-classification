@@ -158,10 +158,10 @@ class TumorRegressionConfigs:
 class SubtypeClassificationConfigs:
     SC_EXPERIMENT_NAME = 'subtype_classification_group_tiles'
     SC_FORMULATION = 'group_tile_CIS_GS'
-    SC_RUN_NAME = f"resnet_adapter_vit_{SC_FORMULATION}_0"
+    SC_RUN_NAME = f"resnet_adapter_vit_{SC_FORMULATION}_1"
     SC_RUN_DESCRIPTION = f"""Pretrained on tiles resnet50, 2-layered adaptor and vit_16.
-    3 phase training - adaptors, vit, all together. Hoping to 256 batch_size, maybe 128.
-     Sampling min(50%, 7500) and shuffling tiles."""
+    1 phase training - adaptors.
+     Sampling min(50%, 5000) and shuffling tiles."""
     SC_LABEL_DF_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                     'manifest_labeled_dx_molecular_subtype.tsv')
     SC_DF_TILE_PATHS_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
@@ -175,24 +175,23 @@ class SubtypeClassificationConfigs:
                                                 f'{SC_RUN_NAME}_pred', 'valid')
     SC_CLASS_TO_IND = {'GS': 0, 'CIN': 1}
     SC_NUM_EPOCHS = 1
-    SC_NUM_DEVICES = [0, ]
+    SC_NUM_DEVICES = [1, ]
     SC_DEVICE = 'gpu'
     SC_TEST_BATCH_SIZE = 1
-    SC_SAVE_CHECKPOINT_STEP_INTERVAL = 2500
-    SC_VAL_STEP_INTERVAL = 0.333  # 10 times an epoch
-    SC_TRAINING_BATCH_SIZE = 16  # accumulating gradients
+    SC_SAVE_CHECKPOINT_STEP_INTERVAL = 5000
+    SC_VAL_STEP_INTERVAL = 0.2  # 10 times an epoch
+    SC_TRAINING_BATCH_SIZE = 32  # accumulating gradients
     SC_NUM_WORKERS = 10
     SC_TEST_SIZE = 0.2
     SC_VALID_SIZE = 0.05
     SC_INIT_LR = 1e-5
     SC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count//2, 5000)
-    SC_MIL_GROUP_SIZE = 256
+    SC_MIL_GROUP_SIZE = 512
     SC_MIL_VIT_MODEL_VARIANT = 'vit_b_16'
     SC_MIL_VIT_MODEL_PRETRAINED = True
     SC_TILE_BASED_TRAINED_MODEL = '/home/sharonpe/microsatellite-instability-classification/models/subtype_classification/SC_resnet_tile_CIS_GS_2_20_06_2023_19_26.ckpt'
     SC_TILE_BASED_TEST_SET = '/home/sharonpe/microsatellite-instability-classification/data/subtype_classification/resnet_tile_CIS_GS_2/test/df_pred_21_06_2023_05_41.csv'
-    SC_TRAINING_PHASES = [{'num_steps': 7000, 'lr': 1e-4, 'run_suffix': '_adaptors'},
-                          {'num_steps': -1, 'lr': 1e-5, 'run_suffix': '_rest_vit'}]
+    SC_TRAINING_PHASES = [{'num_steps': -1, 'lr': 5e-5, 'run_suffix': '_adaptors'}, ]
     SC_CHECKPOINT = [None, None]
 
 
@@ -214,7 +213,7 @@ class VariantClassificationConfigs:
                                                 f'{VC_RUN_NAME}_pred', 'valid')
     VC_CLASS_TO_IND = {'GT0': 0, 'GT1': 1, 'GT2': 2}
     VC_NUM_EPOCHS = 1
-    VC_NUM_DEVICES = [1, ]
+    VC_NUM_DEVICES = [0, ]
     VC_DEVICE = 'gpu'
     VC_TEST_BATCH_SIZE = 256
     VC_SAVE_CHECKPOINT_STEP_INTERVAL = 7000
@@ -226,6 +225,7 @@ class VariantClassificationConfigs:
     VC_INIT_LR = 1e-5
     VC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count//2, 1000)
     VC_NUM_PERMUTATIONS = 10
+    VC_LAST_PERMUTATION = 4
     
 
 @dataclass

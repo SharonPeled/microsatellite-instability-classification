@@ -128,7 +128,7 @@ def train():
                                                                 random_state=Configs.RANDOM_SEED)).reset_index(
         drop=True)
     # permutation loop
-    for i in range(Configs.VC_NUM_PERMUTATIONS+1):
+    for i in range(Configs.VC_LAST_PERMUTATION, Configs.VC_NUM_PERMUTATIONS+1):
         training_step(df_labels, df_tiles_sampled, permutation_num=i, train_transform=train_transform,
                       test_transform=test_transform)
     Logger.log(f"Finished.", log_importance=1)
