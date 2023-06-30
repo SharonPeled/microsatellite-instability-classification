@@ -23,7 +23,9 @@ def training_step(df_labels, df_tiles_sampled, permutation_num, train_transform,
     Logger.log(f"Starting permutation {permutation_num}.", log_importance=1)
     # when permutation_num=0 then it's the original labels
     if permutation_num > 0:
-        df_labels.y = df_labels.y.sample(frac=1)
+        permuted_y = df_labels.y.sample(frac=1)
+        assert permuted_y.values != df_labels.y.values
+        df_labels.y = permuted_y.values
 
     # split to train, valid, test - sample_id and patient_id are 1-1
     train_samples, test_samples = train_test_split(df_labels.sample_id, test_size=Configs.VC_TEST_SIZE,
@@ -124,7 +126,7 @@ def train():
                                                             slide_df.sample(
                                                                 n=Configs.VC_TILE_SAMPLE_LAMBDA_TRAIN(len(slide_df)),
                                                                 random_state=Configs.RANDOM_SEED)).reset_index(
-        drop=True)
+        drop=True)[:5000]
     # permutation loop
     for i in range(Configs.VC_NUM_PERMUTATIONS+1):
         training_step(df_labels, df_tiles_sampled, permutation_num=i, train_transform=train_transform,
