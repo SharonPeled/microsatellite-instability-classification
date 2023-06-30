@@ -174,14 +174,14 @@ class SubtypeClassificationConfigs:
     SC_VALID_PREDICT_OUTPUT_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                                 f'{SC_RUN_NAME}_pred', 'valid')
     SC_CLASS_TO_IND = {'GS': 0, 'CIN': 1}
-    SC_NUM_EPOCHS = 1
+    SC_NUM_EPOCHS = 2
     SC_NUM_DEVICES = [1, ]
     SC_DEVICE = 'gpu'
     SC_TEST_BATCH_SIZE = 1
     SC_SAVE_CHECKPOINT_STEP_INTERVAL = 5000
-    SC_VAL_STEP_INTERVAL = 0.2  # 10 times an epoch
-    SC_TRAINING_BATCH_SIZE = 32  # accumulating gradients
-    SC_NUM_WORKERS = 10
+    SC_VAL_STEP_INTERVAL = 0.3333  # 10 times an epoch
+    SC_TRAINING_BATCH_SIZE = 16  # accumulating gradients
+    SC_NUM_WORKERS = 20
     SC_TEST_SIZE = 0.2
     SC_VALID_SIZE = 0.05
     SC_INIT_LR = 1e-5
