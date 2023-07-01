@@ -157,10 +157,10 @@ class TumorRegressionConfigs:
 
 class SubtypeClassificationConfigs:
     SC_EXPERIMENT_NAME = 'subtype_classification_group_tiles'
-    SC_FORMULATION = 'dropout_imagenet_resent'
-    SC_RUN_NAME = f"resnet_adapter_vit_{SC_FORMULATION}_3"
-    SC_RUN_DESCRIPTION = f"""Pretrained on imagenet resnet50, 2-layered adaptor and vit_16.
-    1 phase training - adaptors. With dropout on adaptors.
+    SC_FORMULATION = 'dropout_cohort_onehot_3la'
+    SC_RUN_NAME = f"resnet_adapter_vit_{SC_FORMULATION}_4"
+    SC_RUN_DESCRIPTION = f"""Pretrained tile based resnet50, 3-layered adaptor and vit_32.
+    1 phase training - adaptors. With dropout on adaptors. With cohort one hot.
      Sampling min(50%, 7500) and shuffling tiles."""
     SC_LABEL_DF_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                     'manifest_labeled_dx_molecular_subtype.tsv')
@@ -175,7 +175,7 @@ class SubtypeClassificationConfigs:
                                                 f'{SC_RUN_NAME}_pred', 'valid')
     SC_CLASS_TO_IND = {'GS': 0, 'CIN': 1}
     SC_NUM_EPOCHS = 1
-    SC_NUM_DEVICES = [0, ]
+    SC_NUM_DEVICES = [1, ]
     SC_DEVICE = 'gpu'
     SC_TEST_BATCH_SIZE = 1
     SC_SAVE_CHECKPOINT_STEP_INTERVAL = 5000
@@ -185,17 +185,24 @@ class SubtypeClassificationConfigs:
     SC_TEST_SIZE = 0.2
     SC_VALID_SIZE = 0.05
     SC_INIT_LR = 1e-5
-    SC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count//2, 7500)
+    SC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count//2, 5000)
     SC_MIL_GROUP_SIZE = 512
-    SC_MIL_VIT_MODEL_VARIANT = 'vit_b_16'
+    SC_MIL_VIT_MODEL_VARIANT = 'vit_b_32'
     SC_MIL_VIT_MODEL_PRETRAINED = True
     SC_TILE_BASED_TRAINED_MODEL = '/home/sharonpe/microsatellite-instability-classification/models/subtype_classification/SC_resnet_tile_CIS_GS_2_20_06_2023_19_26.ckpt'
-    SC_MIL_IMAGENET_RESENT = True
+    SC_MIL_IMAGENET_RESENT = False
     SC_TILE_BASED_TEST_SET = '/home/sharonpe/microsatellite-instability-classification/data/subtype_classification/resnet_tile_CIS_GS_2/test/df_pred_21_06_2023_05_41.csv'
     SC_TRAINING_PHASES = [{'num_steps': -1, 'lr': 1e-5, 'run_suffix': '_adaptors'}, ]
     SC_CHECKPOINT = [None,
                      None]
-    SC_DROPOUT = (0.05, 0.2, 0.05)
+    SC_DROPOUT = (0.2, 0.2, 0.2)
+    SC_COHORT_TO_IND = {'COAD': 0, 'READ': 1, 'STAD': 2, 'ESCA': 3, 'UCEC': 4}
+    SC_COHORT_DICT = {
+        'num_cohorts': len(SC_COHORT_TO_IND),
+        'place': {
+            'before_adapter': True,
+            'before_head': True
+        }}
 
 
 class VariantClassificationConfigs:

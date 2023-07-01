@@ -6,8 +6,9 @@ import torch
 
 
 class ProcessedTileDataset(Dataset, Logger):
-    def __init__(self, df_labels, transform=None, target_transform=None, group_size=-1):
+    def __init__(self, df_labels, cohort_to_index=None, transform=None, target_transform=None, group_size=-1):
         self.df_labels = df_labels.reset_index(drop=True)
+        self.cohort_to_index = cohort_to_index
         self.transform = transform
         self.target_transform = target_transform
         self.group_size = group_size
@@ -44,33 +45,42 @@ class ProcessedTileDataset(Dataset, Logger):
             return df_pred
 
     def __getitem__(self, index):
-        index += self.index_shift
         if self.group_size == -1:
-            tile_path = self.df_labels.tile_path[index]
-            y = self.df_labels.y[index]
-            return self.load_single_tile(tile_path, y)
+            row = self.df_labels.loc[index]
+            img, cohort, y = self.load_single_tile(row)
+            if self.cohort_to_index is not None:
+                return img, cohort, y
+            return img, y
         else:
-            return self.load_group_tiles(index)
+            index += self.index_shift
+            imgs, cohort, y = self.load_group_tiles(index)
+            if self.cohort_to_index is not None:
+                return imgs, cohort, y
+            return imgs, y
 
     def load_group_tiles(self, index):
         group_rows = self.df_labels.loc[index]  # Get all rows of the group
         images = []
         labels = []
+        cohorts = []
         for _, row in group_rows.iterrows():
-            tile_path = row['tile_path']
-            y = row['y']
-            img, y = self.load_single_tile(tile_path, y)
+            img, cohort, y = self.load_single_tile(row)
             images.append(img)
             labels.append(y)
-        return torch.stack(images), labels[-1]
+            cohorts.append(cohort)
+        return torch.stack(images), cohorts[-1], labels[-1]
 
-    def load_single_tile(self, tile_path, y):
-        img = Image.open(tile_path)
+    def load_single_tile(self, row):
+        img = Image.open(row['tile_path'])
+        y = row['y']
+        cohort = row['cohort']
         if self.transform:
             img = self.transform(img)
         if self.target_transform:
             y = self.target_transform(y)
-        return img, y
+        if self.cohort_to_index is not None:
+            return img, self.cohort_to_index[cohort], y
+        return img, None, y
 
     def __len__(self):
         return self.dataset_length

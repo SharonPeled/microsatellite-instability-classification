@@ -74,11 +74,14 @@ def train():
                                                                              valid_size=Configs.SC_VALID_SIZE,
                                                                              random_seed=Configs.RANDOM_SEED)
     verify_no_test_leakage(df_curr_test=df_test, df_past_test=pd.read_csv(Configs.SC_TILE_BASED_TEST_SET))
-    train_dataset = ProcessedTileDataset(df_labels=df_train, transform=train_transform,
+    train_dataset = ProcessedTileDataset(df_labels=df_train, cohort_to_index=Configs.SC_COHORT_TO_IND,
+                                         transform=train_transform,
                                          group_size=Configs.SC_MIL_GROUP_SIZE)
-    valid_dataset = ProcessedTileDataset(df_labels=df_valid, transform=test_transform,
+    valid_dataset = ProcessedTileDataset(df_labels=df_valid, cohort_to_index=Configs.SC_COHORT_TO_IND,
+                                         transform=test_transform,
                                          group_size=Configs.SC_MIL_GROUP_SIZE)
-    test_dataset = ProcessedTileDataset(df_labels=df_test, transform=test_transform,
+    test_dataset = ProcessedTileDataset(df_labels=df_test, cohort_to_index=Configs.SC_COHORT_TO_IND,
+                                        transform=test_transform,
                                         group_size=Configs.SC_MIL_GROUP_SIZE)
 
     valid_loader = DataLoader(valid_dataset, batch_size=Configs.SC_TEST_BATCH_SIZE, shuffle=False,
@@ -98,9 +101,8 @@ def train():
         tile_encoder = TransferLearningClassifier.load_from_checkpoint(Configs.SC_TILE_BASED_TRAINED_MODEL,
                                                                        class_to_ind=Configs.SC_CLASS_TO_IND,
                                                                        learning_rate=None)
-    # tile_encoder = modify_model_for_transfer_learning(tile_encoder, num_classes=None, freezing_backbone=True)
     model = MIL_VIT(class_to_ind=Configs.SC_CLASS_TO_IND, learning_rate=Configs.SC_INIT_LR,
-                    dropout=Configs.SC_DROPOUT, tile_encoder=tile_encoder,
+                    cohort_dict=Configs.SC_COHORT_DICT, dropout=Configs.SC_DROPOUT, tile_encoder=tile_encoder,
                     vit_variant=Configs.SC_MIL_VIT_MODEL_VARIANT, pretrained=Configs.SC_MIL_VIT_MODEL_PRETRAINED)
     if Configs.SC_CHECKPOINT[0] is not None:
         model = MIL_VIT.load_from_checkpoint(Configs.SC_CHECKPOINT[0], class_to_ind=Configs.SC_CLASS_TO_IND,
@@ -149,23 +151,23 @@ def train():
         saving_path = Configs.SC_TRAINED_MODEL_PATH.format(run_suffix=phase_config['run_suffix'])
         trainer.save_checkpoint(saving_path)
         Logger.log(f"Save Checkpoint in {saving_path}", log_importance=1)
-    Logger.log("Done Training.", log_importance=1)
-    Logger.log("Starting Test.", log_importance=1)
-    trainer.test(model, test_loader)
-    Logger.log(f"Done Test.", log_importance=1)
-    Logger.log(f"Saving test results...", log_importance=1)
-    # since shuffle=False in test we can infer the batch_indices from batch_inx
-    _, df_pred_path = save_pred_outputs(model.test_outputs, test_dataset, Configs.SC_TEST_BATCH_SIZE,
-                                        save_path=Configs.SC_TEST_PREDICT_OUTPUT_PATH,
-                                        class_to_ind=Configs.SC_CLASS_TO_IND)
-    Logger.log(f"""Saved Test df_pred: {df_pred_path}""", log_importance=1)
-    trainer.validate(model, valid_loader)
-    for i, outputs in enumerate(model.valid_outputs):
-        _, df_pred_path = save_pred_outputs(outputs, valid_dataset, Configs.SC_TEST_BATCH_SIZE,
-                                            save_path=Configs.SC_VALID_PREDICT_OUTPUT_PATH,
-                                            class_to_ind=Configs.SC_CLASS_TO_IND, suffix=str(i))
-        Logger.log(f"""Saved valid {i} df_pred: {df_pred_path}""", log_importance=1)
-    Logger.log(f"""Saving Done, df_pred saved in: {df_pred_path}""", log_importance=1)
+        Logger.log("Done Training.", log_importance=1)
+        Logger.log("Starting Test.", log_importance=1)
+        trainer.test(model, test_loader)
+        Logger.log(f"Done Test.", log_importance=1)
+        Logger.log(f"Saving test results...", log_importance=1)
+        # since shuffle=False in test we can infer the batch_indices from batch_inx
+        _, df_pred_path = save_pred_outputs(model.test_outputs, test_dataset, Configs.SC_TEST_BATCH_SIZE,
+                                            save_path=Configs.SC_TEST_PREDICT_OUTPUT_PATH,
+                                            class_to_ind=Configs.SC_CLASS_TO_IND)
+        Logger.log(f"""Saved Test df_pred: {df_pred_path}""", log_importance=1)
+    # trainer.validate(model, valid_loader)
+    # for i, outputs in enumerate(model.valid_outputs):
+    #     _, df_pred_path = save_pred_outputs(outputs, valid_dataset, Configs.SC_TEST_BATCH_SIZE,
+    #                                         save_path=Configs.SC_VALID_PREDICT_OUTPUT_PATH,
+    #                                         class_to_ind=Configs.SC_CLASS_TO_IND, suffix=str(i))
+    #     Logger.log(f"""Saved valid {i} df_pred: {df_pred_path}""", log_importance=1)
+    # Logger.log(f"""Saving Done, df_pred saved in: {df_pred_path}""", log_importance=1)
     Logger.log(f"Finished.", log_importance=1)
 
 
