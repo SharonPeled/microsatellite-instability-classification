@@ -13,6 +13,8 @@ import pandas as pd
 from src.utils import train_test_valid_split_patients_stratified, save_pred_outputs, modify_model_for_transfer_learning
 from pytorch_lightning.callbacks import LearningRateMonitor
 import os
+from torchvision.models import resnet50
+from torch import nn
 
 
 def set_worker_sharing_strategy(worker_id: int) -> None:
@@ -20,6 +22,9 @@ def set_worker_sharing_strategy(worker_id: int) -> None:
 
 
 def verify_no_test_leakage(df_curr_test, df_past_test):
+    if Configs.SC_MIL_IMAGENET_RESENT:
+        Logger.log(f"Using imagenet tile encoder, verification no needed.", log_importance=1)
+        return
     assert df_curr_test.tile_path.isin(df_past_test.tile_path).all() and \
            df_past_test.tile_path.isin(df_curr_test.tile_path).all()
     Logger.log(f"Verification of no test leakage successful.", log_importance=1)
@@ -82,9 +87,17 @@ def train():
     test_loader = DataLoader(test_dataset, batch_size=Configs.SC_TEST_BATCH_SIZE, shuffle=False,
                              persistent_workers=True, num_workers=Configs.SC_NUM_WORKERS,
                              worker_init_fn=set_worker_sharing_strategy)
-    tile_encoder = TransferLearningClassifier.load_from_checkpoint(Configs.SC_TILE_BASED_TRAINED_MODEL,
-                                                                   class_to_ind=Configs.SC_CLASS_TO_IND,
-                                                                   learning_rate=None)
+    if Configs.SC_MIL_IMAGENET_RESENT:
+        backbone = resnet50(weights="IMAGENET1K_V2")
+        num_filters = backbone.fc.in_features
+        layers = list(backbone.children())[:-1]
+        layers.append(nn.Flatten())
+        layers.append(nn.Linear(num_filters, len(Configs.SS_CLASS_TO_IND)))
+        tile_encoder = nn.Sequential(*layers)
+    else:
+        tile_encoder = TransferLearningClassifier.load_from_checkpoint(Configs.SC_TILE_BASED_TRAINED_MODEL,
+                                                                       class_to_ind=Configs.SC_CLASS_TO_IND,
+                                                                       learning_rate=None)
     # tile_encoder = modify_model_for_transfer_learning(tile_encoder, num_classes=None, freezing_backbone=True)
     model = MIL_VIT(class_to_ind=Configs.SC_CLASS_TO_IND, learning_rate=Configs.SC_INIT_LR,
                     dropout=Configs.SC_DROPOUT, tile_encoder=tile_encoder,

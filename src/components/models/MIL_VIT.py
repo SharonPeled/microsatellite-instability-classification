@@ -56,7 +56,9 @@ class MIL_VIT(TransferLearningClassifier):
 
     @staticmethod
     def init_tile_encoder(tile_encoder):
-        layers = list(tile_encoder.children())[0]
+        layers = list(tile_encoder.children())
+        if len(layers) == 1:
+            layers = layers[0]
         num_filters = layers[-1].in_features
         model = nn.Sequential(*layers[:-1])
         return model, num_filters
