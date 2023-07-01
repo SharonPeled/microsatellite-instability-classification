@@ -157,10 +157,10 @@ class TumorRegressionConfigs:
 
 class SubtypeClassificationConfigs:
     SC_EXPERIMENT_NAME = 'subtype_classification_group_tiles'
-    SC_FORMULATION = 'group_tile_CIS_GS'
-    SC_RUN_NAME = f"resnet_adapter_vit_{SC_FORMULATION}_1_second_epoch"
+    SC_FORMULATION = 'dropout'
+    SC_RUN_NAME = f"resnet_adapter_vit_{SC_FORMULATION}_2"
     SC_RUN_DESCRIPTION = f"""Pretrained on tiles resnet50, 2-layered adaptor and vit_16.
-    1 phase training - adaptors.
+    1 phase training - adaptors. With dropout on adaptors.
      Sampling min(50%, 5000) and shuffling tiles."""
     SC_LABEL_DF_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                     'manifest_labeled_dx_molecular_subtype.tsv')
@@ -191,9 +191,10 @@ class SubtypeClassificationConfigs:
     SC_MIL_VIT_MODEL_PRETRAINED = True
     SC_TILE_BASED_TRAINED_MODEL = '/home/sharonpe/microsatellite-instability-classification/models/subtype_classification/SC_resnet_tile_CIS_GS_2_20_06_2023_19_26.ckpt'
     SC_TILE_BASED_TEST_SET = '/home/sharonpe/microsatellite-instability-classification/data/subtype_classification/resnet_tile_CIS_GS_2/test/df_pred_21_06_2023_05_41.csv'
-    SC_TRAINING_PHASES = [{'num_steps': -1, 'lr': 5e-5, 'run_suffix': '_adaptors'}, ]
-    SC_CHECKPOINT = ['/home/sharonpe/microsatellite-instability-classification/models/subtype_classification/SC_resnet_adapter_vit_group_tile_CIS_GS_1_30_06_2023_18_05_adaptors.ckpt',
+    SC_TRAINING_PHASES = [{'num_steps': -1, 'lr': 1e-5, 'run_suffix': '_adaptors'}, ]
+    SC_CHECKPOINT = [None,
                      None]
+    SC_DROPOUT = (0.05, 0.2, 0.05)
 
 
 class VariantClassificationConfigs:

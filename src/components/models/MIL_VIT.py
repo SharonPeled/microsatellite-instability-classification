@@ -6,7 +6,7 @@ from src.components.objects.Logger import Logger
 
 
 class MIL_VIT(TransferLearningClassifier):
-    def __init__(self, class_to_ind, learning_rate, tile_encoder, vit_variant='vit_b_16', pretrained=True):
+    def __init__(self, class_to_ind, learning_rate, tile_encoder, dropout=(0, 0, 0), vit_variant='vit_b_16', pretrained=True):
         super(MIL_VIT, self).__init__(model=None, class_to_ind=class_to_ind, learning_rate=learning_rate)
         self.model = None  # TODO: fix this
         self.class_to_ind = class_to_ind
@@ -15,10 +15,12 @@ class MIL_VIT(TransferLearningClassifier):
         self.vit_model.encoder = MIL_Encoder(self.vit_model.encoder)
         self.vit_model.heads = nn.Linear(in_features=self.vit_model.hidden_dim,
                                          out_features=len(self.class_to_ind), bias=True)
-        self.adapter = nn.Sequential(nn.ReLU(),
+        self.adapter = nn.Sequential(nn.Dropout(dropout[0]),
                                      nn.Linear(self.tile_encoder_out_features, self.tile_encoder_out_features),
                                      nn.ReLU(),
-                                     nn.Linear(self.tile_encoder_out_features, self.vit_model.hidden_dim))
+                                     nn.Dropout(dropout[1]),
+                                     nn.Linear(self.tile_encoder_out_features, self.vit_model.hidden_dim),
+                                     nn.Dropout(dropout[2]))
         self.training_phase = 0
 
     def next_training_phase(self):

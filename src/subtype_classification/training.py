@@ -87,11 +87,12 @@ def train():
                                                                    learning_rate=None)
     # tile_encoder = modify_model_for_transfer_learning(tile_encoder, num_classes=None, freezing_backbone=True)
     model = MIL_VIT(class_to_ind=Configs.SC_CLASS_TO_IND, learning_rate=Configs.SC_INIT_LR,
-                    tile_encoder=tile_encoder,
+                    dropout=Configs.SC_DROPOUT, tile_encoder=tile_encoder,
                     vit_variant=Configs.SC_MIL_VIT_MODEL_VARIANT, pretrained=Configs.SC_MIL_VIT_MODEL_PRETRAINED)
     if Configs.SC_CHECKPOINT[0] is not None:
         model = MIL_VIT.load_from_checkpoint(Configs.SC_CHECKPOINT[0], class_to_ind=Configs.SC_CLASS_TO_IND,
                                              learning_rate=Configs.SC_INIT_LR,
+                                             dropout=Configs.SC_DROPOUT,
                                              tile_encoder=tile_encoder,
                                              vit_variant=Configs.SC_MIL_VIT_MODEL_VARIANT, pretrained=Configs.SC_MIL_VIT_MODEL_PRETRAINED)
     steps_done = 0
