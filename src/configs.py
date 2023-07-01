@@ -175,7 +175,7 @@ class SubtypeClassificationConfigs:
                                                 f'{SC_RUN_NAME}_pred', 'valid')
     SC_CLASS_TO_IND = {'GS': 0, 'CIN': 1}
     SC_NUM_EPOCHS = 1
-    SC_NUM_DEVICES = [1, ]
+    SC_NUM_DEVICES = [0, ]
     SC_DEVICE = 'gpu'
     SC_TEST_BATCH_SIZE = 1
     SC_SAVE_CHECKPOINT_STEP_INTERVAL = 5000
@@ -200,7 +200,7 @@ class SubtypeClassificationConfigs:
     SC_COHORT_DICT = {
         'num_cohorts': len(SC_COHORT_TO_IND),
         'place': {
-            'before_adapter': True,
+            'before_adapter': False,
             'before_head': True
         }}
 
