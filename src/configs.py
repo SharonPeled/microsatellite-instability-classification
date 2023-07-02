@@ -174,7 +174,7 @@ class SubtypeClassificationConfigs:
     SC_VALID_PREDICT_OUTPUT_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                                 f'{SC_RUN_NAME}_pred', 'valid')
     SC_CLASS_TO_IND = {'GS': 0, 'CIN': 1}
-    SC_NUM_EPOCHS = 1
+    SC_NUM_EPOCHS = 2
     SC_NUM_DEVICES = [0, 1]
     SC_DEVICE = 'gpu'
     SC_TEST_BATCH_SIZE = 1
