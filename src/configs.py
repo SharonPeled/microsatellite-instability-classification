@@ -175,13 +175,13 @@ class SubtypeClassificationConfigs:
                                                 f'{SC_RUN_NAME}_pred', 'valid')
     SC_CLASS_TO_IND = {'GS': 0, 'CIN': 1}
     SC_NUM_EPOCHS = 1
-    SC_NUM_DEVICES = [0, ]
+    SC_NUM_DEVICES = [0, 1]
     SC_DEVICE = 'gpu'
     SC_TEST_BATCH_SIZE = 1
     SC_SAVE_CHECKPOINT_STEP_INTERVAL = 5000
-    SC_VAL_STEP_INTERVAL = 0.3333  # 10 times an epoch
+    SC_VAL_STEP_INTERVAL = 0.9  # 10 times an epoch
     SC_TRAINING_BATCH_SIZE = 16  # accumulating gradients
-    SC_NUM_WORKERS = 20
+    SC_NUM_WORKERS = 30
     SC_TEST_SIZE = 0.2
     SC_VALID_SIZE = 0.05
     SC_INIT_LR = 1e-5
@@ -195,7 +195,7 @@ class SubtypeClassificationConfigs:
     SC_TRAINING_PHASES = [{'num_steps': -1, 'lr': 1e-5, 'run_suffix': '_adaptors'}, ]
     SC_CHECKPOINT = [None,
                      None]
-    SC_DROPOUT = (0.2, 0.2, 0.2)
+    SC_DROPOUT = (0.4, 0.4, 0.4)
     SC_COHORT_TO_IND = {'COAD': 0, 'READ': 1, 'STAD': 2, 'ESCA': 3, 'UCEC': 4}
     SC_COHORT_DICT = {
         'num_cohorts': len(SC_COHORT_TO_IND),
