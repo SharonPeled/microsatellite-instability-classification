@@ -7,9 +7,9 @@ from torchvision import transforms
 from src.components.objects.CustomWriter import CustomWriter
 from src.components.transformers.MacenkoNormalizerTransform import MacenkoNormalizerTransform
 from src.components.datasets.TumorTileDataset import TumorTileDataset
-from ..utils import load_df_pred
+from ..general_utils import load_df_pred
 from pytorch_lightning.loggers import MLFlowLogger
-from ..utils import generate_confusion_matrix_figure
+from ..general_utils import generate_confusion_matrix_figure
 from sklearn.metrics import precision_recall_fscore_support
 from src.components.objects.Logger import Logger
 

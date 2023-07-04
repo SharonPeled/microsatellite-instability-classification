@@ -3,7 +3,7 @@ import os
 import pyvips
 import numpy as np
 from .pen_filter import get_pen_mask
-from ..utils import generate_spatial_filter_mask, center_crop_from_shape, center_crop_from_tile_size, conv2d_to_device
+from ..general_utils import generate_spatial_filter_mask, center_crop_from_shape, center_crop_from_tile_size, conv2d_to_device
 from src.components.objects.Tile import Tile
 from src.components.objects.Logger import Logger
 import matplotlib.pyplot as plt

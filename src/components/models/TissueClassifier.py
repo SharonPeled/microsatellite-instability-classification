@@ -6,7 +6,7 @@ from torchvision.models import resnet50
 from torch.nn.functional import softmax
 from sklearn.metrics import roc_auc_score, classification_report
 from torch.optim.lr_scheduler import ReduceLROnPlateau
-from src.utils import generate_confusion_matrix_figure
+from src.general_utils import generate_confusion_matrix_figure
 from src.components.objects.Logger import Logger
 
 

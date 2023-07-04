@@ -7,9 +7,10 @@ from src.semantic_segmentation.OOD_validation_ss_IRCCS import OOD_validation_ss_
 from src.semantic_segmentation.training import train as train_semantic_seg
 from src.semantic_segmentation.predict import predict as predict_semantic_seg
 from src.tumor_distance_estimation.training import train as train_tumor_regression
-from src.utils import bring_files, bring_joined_log_file, delete_all_artifacts, \
+from src.general_utils import bring_files, bring_joined_log_file, delete_all_artifacts, \
     generate_thumbnails_with_tissue_classification, load_df_pred
-from src.subtype_classification.training import train as train_subtype_classification
+from src.subtype_classification.training_MIL import train as train_subtype_classification_mil
+from src.subtype_classification.training_tile_based import train as train_subtype_classification_tile
 from src.variant_classification.training import train as train_variant_classification
 from src.variant_classification.permutaion_test import train as permutation_variant_classification
 import signal
@@ -42,7 +43,8 @@ def main():
     parser.add_argument('--train-tumor-classifier', action='store_true')
     parser.add_argument('--train-semantic-seg', action='store_true')
     parser.add_argument('--train-tumor-regression', action='store_true')
-    parser.add_argument('--train-subtype-classification', action='store_true')
+    parser.add_argument('--train-subtype-classification-tile', action='store_true')
+    parser.add_argument('--train-subtype-classification-mil', action='store_true')
     parser.add_argument('--train-variant-classification', action='store_true')
     parser.add_argument('--permutation-variant-classification', action='store_true')
     parser.add_argument('--OOD-validation-tumor-TCGA', action='store_true')
@@ -79,8 +81,10 @@ def main():
         predict_semantic_seg()
     if args.train_tumor_regression:
         train_tumor_regression()
-    if args.train_subtype_classification:
-        train_subtype_classification()
+    if args.train_subtype_classification_tile:
+        train_subtype_classification_tile()
+    if args.train_subtype_classification_mil:
+        train_subtype_classification_mil()
     if args.train_variant_classification:
         train_variant_classification()
     if args.permutation_variant_classification:

@@ -6,7 +6,7 @@ from torchvision.models import resnet50
 from torch.nn.functional import softmax
 from sklearn.metrics import roc_auc_score, classification_report
 from torch.optim.lr_scheduler import ReduceLROnPlateau
-from ...utils import generate_confusion_matrix_figure
+from ...general_utils import generate_confusion_matrix_figure
 from src.components.objects.Logger import Logger
 import numpy as np
 
@@ -26,6 +26,8 @@ class TransferLearningClassifier(pl.LightningModule):
             layers.append(nn.Flatten())
             layers.append(nn.Linear(num_filters, len(self.class_to_ind)))
             self.model = nn.Sequential(*layers)
+        elif model == 'ignore':
+            self.model = None
         else:
             self.model = model
         self.test_outputs = None

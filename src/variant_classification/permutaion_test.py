@@ -10,7 +10,7 @@ from src.components.models.VariantClassifier import VariantClassifier
 from src.components.objects.CheckpointEveryNSteps import CheckpointEveryNSteps
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from src.utils import save_pred_outputs
+from src.general_utils import save_pred_outputs
 from pytorch_lightning.callbacks import LearningRateMonitor
 import torch
 

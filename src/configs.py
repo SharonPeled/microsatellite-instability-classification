@@ -2,7 +2,7 @@ from dataclasses import dataclass
 import os
 from pathlib import Path
 from .preprocessing.pen_filter import get_pen_color_palette
-from .utils import set_global_configs
+from .general_utils import set_global_configs
 import torch
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning, module="torchstain")
@@ -156,16 +156,15 @@ class TumorRegressionConfigs:
 
 
 class SubtypeClassificationConfigs:
-    SC_EXPERIMENT_NAME = 'subtype_classification_group_tiles'
-    SC_FORMULATION = 'dropout_cohort_onehot_3la'
-    SC_RUN_NAME = f"resnet_adapter_vit_{SC_FORMULATION}_4"
-    SC_RUN_DESCRIPTION = f"""Pretrained tile based resnet50, 3-layered adaptor and vit_32.
-    1 phase training - adaptors. With dropout on adaptors. With cohort one hot.
-     Sampling min(50%, 7500) and shuffling tiles."""
+    SC_EXPERIMENT_NAME = 'subtype_classification_tile_based'
+    SC_FORMULATION = 'frozen'
+    SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_1"
+    SC_RUN_DESCRIPTION = f"""Pretrained SSL ViT16, Frozen backbone.
+     Sampling 2000 from each slide and shuffling tiles."""
     SC_LABEL_DF_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                     'manifest_labeled_dx_molecular_subtype.tsv')
     SC_DF_TILE_PATHS_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
-                                         'df_processed_tile_paths.csv')
+                                         'df_processed_tile_paths_reduced.csv')
     SC_LABEL_COL = 'subtype'
     SC_TRAINED_MODEL_PATH = os.path.join(GeneralConfigs.ROOT, 'models', 'subtype_classification',
                                          f'SC_{SC_RUN_NAME}_{GeneralConfigs.START_TIME}' + '{run_suffix}.ckpt')
@@ -174,20 +173,22 @@ class SubtypeClassificationConfigs:
     SC_VALID_PREDICT_OUTPUT_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                                 f'{SC_RUN_NAME}_pred', 'valid')
     SC_CLASS_TO_IND = {'GS': 0, 'CIN': 1}
-    SC_NUM_EPOCHS = 2
-    SC_NUM_DEVICES = [0, 1]
+    SC_NUM_EPOCHS = 1
+    SC_NUM_DEVICES = [1, ]
     SC_DEVICE = 'gpu'
-    SC_TEST_BATCH_SIZE = 1
-    SC_SAVE_CHECKPOINT_STEP_INTERVAL = 5000
-    SC_VAL_STEP_INTERVAL = 0.9  # 10 times an epoch
-    SC_TRAINING_BATCH_SIZE = 16  # accumulating gradients
+    SC_TEST_BATCH_SIZE = 256
+    SC_SAVE_CHECKPOINT_STEP_INTERVAL = 10000
+    SC_VAL_STEP_INTERVAL = 0.5  # 10 times an epoch
+    SC_TRAINING_BATCH_SIZE = 128  # accumulating gradients
     SC_NUM_WORKERS = 20
     SC_TEST_SIZE = 0.2
     SC_VALID_SIZE = 0.05
     SC_INIT_LR = 1e-5
-    SC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count//2, 5000)
+    SC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count, 2000)
     SC_MIL_GROUP_SIZE = 512
-    SC_MIL_VIT_MODEL_VARIANT = 'vit_b_32'
+    SC_FROZEN_BACKBONE = True
+    SC_MIL_VIT_MODEL_VARIANT = 'SSL_VIT_PRETRAINED'
+    SC_TILE_ENCODER = 'SSL_VIT_PRETRAINED'
     SC_MIL_VIT_MODEL_PRETRAINED = True
     SC_TILE_BASED_TRAINED_MODEL = '/home/sharonpe/microsatellite-instability-classification/models/subtype_classification/SC_resnet_tile_CIS_GS_2_20_06_2023_19_26.ckpt'
     SC_MIL_IMAGENET_RESENT = False

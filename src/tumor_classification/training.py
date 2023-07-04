@@ -6,7 +6,7 @@ from torch.multiprocessing import set_start_method
 from pytorch_lightning.loggers import MLFlowLogger
 from ..configs import Configs
 from src.components.transformers.MacenkoNormalizerTransform import MacenkoNormalizerTransform
-from ..utils import get_train_test_dataset
+from ..general_utils import get_train_test_dataset
 from src.components.objects.Logger import Logger
 from src.components.models.TissueClassifier import TissueClassifier
 

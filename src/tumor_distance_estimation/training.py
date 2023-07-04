@@ -10,7 +10,7 @@ from src.components.datasets.TumorRegressionDataset import TumorRegressionDatase
 import pandas as pd
 from src.components.objects.CustomWriter import CustomWriter
 from pytorch_lightning.callbacks import LearningRateMonitor
-from ..utils import train_test_valid_split_patients_stratified
+from ..general_utils import train_test_valid_split_patients_stratified
 from collections import defaultdict
 import numpy as np
 
