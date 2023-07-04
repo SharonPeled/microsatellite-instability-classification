@@ -157,10 +157,13 @@ class TumorRegressionConfigs:
 
 class SubtypeClassificationConfigs:
     SC_EXPERIMENT_NAME = 'subtype_classification_tile_based'
-    SC_FORMULATION = 'frozen'
-    SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_1"
-    SC_RUN_DESCRIPTION = f"""Pretrained SSL ViT16, Frozen backbone.
-     Sampling 2000 from each slide and shuffling tiles."""
+    SC_FORMULATION = 'fined_tuned'
+    SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_3"
+    SC_RUN_DESCRIPTION = f"""Pretrained SSL ViT16, fine-tuned backbone - First 2500 iteration head only, then
+    both, but with different lr (1e-4, 1e-6).
+    Sampling 4000 from each slide and shuffling tiles.
+    AUG same as the paper without RandStain.
+    Big validation (0.1) and small test (0.1)"""
     SC_LABEL_DF_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                     'manifest_labeled_dx_molecular_subtype.tsv')
     SC_DF_TILE_PATHS_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
@@ -178,15 +181,18 @@ class SubtypeClassificationConfigs:
     SC_DEVICE = 'gpu'
     SC_TEST_BATCH_SIZE = 256
     SC_SAVE_CHECKPOINT_STEP_INTERVAL = 10000
-    SC_VAL_STEP_INTERVAL = 0.5  # 10 times an epoch
-    SC_TRAINING_BATCH_SIZE = 128  # accumulating gradients
+    SC_VAL_STEP_INTERVAL = 1/3  # 10 times an epoch
+    SC_TRAINING_BATCH_SIZE = 64  # accumulating gradients in MIL only
     SC_NUM_WORKERS = 20
-    SC_TEST_SIZE = 0.2
-    SC_VALID_SIZE = 0.05
-    SC_INIT_LR = 1e-5
-    SC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count, 2000)
+    SC_TEST_SIZE = 0.1
+    SC_VALID_SIZE = 0.1
+    SC_INIT_LR = 1e-4
+    SC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count, 3000)
+    SC_FROZEN_BACKBONE = False
+    SC_LR_PER_PART = [1e-6, 1e-4] # the lr are in order of the actual nn
+    SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 2500
+    # MIL STUFF
     SC_MIL_GROUP_SIZE = 512
-    SC_FROZEN_BACKBONE = True
     SC_MIL_VIT_MODEL_VARIANT = 'SSL_VIT_PRETRAINED'
     SC_TILE_ENCODER = 'SSL_VIT_PRETRAINED'
     SC_MIL_VIT_MODEL_PRETRAINED = True

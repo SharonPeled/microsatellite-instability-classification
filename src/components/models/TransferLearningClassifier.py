@@ -12,13 +12,16 @@ import numpy as np
 
 
 class TransferLearningClassifier(pl.LightningModule):
-    def __init__(self, class_to_ind=None, model=None, learning_rate=1e-4, class_to_weight=None):
+    def __init__(self, class_to_ind=None, model=None, learning_rate=1e-4, class_to_weight=None,
+                 num_iters_warmup_wo_backbone=None):
         super().__init__()
         if model is None and class_to_ind is None:
             raise "Invalid parameters."
         self.class_to_ind = class_to_ind
         self.class_weights = self.init_class_weights(class_to_weight)
         self.learning_rate = learning_rate
+        self.num_iters_warmup_wo_backbone = num_iters_warmup_wo_backbone  # for this to work the model has to be a sequential
+        self.backbone_grad_status = None
         if model is None:
             backbone = resnet50(weights="IMAGENET1K_V2")
             num_filters = backbone.fc.in_features
@@ -49,7 +52,11 @@ class TransferLearningClassifier(pl.LightningModule):
         return F.cross_entropy(scores, y, weight=self.class_weights.to(scores.device))
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate)
+        if self.num_iters_warmup_wo_backbone is not None:
+            for param in self.model[-1].parameters():
+                param.requires_grad = False
+            self.backbone_grad_status = False
+        optimizer = torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
         scheduler = ReduceLROnPlateau(optimizer, factor=0.1, patience=2)
         return {'optimizer': optimizer, 'lr_scheduler': scheduler, 'monitor': 'val_loss'}
 
@@ -62,6 +69,11 @@ class TransferLearningClassifier(pl.LightningModule):
         return loss, scores, y
 
     def training_step(self, batch, batch_idx):
+        if self.num_iters_warmup_wo_backbone is not None and not self.backbone_grad_status \
+                and self.num_iters_warmup_wo_backbone > batch_idx:
+            for param in self.model[-1].parameters():
+                param.requires_grad = True
+            self.backbone_grad_status = True
         train_loss, scores, y = self.general_loop(batch, batch_idx)
         self.logger.experiment.log_metric(self.logger.run_id, "train_loss", train_loss)
         return {"loss": train_loss}

@@ -16,4 +16,18 @@ class SSL_VIT(TransferLearningClassifier):
         self.head = nn.Linear(self.vit_model.num_features, len(self.class_to_ind))
         self.model = nn.Sequential(self.vit_model, self.head)
 
+    def configure_optimizers(self):
+        optimizer_config = super().configure_optimizers()
+        if not isinstance(self.learning_rate, list):
+            return optimizer_config
+
+        grouped_parameters = [
+            {"params": [p for p in self.model[:-1].parameters()], 'lr': self.learning_rate[0]},
+            {"params": [p for p in self.model[-1].parameters()], 'lr': self.learning_rate[1]},
+        ]
+
+        optimizer = torch.optim.Adam(grouped_parameters)
+
+        return {'optimizer': optimizer}
+
 
