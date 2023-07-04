@@ -1,18 +1,19 @@
-from torchvision.models import vit_b_16, ViT_B_16_Weights
+from torchvision.models import vit_b_16, ViT_B_16_Weights, vit_b_32, ViT_B_32_Weights
 import torch
 import torch.nn as nn
 from src.components.models.TransferLearningClassifier import TransferLearningClassifier
 from src.components.objects.Logger import Logger
+from src.training_utils import SLL_vit_small
 
 
 class MIL_VIT(TransferLearningClassifier):
-    def __init__(self, class_to_ind, learning_rate, tile_encoder, cohort_dict, dropout=(0, 0, 0),
+    def __init__(self, class_to_ind, learning_rate, tile_encoder, encoder_num_features, cohort_dict, dropout=(0, 0, 0),
                  vit_variant='vit_b_16', pretrained=True):
-        super(MIL_VIT, self).__init__(model=None, class_to_ind=class_to_ind, learning_rate=learning_rate)
-        self.model = None  # TODO: fix this
+        super(MIL_VIT, self).__init__(model='ignore', class_to_ind=class_to_ind, learning_rate=learning_rate)
         self.class_to_ind = class_to_ind
         self.cohort_dict = cohort_dict
-        self.tile_encoder, self.tile_encoder_out_features = MIL_VIT.init_tile_encoder(tile_encoder)
+        self.tile_encoder = tile_encoder
+        self.tile_encoder_out_features = encoder_num_features
         self.vit_model = MIL_VIT.load_vit_model(vit_variant, pretrained)
         self.vit_model.encoder = MIL_Encoder(self.vit_model.encoder)
         adapter_in = self.tile_encoder_out_features
@@ -62,16 +63,24 @@ class MIL_VIT(TransferLearningClassifier):
                 return vit_b_16(weights=ViT_B_16_Weights)
         else:
             return vit_b_16()
+        if vit_variant == 'vit_b_32':
+            if pretrained:
+                return vit_b_32(weights=ViT_B_32_Weights)
+        else:
+            return vit_b_32()
+        if vit_variant == 'SSL_VIT_PRETRAINED':
+            model = SLL_vit_small(pretrained=True, progress=False, key="DINO_p16", patch_size=16)
+
         raise NotImplementedError()
 
-    @staticmethod
-    def init_tile_encoder(tile_encoder):
-        layers = list(tile_encoder.children())
-        if len(layers) == 1:
-            layers = layers[0]
-        num_filters = layers[-1].in_features
-        model = nn.Sequential(*layers[:-1])
-        return model, num_filters
+    # @staticmethod
+    # def init_tile_encoder(tile_encoder):
+    #     layers = list(tile_encoder.children())
+    #     if len(layers) == 1:
+    #         layers = layers[0]
+    #     num_filters = layers[-1].in_features
+    #     model = nn.Sequential(*layers[:-1])
+    #     return model, num_filters
 
     @staticmethod
     def features_to_one_hot(x, c, num_cohorts):

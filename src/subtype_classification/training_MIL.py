@@ -10,7 +10,8 @@ from src.components.models.TransferLearningClassifier import TransferLearningCla
 from src.components.models.MIL_VIT import MIL_VIT
 from src.components.objects.CheckpointEveryNSteps import CheckpointEveryNSteps
 import pandas as pd
-from src.utils import train_test_valid_split_patients_stratified, save_pred_outputs, modify_model_for_transfer_learning
+from src.general_utils import train_test_valid_split_patients_stratified, save_pred_outputs, modify_model_for_transfer_learning
+from src.training_utils import load_tile_encoder
 from pytorch_lightning.callbacks import LearningRateMonitor
 import os
 from torchvision.models import resnet50
@@ -73,7 +74,8 @@ def train():
                                                                              test_size=Configs.SC_TEST_SIZE,
                                                                              valid_size=Configs.SC_VALID_SIZE,
                                                                              random_seed=Configs.RANDOM_SEED)
-    verify_no_test_leakage(df_curr_test=df_test, df_past_test=pd.read_csv(Configs.SC_TILE_BASED_TEST_SET))
+    if Configs.SC_TILE_ENCODER == 'pretrained_resent_tile_based':
+        verify_no_test_leakage(df_curr_test=df_test, df_past_test=pd.read_csv(Configs.SC_TILE_BASED_TEST_SET))
     train_dataset = ProcessedTileDataset(df_labels=df_train, cohort_to_index=Configs.SC_COHORT_TO_IND,
                                          transform=train_transform,
                                          group_size=Configs.SC_MIL_GROUP_SIZE)
@@ -90,25 +92,17 @@ def train():
     test_loader = DataLoader(test_dataset, batch_size=Configs.SC_TEST_BATCH_SIZE, shuffle=False,
                              persistent_workers=True, num_workers=Configs.SC_NUM_WORKERS,
                              worker_init_fn=set_worker_sharing_strategy)
-    if Configs.SC_MIL_IMAGENET_RESENT:
-        backbone = resnet50(weights="IMAGENET1K_V2")
-        num_filters = backbone.fc.in_features
-        layers = list(backbone.children())[:-1]
-        layers.append(nn.Flatten())
-        layers.append(nn.Linear(num_filters, len(Configs.SS_CLASS_TO_IND)))
-        tile_encoder = nn.Sequential(*layers)
-    else:
-        tile_encoder = TransferLearningClassifier.load_from_checkpoint(Configs.SC_TILE_BASED_TRAINED_MODEL,
-                                                                       class_to_ind=Configs.SC_CLASS_TO_IND,
-                                                                       learning_rate=None)
+    tile_encoder, encoder_num_features = load_tile_encoder(Configs)
     model = MIL_VIT(class_to_ind=Configs.SC_CLASS_TO_IND, learning_rate=Configs.SC_INIT_LR,
                     cohort_dict=Configs.SC_COHORT_DICT, dropout=Configs.SC_DROPOUT, tile_encoder=tile_encoder,
+                    encoder_num_features=encoder_num_features,
                     vit_variant=Configs.SC_MIL_VIT_MODEL_VARIANT, pretrained=Configs.SC_MIL_VIT_MODEL_PRETRAINED)
     if Configs.SC_CHECKPOINT[0] is not None:
         model = MIL_VIT.load_from_checkpoint(Configs.SC_CHECKPOINT[0], class_to_ind=Configs.SC_CLASS_TO_IND,
                                              learning_rate=Configs.SC_INIT_LR,
                                              dropout=Configs.SC_DROPOUT,
                                              tile_encoder=tile_encoder,
+                                             encoder_num_features=encoder_num_features,
                                              vit_variant=Configs.SC_MIL_VIT_MODEL_VARIANT, pretrained=Configs.SC_MIL_VIT_MODEL_PRETRAINED)
     steps_done = 0
     for phase_config in Configs.SC_TRAINING_PHASES:
