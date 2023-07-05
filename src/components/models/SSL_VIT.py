@@ -13,10 +13,12 @@ class SSL_VIT(TransferLearningClassifier):
                                       num_iters_warmup_wo_backbone=num_iters_warmup_wo_backbone)
         self.vit_model = SLL_vit_small(pretrained=True, progress=False, key="DINO_p16", patch_size=16)
         self.frozen_backbone = frozen_backbone
-        if self. frozen_backbone:
+        if self.frozen_backbone:
             for param in self.vit_model.parameters():
                 param.requires_grad = False
             self.num_iters_warmup_wo_backbone = None
+            if not isinstance(self.learning_rate, list):
+                self.learning_rate = self.learning_rate[-1]
             Logger.log(f"Backbone frozen.", log_importance=1)
         self.head = nn.Linear(self.vit_model.num_features, len(self.class_to_ind))
         self.model = nn.Sequential(self.vit_model, self.head)

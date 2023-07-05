@@ -53,10 +53,12 @@ class TransferLearningClassifier(pl.LightningModule):
 
     def set_training_warmup(self):
         if self.num_iters_warmup_wo_backbone is not None:
-            for param in self.model[-1].parameters():
+            for param in self.model[:-1].parameters():
                 param.requires_grad = False
             self.backbone_grad_status = False
             Logger.log(f"Backbone frozen for {self.num_iters_warmup_wo_backbone} steps.", log_importance=1)
+        num_training_params = sum(p.numel() for p in self.model.parameters() if p.requires_grad)
+        Logger.log(f"Number of training params: {num_training_params}.", log_importance=1)
 
     def configure_optimizers(self):
         self.set_training_warmup()
@@ -74,11 +76,13 @@ class TransferLearningClassifier(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):
         if self.num_iters_warmup_wo_backbone is not None and not self.backbone_grad_status \
-                and self.num_iters_warmup_wo_backbone > batch_idx:
-            for param in self.model[-1].parameters():
+                and batch_idx > self.num_iters_warmup_wo_backbone:
+            for param in self.model[:-1].parameters():
                 param.requires_grad = True
             self.backbone_grad_status = True
-            Logger.log(f"Backbone unfrozen.", log_importance=1)
+            Logger.log(f"Backbone unfrozen, step {batch_idx}.", log_importance=1)
+            num_training_params = sum(p.numel() for p in self.model.parameters() if p.requires_grad)
+            Logger.log(f"Number of training params: {num_training_params}.", log_importance=1)
         train_loss, scores, y = self.general_loop(batch, batch_idx)
         self.logger.experiment.log_metric(self.logger.run_id, "train_loss", train_loss)
         return {"loss": train_loss}
