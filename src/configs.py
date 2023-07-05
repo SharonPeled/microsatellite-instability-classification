@@ -157,11 +157,10 @@ class TumorRegressionConfigs:
 
 class SubtypeClassificationConfigs:
     SC_EXPERIMENT_NAME = 'subtype_classification_tile_based'
-    SC_FORMULATION = 'fined_tuned'
-    SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_3"
-    SC_RUN_DESCRIPTION = f"""Pretrained SSL ViT16, fine-tuned backbone - First 2500 iteration head only, then
-    both, but with different lr (1e-4, 1e-6).
-    Sampling 4000 from each slide and shuffling tiles.
+    SC_FORMULATION = 'trained_all'
+    SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_4"
+    SC_RUN_DESCRIPTION = f"""Pretrained SSL ViT16, trained all, 1e-4.
+    Sampling 2500 from each slide and shuffling tiles.
     AUG same as the paper without RandStain.
     Big validation (0.1) and small test (0.1)"""
     SC_LABEL_DF_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
@@ -182,14 +181,14 @@ class SubtypeClassificationConfigs:
     SC_TEST_BATCH_SIZE = 256
     SC_SAVE_CHECKPOINT_STEP_INTERVAL = 10000
     SC_VAL_STEP_INTERVAL = 1/3  # 10 times an epoch
-    SC_TRAINING_BATCH_SIZE = 128  # accumulating gradients in MIL only
+    SC_TRAINING_BATCH_SIZE = 256  # accumulating gradients in MIL only
     SC_NUM_WORKERS = 20
     SC_TEST_SIZE = 0.1
     SC_VALID_SIZE = 0.1
-    SC_INIT_LR = [1e-6, 1e-4]  # per part of the network, in order of the actual nn
+    SC_INIT_LR = 1e-4 # [1e-6, 1e-4]  # per part of the network, in order of the actual nn
     SC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count, 3000)
     SC_FROZEN_BACKBONE = False
-    SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 2500
+    SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 1000
     # MIL STUFF
     SC_MIL_GROUP_SIZE = 512
     SC_MIL_VIT_MODEL_VARIANT = 'SSL_VIT_PRETRAINED'
