@@ -81,7 +81,8 @@ def train():
                              worker_init_fn=set_worker_sharing_strategy)
 
     model = SSL_VIT(class_to_ind=Configs.SC_CLASS_TO_IND, learning_rate=Configs.SC_INIT_LR,
-                    frozen_backbone=Configs.SC_FROZEN_BACKBONE, class_to_weight=None)
+                    frozen_backbone=Configs.SC_FROZEN_BACKBONE, class_to_weight=None,
+                    num_iters_warmup_wo_backbone=Configs.SC_ITER_TRAINING_WARMUP_WO_BACKBONE)
     mlflow_logger = MLFlowLogger(experiment_name=Configs.SC_EXPERIMENT_NAME, run_name=Configs.SC_RUN_NAME,
                                  save_dir=Configs.MLFLOW_SAVE_DIR,
                                  artifact_location=Configs.MLFLOW_SAVE_DIR,

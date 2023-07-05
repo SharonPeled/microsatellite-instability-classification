@@ -177,19 +177,18 @@ class SubtypeClassificationConfigs:
                                                 f'{SC_RUN_NAME}_pred', 'valid')
     SC_CLASS_TO_IND = {'GS': 0, 'CIN': 1}
     SC_NUM_EPOCHS = 1
-    SC_NUM_DEVICES = [1, ]
+    SC_NUM_DEVICES = [0, ]
     SC_DEVICE = 'gpu'
     SC_TEST_BATCH_SIZE = 256
     SC_SAVE_CHECKPOINT_STEP_INTERVAL = 10000
     SC_VAL_STEP_INTERVAL = 1/3  # 10 times an epoch
-    SC_TRAINING_BATCH_SIZE = 64  # accumulating gradients in MIL only
+    SC_TRAINING_BATCH_SIZE = 128  # accumulating gradients in MIL only
     SC_NUM_WORKERS = 20
     SC_TEST_SIZE = 0.1
     SC_VALID_SIZE = 0.1
-    SC_INIT_LR = 1e-4
+    SC_INIT_LR = [1e-6, 1e-4]  # per part of the network, in order of the actual nn
     SC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count, 3000)
     SC_FROZEN_BACKBONE = False
-    SC_LR_PER_PART = [1e-6, 1e-4] # the lr are in order of the actual nn
     SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 2500
     # MIL STUFF
     SC_MIL_GROUP_SIZE = 512

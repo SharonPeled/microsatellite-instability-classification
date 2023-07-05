@@ -51,11 +51,15 @@ class TransferLearningClassifier(pl.LightningModule):
             return F.cross_entropy(scores, y)
         return F.cross_entropy(scores, y, weight=self.class_weights.to(scores.device))
 
-    def configure_optimizers(self):
+    def set_training_warmup(self):
         if self.num_iters_warmup_wo_backbone is not None:
             for param in self.model[-1].parameters():
                 param.requires_grad = False
             self.backbone_grad_status = False
+            Logger.log(f"Backbone frozen for {self.num_iters_warmup_wo_backbone} steps.", log_importance=1)
+
+    def configure_optimizers(self):
+        self.set_training_warmup()
         optimizer = torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
         scheduler = ReduceLROnPlateau(optimizer, factor=0.1, patience=2)
         return {'optimizer': optimizer, 'lr_scheduler': scheduler, 'monitor': 'val_loss'}
@@ -74,6 +78,7 @@ class TransferLearningClassifier(pl.LightningModule):
             for param in self.model[-1].parameters():
                 param.requires_grad = True
             self.backbone_grad_status = True
+            Logger.log(f"Backbone unfrozen.", log_importance=1)
         train_loss, scores, y = self.general_loop(batch, batch_idx)
         self.logger.experiment.log_metric(self.logger.run_id, "train_loss", train_loss)
         return {"loss": train_loss}
