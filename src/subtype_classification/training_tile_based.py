@@ -13,6 +13,7 @@ from src.general_utils import train_test_valid_split_patients_stratified, save_p
 from pytorch_lightning.callbacks import LearningRateMonitor
 from src.components.models.SSL_VIT import SSL_VIT
 import os
+from src.components.objects.RandStainNA.randstainna import RandStainNA
 
 
 def set_worker_sharing_strategy(worker_id: int) -> None:
@@ -22,16 +23,25 @@ def set_worker_sharing_strategy(worker_id: int) -> None:
 def train():
     set_sharing_strategy('file_system')
     set_start_method("spawn")
-    # TODO change this as in the SSL paper..
     train_transform = transforms.Compose([
         transforms.RandomHorizontalFlip(),  # reverse 50% of images
         transforms.RandomVerticalFlip(),  # reverse 50% of images
 
+        transforms.RandomApply([transforms.GaussianBlur(kernel_size=(5, 5), sigma=(0.25, 1)),
+                                transforms.RandomAdjustSharpness(sharpness_factor=2)], p=0.1),
+
         transforms.RandomApply([transforms.Grayscale(num_output_channels=3), ], p=0.2),  # grayscale 20% of the images
         transforms.RandomApply([transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1)], p=0.8),
 
-        # transforms.RandomChoice([transforms.GaussianBlur(kernel_size=(5, 5), sigma=(0.25, 1)),
-        #                          transforms.RandomAdjustSharpness(sharpness_factor=2)], p=[0.15, 0.15]),
+        transforms.RandomApply([
+            RandStainNA(yaml_file=Configs.SSL_STATISTICS['HSV'], std_hyper=0.01, probability=1.0, distribution="normal",
+                        is_train=True),
+            RandStainNA(yaml_file=Configs.SSL_STATISTICS['HED'], std_hyper=0.01, probability=1.0, distribution="normal",
+                        is_train=True),
+            RandStainNA(yaml_file=Configs.SSL_STATISTICS['LAB'], std_hyper=0.01, probability=1.0, distribution="normal",
+                        is_train=True)],
+            p=0.8),
+
         transforms.Resize(224),
         transforms.ToTensor(),
         # MacenkoNormalizerTransform(Configs.COLOR_NORM_REF_IMG),  # gets tensor and output PIL ...

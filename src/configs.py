@@ -157,11 +157,12 @@ class TumorRegressionConfigs:
 
 class SubtypeClassificationConfigs:
     SC_EXPERIMENT_NAME = 'subtype_classification_tile_based'
-    SC_FORMULATION = 'trained_all'
-    SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_4"
-    SC_RUN_DESCRIPTION = f"""Pretrained SSL ViT16, trained all, 1e-4.
-    Sampling 2500 from each slide and shuffling tiles.
-    AUG same as the paper without RandStain.
+    SC_FORMULATION = 'fine_tuned_full_aug'
+    SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_5"
+    SC_RUN_DESCRIPTION = f"""Pretrained SSL ViT16, fine_tuned, 1e-6 1e-4 lr.
+    Sampling 8000 from each slide and shuffling tiles.
+    AUG with blur.
+    Warmup 5000 steps (batch 256).
     Big validation (0.1) and small test (0.1)"""
     SC_LABEL_DF_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                     'manifest_labeled_dx_molecular_subtype.tsv')
@@ -174,8 +175,14 @@ class SubtypeClassificationConfigs:
                                                f'{SC_RUN_NAME}_pred', 'test')
     SC_VALID_PREDICT_OUTPUT_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                                 f'{SC_RUN_NAME}_pred', 'valid')
+    SSL_STATISTICS = {'HSV': os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
+                                          'HSV_statistics_30.yaml'),
+                      'HED': os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
+                                          'HED_statistics_30.yaml'),
+                      'LAB': os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
+                                          'LAB_statistics_30.yaml')}
     SC_CLASS_TO_IND = {'GS': 0, 'CIN': 1}
-    SC_NUM_EPOCHS = 1
+    SC_NUM_EPOCHS = 2
     SC_NUM_DEVICES = [0, ]
     SC_DEVICE = 'gpu'
     SC_TEST_BATCH_SIZE = 256
@@ -185,10 +192,10 @@ class SubtypeClassificationConfigs:
     SC_NUM_WORKERS = 20
     SC_TEST_SIZE = 0.1
     SC_VALID_SIZE = 0.1
-    SC_INIT_LR = 1e-4 # [1e-6, 1e-4]  # per part of the network, in order of the actual nn
-    SC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count, 3000)
+    SC_INIT_LR = [1e-6, 1e-4]  # per part of the network, in order of the actual nn
+    SC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count, 8000)
     SC_FROZEN_BACKBONE = False
-    SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 1000
+    SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 5000
     # MIL STUFF
     SC_MIL_GROUP_SIZE = 512
     SC_MIL_VIT_MODEL_VARIANT = 'SSL_VIT_PRETRAINED'
