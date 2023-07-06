@@ -1,0 +1,6 @@
+[submodule "src/components/objects/RandStainNA"]
+	path = src/components/objects/RandStainNA
+	url = https://github.com/yiqings/RandStainNA.git
+[submodule "src/components/objects/DINO"]
+	path = src/components/objects/DINO
+	url = https://github.com/facebookresearch/dino.git
