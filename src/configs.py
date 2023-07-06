@@ -157,9 +157,9 @@ class TumorRegressionConfigs:
 
 class SubtypeClassificationConfigs:
     SC_EXPERIMENT_NAME = 'subtype_classification_tile_based'
-    SC_FORMULATION = 'fine_tuned_full_aug'
-    SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_5"
-    SC_RUN_DESCRIPTION = f"""Pretrained SSL ViT16, fine_tuned, 1e-6 1e-4 lr.
+    SC_FORMULATION = 'frozen_full_aug'
+    SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_6"
+    SC_RUN_DESCRIPTION = f"""Pretrained SSL ViT16, frozen
     Sampling 8000 from each slide and shuffling tiles.
     AUG with blur.
     Warmup 5000 steps (batch 256).
@@ -182,19 +182,19 @@ class SubtypeClassificationConfigs:
                       'LAB': os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                           'LAB_statistics_30.yaml')}
     SC_CLASS_TO_IND = {'GS': 0, 'CIN': 1}
-    SC_NUM_EPOCHS = 2
-    SC_NUM_DEVICES = [0, ]
+    SC_NUM_EPOCHS = 1
+    SC_NUM_DEVICES = [1, ]
     SC_DEVICE = 'gpu'
     SC_TEST_BATCH_SIZE = 256
     SC_SAVE_CHECKPOINT_STEP_INTERVAL = 10000
-    SC_VAL_STEP_INTERVAL = 1/3  # 10 times an epoch
+    SC_VAL_STEP_INTERVAL = 1 / 3  # 10 times an epoch
     SC_TRAINING_BATCH_SIZE = 256  # accumulating gradients in MIL only
     SC_NUM_WORKERS = 20
     SC_TEST_SIZE = 0.1
     SC_VALID_SIZE = 0.1
-    SC_INIT_LR = [1e-6, 1e-4]  # per part of the network, in order of the actual nn
+    SC_INIT_LR = 1e-4  # [1e-6, 1e-4]  # per part of the network, in order of the actual nn
     SC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count, 8000)
-    SC_FROZEN_BACKBONE = False
+    SC_FROZEN_BACKBONE = True
     SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 5000
     # MIL STUFF
     SC_MIL_GROUP_SIZE = 512
@@ -245,10 +245,10 @@ class VariantClassificationConfigs:
     VC_TEST_SIZE = 0.2
     VC_VALID_SIZE = 0.05
     VC_INIT_LR = 1e-5
-    VC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count//2, 1000)
+    VC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count // 2, 1000)
     VC_NUM_PERMUTATIONS = 10
     VC_LAST_PERMUTATION = 4
-    
+
 
 @dataclass
 class ConfigsClass(GeneralConfigs, PreprocessingConfigs, TumorClassificationConfigs, SemanticSegConfigs,
