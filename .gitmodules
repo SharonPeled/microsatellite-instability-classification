@@ -1,0 +1,3 @@
+[submodule "src/components/objects/RandStainNA"]
+	path = src/components/objects/RandStainNA
+	url = https://github.com/yiqings/RandStainNA.git
