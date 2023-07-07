@@ -93,6 +93,11 @@ def train():
     model = SSL_VIT(class_to_ind=Configs.SC_CLASS_TO_IND, learning_rate=Configs.SC_INIT_LR,
                     frozen_backbone=Configs.SC_FROZEN_BACKBONE, class_to_weight=None,
                     num_iters_warmup_wo_backbone=Configs.SC_ITER_TRAINING_WARMUP_WO_BACKBONE)
+    if Configs.SC_TEST_ONLY is not None:
+        model = SSL_VIT.load_from_checkpoint(Configs.SC_TEST_ONLY, class_to_ind=Configs.SC_CLASS_TO_IND,
+                                             learning_rate=Configs.SC_INIT_LR,frozen_backbone=Configs.SC_FROZEN_BACKBONE,
+                                             class_to_weight=None,
+                                             num_iters_warmup_wo_backbone=Configs.SC_ITER_TRAINING_WARMUP_WO_BACKBONE)
     mlflow_logger = MLFlowLogger(experiment_name=Configs.SC_EXPERIMENT_NAME, run_name=Configs.SC_RUN_NAME,
                                  save_dir=Configs.MLFLOW_SAVE_DIR,
                                  artifact_location=Configs.MLFLOW_SAVE_DIR,
@@ -110,8 +115,9 @@ def train():
                          logger=mlflow_logger,
                          num_sanity_val_steps=2,
                          max_epochs=Configs.SC_NUM_EPOCHS)
-    trainer.fit(model, train_loader, valid_loader, ckpt_path=None)
-    trainer.save_checkpoint(Configs.SC_TRAINED_MODEL_PATH)
+    if Configs.SC_TEST_ONLY is None:
+        trainer.fit(model, train_loader, valid_loader, ckpt_path=None)
+        trainer.save_checkpoint(Configs.SC_TRAINED_MODEL_PATH)
     Logger.log("Done Training.", log_importance=1)
     Logger.log("Starting Test.", log_importance=1)
     trainer.test(model, test_loader)

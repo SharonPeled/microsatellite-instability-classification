@@ -113,6 +113,8 @@ class TransferLearningClassifier(pl.LightningModule):
         self.log_epoch_level_metrics(outputs_cpu, dataset_str='valid')
         self.valid_outputs.append(outputs_cpu)
         del outputs  # free from CUDA
+        if not self.optimizers():
+            return
         self.logger.experiment.log_param(self.logger.run_id, f"lr_epoch_{self.current_epoch}",
                                          self.optimizers().optimizer.defaults['lr'])
 
