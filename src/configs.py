@@ -157,9 +157,9 @@ class TumorRegressionConfigs:
 
 class SubtypeClassificationConfigs:
     SC_EXPERIMENT_NAME = 'subtype_classification_tile_based'
-    SC_FORMULATION = 'frozen_full_aug'
-    SC_RUN_NAME = f"SSL_RESNET_{SC_FORMULATION}_7"
-    SC_RUN_DESCRIPTION = f"""Pretrained SSL Resnet MoCoV2, frozen, 1e-4 lr.
+    SC_FORMULATION = 'fine_tuned_full_aug'
+    SC_RUN_NAME = f"SSL_RESNET_{SC_FORMULATION}_6"
+    SC_RUN_DESCRIPTION = f"""Pretrained SSL Resnet MoCoV2, fine_tuned, 1e-6 1e-4 lr.
     Sampling 5000 from each slide and shuffling tiles.
     AUG with blur.
     Warmup 5000 steps (batch 256).
@@ -184,7 +184,7 @@ class SubtypeClassificationConfigs:
     SC_CLASS_TO_IND = {'GS': 0, 'CIN': 1}
     SC_TEST_ONLY = None
     SC_NUM_EPOCHS = 1
-    SC_NUM_DEVICES = [1, ]
+    SC_NUM_DEVICES = [0, ]
     SC_DEVICE = 'gpu'
     SC_TEST_BATCH_SIZE = 256
     SC_SAVE_CHECKPOINT_STEP_INTERVAL = 10000
@@ -195,7 +195,7 @@ class SubtypeClassificationConfigs:
     SC_VALID_SIZE = 0.1
     SC_INIT_LR = [1e-6, 1e-4]  # per part of the network, in order of the actual nn
     SC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count, 5000)
-    SC_FROZEN_BACKBONE = True
+    SC_FROZEN_BACKBONE = False
     SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 5000
     SC_TILE_ENCODER = 'SSL_RESNET_PRETRAINED'
     # MIL STUFF
