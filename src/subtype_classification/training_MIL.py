@@ -11,7 +11,7 @@ from src.components.models.MIL_VIT import MIL_VIT
 from src.components.objects.CheckpointEveryNSteps import CheckpointEveryNSteps
 import pandas as pd
 from src.general_utils import train_test_valid_split_patients_stratified, save_pred_outputs, modify_model_for_transfer_learning
-from src.training_utils import load_tile_encoder
+from src.training_utils import load_headless_tile_encoder
 from pytorch_lightning.callbacks import LearningRateMonitor
 import os
 from torchvision.models import resnet50
@@ -92,7 +92,8 @@ def train():
     test_loader = DataLoader(test_dataset, batch_size=Configs.SC_TEST_BATCH_SIZE, shuffle=False,
                              persistent_workers=True, num_workers=Configs.SC_NUM_WORKERS,
                              worker_init_fn=set_worker_sharing_strategy)
-    tile_encoder, encoder_num_features = load_tile_encoder(Configs)
+    tile_encoder, encoder_num_features = load_headless_tile_encoder(Configs.SC_TILE_ENCODER,
+                                                                    path=Configs.SC_TILE_BASED_TRAINED_MODEL)
     model = MIL_VIT(class_to_ind=Configs.SC_CLASS_TO_IND, learning_rate=Configs.SC_INIT_LR,
                     cohort_dict=Configs.SC_COHORT_DICT, dropout=Configs.SC_DROPOUT, tile_encoder=tile_encoder,
                     encoder_num_features=encoder_num_features,

@@ -158,9 +158,9 @@ class TumorRegressionConfigs:
 class SubtypeClassificationConfigs:
     SC_EXPERIMENT_NAME = 'subtype_classification_tile_based'
     SC_FORMULATION = 'fine_tuned_full_aug'
-    SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_5"
-    SC_RUN_DESCRIPTION = f"""Pretrained SSL ViT16, fine_tuned, 1e-6 1e-4 lr.
-    Sampling 8000 from each slide and shuffling tiles.
+    SC_RUN_NAME = f"SSL_RESNET_{SC_FORMULATION}_6"
+    SC_RUN_DESCRIPTION = f"""Pretrained SSL Resnet MoCoV2, fine_tuned, 1e-6 1e-4 lr.
+    Sampling 5000 from each slide and shuffling tiles.
     AUG with blur.
     Warmup 5000 steps (batch 256).
     Big validation (0.1) and small test (0.1)"""
@@ -182,7 +182,7 @@ class SubtypeClassificationConfigs:
                       'LAB': os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                           'LAB_statistics_30.yaml')}
     SC_CLASS_TO_IND = {'GS': 0, 'CIN': 1}
-    SC_TEST_ONLY = "/home/sharonpe/microsatellite-instability-classification/models/mlruns/451ceab5cf064408970523e43b3384d9/artifacts/model/checkpoints/epoch=0-step=23295/epoch=0-step=23295.ckpt"
+    SC_TEST_ONLY = None
     SC_NUM_EPOCHS = 1
     SC_NUM_DEVICES = [0, ]
     SC_DEVICE = 'gpu'
@@ -194,13 +194,13 @@ class SubtypeClassificationConfigs:
     SC_TEST_SIZE = 0.1
     SC_VALID_SIZE = 0.1
     SC_INIT_LR = [1e-6, 1e-4]  # per part of the network, in order of the actual nn
-    SC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count, 8000)
+    SC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count, 5000)
     SC_FROZEN_BACKBONE = False
     SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 5000
+    SC_TILE_ENCODER = 'SSL_RESNET_PRETRAINED'
     # MIL STUFF
     SC_MIL_GROUP_SIZE = 512
     SC_MIL_VIT_MODEL_VARIANT = 'SSL_VIT_PRETRAINED'
-    SC_TILE_ENCODER = 'SSL_VIT_PRETRAINED'
     SC_MIL_VIT_MODEL_PRETRAINED = True
     SC_TILE_BASED_TRAINED_MODEL = '/home/sharonpe/microsatellite-instability-classification/models/subtype_classification/SC_resnet_tile_CIS_GS_2_20_06_2023_19_26.ckpt'
     SC_MIL_IMAGENET_RESENT = False

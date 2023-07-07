@@ -11,7 +11,7 @@ from src.components.objects.CheckpointEveryNSteps import CheckpointEveryNSteps
 import pandas as pd
 from src.general_utils import train_test_valid_split_patients_stratified, save_pred_outputs
 from pytorch_lightning.callbacks import LearningRateMonitor
-from src.components.models.SSL_VIT import SSL_VIT
+from src.components.models.PretrainedClassifier import PretrainedClassifier
 import os
 from src.components.objects.RandStainNA.randstainna import RandStainNA
 
@@ -90,14 +90,17 @@ def train():
                              persistent_workers=True, num_workers=Configs.SC_NUM_WORKERS,
                              worker_init_fn=set_worker_sharing_strategy)
 
-    model = SSL_VIT(class_to_ind=Configs.SC_CLASS_TO_IND, learning_rate=Configs.SC_INIT_LR,
-                    frozen_backbone=Configs.SC_FROZEN_BACKBONE, class_to_weight=None,
-                    num_iters_warmup_wo_backbone=Configs.SC_ITER_TRAINING_WARMUP_WO_BACKBONE)
+    model = PretrainedClassifier(tile_encoder_name=Configs.SC_TILE_ENCODER, class_to_ind=Configs.SC_CLASS_TO_IND,
+                                 learning_rate=Configs.SC_INIT_LR, frozen_backbone=Configs.SC_FROZEN_BACKBONE,
+                                 class_to_weight=None,
+                                 num_iters_warmup_wo_backbone=Configs.SC_ITER_TRAINING_WARMUP_WO_BACKBONE)
     if Configs.SC_TEST_ONLY is not None:
-        model = SSL_VIT.load_from_checkpoint(Configs.SC_TEST_ONLY, class_to_ind=Configs.SC_CLASS_TO_IND,
-                                             learning_rate=Configs.SC_INIT_LR,frozen_backbone=Configs.SC_FROZEN_BACKBONE,
-                                             class_to_weight=None,
-                                             num_iters_warmup_wo_backbone=Configs.SC_ITER_TRAINING_WARMUP_WO_BACKBONE)
+        model = PretrainedClassifier.load_from_checkpoint(Configs.SC_TEST_ONLY, tile_encoder_name=Configs.SC_TILE_ENCODER,
+                                                          class_to_ind=Configs.SC_CLASS_TO_IND,
+                                                          learning_rate=Configs.SC_INIT_LR,
+                                                          frozen_backbone=Configs.SC_FROZEN_BACKBONE,
+                                                          class_to_weight=None,
+                                                          num_iters_warmup_wo_backbone=Configs.SC_ITER_TRAINING_WARMUP_WO_BACKBONE)
     mlflow_logger = MLFlowLogger(experiment_name=Configs.SC_EXPERIMENT_NAME, run_name=Configs.SC_RUN_NAME,
                                  save_dir=Configs.MLFLOW_SAVE_DIR,
                                  artifact_location=Configs.MLFLOW_SAVE_DIR,

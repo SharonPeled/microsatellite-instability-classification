@@ -3,6 +3,13 @@
 
 test:
 
+P_SSL (DINO/MOCO), P_IMG (VIT/RESENT)
+F_PRE - TO BE DONE
+SUP, FINE, FROZEN - FINE/FROZEN - FROZEN (so no leakage)
+AUG - fine
+
+
+AUG_FULL, FROZEN, MOCO, F_PRE (DINO
 
 to do:
     tile based:
