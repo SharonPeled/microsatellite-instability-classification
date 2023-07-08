@@ -76,9 +76,12 @@ def train():
                                                                              valid_size=Configs.SC_VALID_SIZE,
                                                                              random_seed=Configs.RANDOM_SEED)
 
-    train_dataset = ProcessedTileDataset(df_labels=df_train, transform=train_transform)
-    valid_dataset = ProcessedTileDataset(df_labels=df_valid, transform=test_transform)
-    test_dataset = ProcessedTileDataset(df_labels=df_test, transform=test_transform)
+    train_dataset = ProcessedTileDataset(df_labels=df_train, transform=train_transform,
+                                         cohort_to_index=Configs.SC_COHORT_TO_IND)
+    valid_dataset = ProcessedTileDataset(df_labels=df_valid, transform=test_transform,
+                                         cohort_to_index=Configs.SC_COHORT_TO_IND)
+    test_dataset = ProcessedTileDataset(df_labels=df_test, transform=test_transform,
+                                        cohort_to_index=Configs.SC_COHORT_TO_IND)
 
     train_loader = DataLoader(train_dataset, batch_size=Configs.SC_TRAINING_BATCH_SIZE, shuffle=True,
                               persistent_workers=True, num_workers=Configs.SC_NUM_WORKERS,
@@ -93,14 +96,17 @@ def train():
     model = PretrainedClassifier(tile_encoder_name=Configs.SC_TILE_ENCODER, class_to_ind=Configs.SC_CLASS_TO_IND,
                                  learning_rate=Configs.SC_INIT_LR, frozen_backbone=Configs.SC_FROZEN_BACKBONE,
                                  class_to_weight=Configs.SC_CLASS_WEIGHT,
-                                 num_iters_warmup_wo_backbone=Configs.SC_ITER_TRAINING_WARMUP_WO_BACKBONE)
+                                 num_iters_warmup_wo_backbone=Configs.SC_ITER_TRAINING_WARMUP_WO_BACKBONE,
+                                 cohort_to_ind=Configs.SC_COHORT_TO_IND, cohort_weight=Configs.SC_COHORT_WEIGHT)
     if Configs.SC_TEST_ONLY is not None:
         model = PretrainedClassifier.load_from_checkpoint(Configs.SC_TEST_ONLY, tile_encoder_name=Configs.SC_TILE_ENCODER,
                                                           class_to_ind=Configs.SC_CLASS_TO_IND,
                                                           learning_rate=Configs.SC_INIT_LR,
                                                           frozen_backbone=Configs.SC_FROZEN_BACKBONE,
                                                           class_to_weight=Configs.SC_CLASS_WEIGHT,
-                                                          num_iters_warmup_wo_backbone=Configs.SC_ITER_TRAINING_WARMUP_WO_BACKBONE)
+                                                          num_iters_warmup_wo_backbone=Configs.SC_ITER_TRAINING_WARMUP_WO_BACKBONE,
+                                                          cohort_to_ind=Configs.SC_COHORT_TO_IND,
+                                                          cohort_weight=Configs.SC_COHORT_WEIGHT)
     mlflow_logger = MLFlowLogger(experiment_name=Configs.SC_EXPERIMENT_NAME, run_name=Configs.SC_RUN_NAME,
                                  save_dir=Configs.MLFLOW_SAVE_DIR,
                                  artifact_location=Configs.MLFLOW_SAVE_DIR,
