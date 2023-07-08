@@ -14,6 +14,8 @@ class PretrainedClassifier(TransferLearningClassifier):
                                                    num_iters_warmup_wo_backbone=num_iters_warmup_wo_backbone)
         self.model, num_features = load_headless_tile_encoder(tile_encoder_name)
         self.cohort_to_ind = cohort_to_ind
+        self.ind_to_cohort = {value: key for key, value in cohort_to_ind.items()}
+        self.ind_to_class = {value: key for key, value in class_to_ind.items()}
         self.cohort_weight = cohort_weight
         self.frozen_backbone = frozen_backbone
         if self.frozen_backbone:
@@ -25,6 +27,8 @@ class PretrainedClassifier(TransferLearningClassifier):
             Logger.log(f"Backbone frozen.", log_importance=1)
         self.head = nn.Linear(num_features, len(self.class_to_ind))
         self.model = nn.Sequential(self.model, self.head)
+        Logger.log(f"""TransferLearningClassifier created with cohort weights: {self.cohort_weight}.""", log_importance=1)
+        Logger.log(f"""TransferLearningClassifier created with encoder name: {tile_encoder_name}.""", log_importance=1)
 
     def configure_optimizers(self):
         self.set_training_warmup()
@@ -54,6 +58,15 @@ class PretrainedClassifier(TransferLearningClassifier):
         return loss, scores, y
 
     def loss(self, scores, y, c=None):
-        if self.class_weights is None:
-            return F.cross_entropy(scores, y)
-        return F.cross_entropy(scores, y, weight=self.class_weights.to(scores.device))
+        if self.cohort_weight is None or c is None:
+            return super().loss(scores, y)
+        loss_per_sample = F.cross_entropy(scores, y, reduction='none')
+        sample_weight = []
+        for sample_cohort_ind, sample_class_ind in zip(c,y):
+            sample_weight.append(self.cohort_weight[(self.ind_to_cohort[sample_cohort_ind.item()],
+                                                     self.ind_to_class[sample_class_ind.item()])])
+        sum_w = float(sum(sample_weight))
+        weight_tensor = torch.Tensor([w / sum_w for w in sample_weight]).to(y.device)
+        return (loss_per_sample * weight_tensor).mean()
+
+

@@ -18,7 +18,7 @@ class TransferLearningClassifier(pl.LightningModule):
         if model is None and class_to_ind is None:
             raise "Invalid parameters."
         self.class_to_ind = class_to_ind
-        self.class_weights = self.init_class_weights(class_to_weight)
+        self.class_weights = self.init_weights(class_to_weight)
         self.learning_rate = learning_rate
         self.num_iters_warmup_wo_backbone = num_iters_warmup_wo_backbone  # for this to work the model has to be a sequential
         self.backbone_grad_status = None
@@ -37,7 +37,7 @@ class TransferLearningClassifier(pl.LightningModule):
         self.valid_outputs = []
         Logger.log(f"""TransferLearningClassifier created with loss weights: {self.class_weights}.""", log_importance=1)
 
-    def init_class_weights(self, class_to_weight):
+    def init_weights(self, class_to_weight):
         if class_to_weight is None:
             return None
         sum_w = float(sum(class_to_weight.values()))
