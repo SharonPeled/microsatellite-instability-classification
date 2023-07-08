@@ -9,7 +9,7 @@ SUP, FINE, FROZEN - FINE/FROZEN - FROZEN (so no leakage)
 AUG - fine
 
 
-AUG_FULL, FROZEN, MOCO, F_PRE (DINO
+cls_w/cht_w - dino/MOCo fine/frozen
 
 to do:
     tile based:

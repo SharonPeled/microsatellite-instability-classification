@@ -92,14 +92,14 @@ def train():
 
     model = PretrainedClassifier(tile_encoder_name=Configs.SC_TILE_ENCODER, class_to_ind=Configs.SC_CLASS_TO_IND,
                                  learning_rate=Configs.SC_INIT_LR, frozen_backbone=Configs.SC_FROZEN_BACKBONE,
-                                 class_to_weight=None,
+                                 class_to_weight=Configs.SC_CLASS_WEIGHT,
                                  num_iters_warmup_wo_backbone=Configs.SC_ITER_TRAINING_WARMUP_WO_BACKBONE)
     if Configs.SC_TEST_ONLY is not None:
         model = PretrainedClassifier.load_from_checkpoint(Configs.SC_TEST_ONLY, tile_encoder_name=Configs.SC_TILE_ENCODER,
                                                           class_to_ind=Configs.SC_CLASS_TO_IND,
                                                           learning_rate=Configs.SC_INIT_LR,
                                                           frozen_backbone=Configs.SC_FROZEN_BACKBONE,
-                                                          class_to_weight=None,
+                                                          class_to_weight=Configs.SC_CLASS_WEIGHT,
                                                           num_iters_warmup_wo_backbone=Configs.SC_ITER_TRAINING_WARMUP_WO_BACKBONE)
     mlflow_logger = MLFlowLogger(experiment_name=Configs.SC_EXPERIMENT_NAME, run_name=Configs.SC_RUN_NAME,
                                  save_dir=Configs.MLFLOW_SAVE_DIR,

@@ -157,12 +157,12 @@ class TumorRegressionConfigs:
 
 class SubtypeClassificationConfigs:
     SC_EXPERIMENT_NAME = 'subtype_classification_tile_based'
-    SC_FORMULATION = 'fine_tuned_full_aug'
-    SC_RUN_NAME = f"SSL_RESNET_{SC_FORMULATION}_6"
-    SC_RUN_DESCRIPTION = f"""Pretrained SSL Resnet MoCoV2, fine_tuned, 1e-6 1e-4 lr.
-    Sampling 5000 from each slide and shuffling tiles.
+    SC_FORMULATION = 'frozen_aug_cls_w'
+    SC_RUN_NAME = f"SSL_RESNET_{SC_FORMULATION}_8"
+    SC_RUN_DESCRIPTION = f"""Pretrained SSL Resnet MoCoV2, frozen 1e-4 lr.
+    Class weights: ['GS': 770, 'CIN': 235]
+    Sampling 1000 from each slide and shuffling tiles.
     AUG with blur.
-    Warmup 5000 steps (batch 256).
     Big validation (0.1) and small test (0.1)"""
     SC_LABEL_DF_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                     'manifest_labeled_dx_molecular_subtype.tsv')
@@ -182,6 +182,7 @@ class SubtypeClassificationConfigs:
                       'LAB': os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                           'LAB_statistics_30.yaml')}
     SC_CLASS_TO_IND = {'GS': 0, 'CIN': 1}
+    SC_CLASS_WEIGHT = {'GS': 770, 'CIN': 235}
     SC_TEST_ONLY = None
     SC_NUM_EPOCHS = 1
     SC_NUM_DEVICES = [0, ]
@@ -189,13 +190,13 @@ class SubtypeClassificationConfigs:
     SC_TEST_BATCH_SIZE = 256
     SC_SAVE_CHECKPOINT_STEP_INTERVAL = 10000
     SC_VAL_STEP_INTERVAL = 1/3  # 10 times an epoch
-    SC_TRAINING_BATCH_SIZE = 200  # accumulating gradients in MIL only
+    SC_TRAINING_BATCH_SIZE = 256  # accumulating gradients in MIL only
     SC_NUM_WORKERS = 20
     SC_TEST_SIZE = 0.1
     SC_VALID_SIZE = 0.1
     SC_INIT_LR = [1e-6, 1e-4]  # per part of the network, in order of the actual nn
-    SC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count, 5000)
-    SC_FROZEN_BACKBONE = False
+    SC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count, 1000)
+    SC_FROZEN_BACKBONE = True
     SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 2500
     SC_TILE_ENCODER = 'SSL_RESNET_PRETRAINED'
     # MIL STUFF
