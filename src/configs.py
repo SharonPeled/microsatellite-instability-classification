@@ -36,7 +36,7 @@ class PreprocessingConfigs:
     # SLIDES_DIR = os.path.join(GeneralConfigs.ROOT, 'data', 'slides')
     # PROCESSED_TILES_DIR = os.path.join(GeneralConfigs.ROOT, 'data', f'processed_tiles_{PREPROCESS_RUN_NAME}')
     SLIDES_DIR = '/mnt/data/users/sharonpe/slides'
-    PROCESSED_TILES_DIR = '/mnt/data/users/sharonpe/processed_tiles_224'
+    PROCESSED_TILES_DIR = '/mnt/data/users/sharonpe/processed_tiles_512'
     TILE_SIZE = 512  # should be divisible by downsample of reduced image, the easiest way is to set to be a power of 2
     REDUCED_LEVEL_TO_MEMORY = [3, 2]  # attempting to load according to order
     TARGET_MAG_POWER = 20
