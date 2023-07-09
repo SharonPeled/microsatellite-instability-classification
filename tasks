@@ -1,21 +1,25 @@
 
-
-
-test:
-
 P_SSL (DINO/MOCO), P_IMG (VIT/RESENT)
 F_PRE - TO BE DONE
 SUP, FINE, FROZEN - FINE/FROZEN - FROZEN (so no leakage)
 AUG - fine
-
-
 cls_w/cht_w - dino/MOCo fine/frozen
 
+
+
+test:
+Look on the AUC per dataset in the experiement.
+
+
+
 to do:
+Fix the objective power differences ...
+
     tile based:
+        test imagenet
         run with full aug (fine tuned, for long time)
 
-mil
+    mil:
         DINO fine tune on images
 
 

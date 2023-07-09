@@ -1,3 +1,4 @@
+import numpy as np
 from src.components.models.TransferLearningClassifier import TransferLearningClassifier
 from torchvision.models import resnet50
 from timm.models.vision_transformer import VisionTransformer
@@ -5,6 +6,15 @@ from torchvision.models.resnet import Bottleneck, ResNet
 from torch import nn
 import torch
 from src.components.objects.Logger import Logger
+from sklearn.metrics import roc_auc_score, classification_report
+
+
+def calc_safe_auc(y_true, y_score):
+    try:
+        return roc_auc_score(y_true, y_score)
+    except Exception as e:
+        print(e)
+        return np.nan
 
 
 def get_pretrained_url(key):

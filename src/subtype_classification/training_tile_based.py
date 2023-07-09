@@ -11,7 +11,7 @@ from src.components.objects.CheckpointEveryNSteps import CheckpointEveryNSteps
 import pandas as pd
 from src.general_utils import train_test_valid_split_patients_stratified, save_pred_outputs
 from pytorch_lightning.callbacks import LearningRateMonitor
-from src.components.models.PretrainedClassifier import PretrainedClassifier
+from src.components.models.SubtypeClassifier import SubtypeClassifier
 import os
 from src.components.objects.RandStainNA.randstainna import RandStainNA
 
@@ -93,13 +93,13 @@ def train():
                              persistent_workers=True, num_workers=Configs.SC_NUM_WORKERS,
                              worker_init_fn=set_worker_sharing_strategy)
 
-    model = PretrainedClassifier(tile_encoder_name=Configs.SC_TILE_ENCODER, class_to_ind=Configs.SC_CLASS_TO_IND,
+    model = SubtypeClassifier(tile_encoder_name=Configs.SC_TILE_ENCODER, class_to_ind=Configs.SC_CLASS_TO_IND,
                                  learning_rate=Configs.SC_INIT_LR, frozen_backbone=Configs.SC_FROZEN_BACKBONE,
                                  class_to_weight=Configs.SC_CLASS_WEIGHT,
                                  num_iters_warmup_wo_backbone=Configs.SC_ITER_TRAINING_WARMUP_WO_BACKBONE,
                                  cohort_to_ind=Configs.SC_COHORT_TO_IND, cohort_weight=Configs.SC_COHORT_WEIGHT)
     if Configs.SC_TEST_ONLY is not None:
-        model = PretrainedClassifier.load_from_checkpoint(Configs.SC_TEST_ONLY, tile_encoder_name=Configs.SC_TILE_ENCODER,
+        model = SubtypeClassifier.load_from_checkpoint(Configs.SC_TEST_ONLY, tile_encoder_name=Configs.SC_TILE_ENCODER,
                                                           class_to_ind=Configs.SC_CLASS_TO_IND,
                                                           learning_rate=Configs.SC_INIT_LR,
                                                           frozen_backbone=Configs.SC_FROZEN_BACKBONE,

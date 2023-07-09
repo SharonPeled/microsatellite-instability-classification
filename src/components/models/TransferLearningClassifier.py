@@ -69,10 +69,10 @@ class TransferLearningClassifier(pl.LightningModule):
     def general_loop(self, batch, batch_idx):
         if isinstance(batch, list) and len(batch) == 1:
             batch = batch[0]
-        x, y = batch
+        x, y, slide_id = batch
         scores = self.forward(x)
         loss = self.loss(scores, y)
-        return loss, scores, y
+        return {'loss': loss, 'scores': scores, 'y': y, 'slide_id': slide_id}
 
     def training_step(self, batch, batch_idx):
         if self.num_iters_warmup_wo_backbone is not None and not self.backbone_grad_status \
@@ -83,20 +83,22 @@ class TransferLearningClassifier(pl.LightningModule):
             Logger.log(f"Backbone unfrozen, step {batch_idx}.", log_importance=1)
             num_training_params = sum(p.numel() for p in self.model.parameters() if p.requires_grad)
             Logger.log(f"Number of training params: {num_training_params}.", log_importance=1)
-        train_loss, scores, y = self.general_loop(batch, batch_idx)
-        self.logger.experiment.log_metric(self.logger.run_id, "train_loss", train_loss)
-        return {"loss": train_loss}
+        loop_dict = self.general_loop(batch, batch_idx)
+        self.logger.experiment.log_metric(self.logger.run_id, "train_loss", loop_dict['loss'])
+        return {"loss": loop_dict['loss']}
 
     def validation_step(self, batch, batch_idx):
-        val_loss, scores, y = self.general_loop(batch, batch_idx)
-        self.log("val_loss", val_loss, on_step=False, on_epoch=True, sync_dist=True)
-        self.logger.experiment.log_metric(self.logger.run_id, "val_loss", val_loss)
-        return {"scores": scores, "y": y, "batch_idx": batch_idx}
+        loop_dict = self.general_loop(batch, batch_idx)
+        self.log("val_loss", loop_dict['loss'], on_step=False, on_epoch=True, sync_dist=True)
+        self.logger.experiment.log_metric(self.logger.run_id, "val_loss", loop_dict['loss'])
+        loop_dict['batch_idx'] = batch_idx
+        return loop_dict
 
     def test_step(self, batch, batch_idx):
-        test_loss, scores, y = self.general_loop(batch, batch_idx)
-        self.logger.experiment.log_metric(self.logger.run_id, "test_loss", test_loss)
-        return {"scores": scores, "y": y, "batch_idx": batch_idx}
+        loop_dict = self.general_loop(batch, batch_idx)
+        self.logger.experiment.log_metric(self.logger.run_id, "test_loss", loop_dict['loss'])
+        loop_dict['batch_idx'] = batch_idx
+        return loop_dict
 
     def log_epoch_level_metrics(self, outputs, dataset_str):
         scores = torch.concat([out["scores"] for out in outputs])
@@ -106,10 +108,7 @@ class TransferLearningClassifier(pl.LightningModule):
         self.log_metrics(y_true, y_pred, logits, dataset_str=dataset_str)
 
     def validation_epoch_end(self, outputs):
-        outputs_cpu = [{"scores": outputs[i]['scores'].cpu(),
-                        "y": outputs[i]['y'].cpu(),
-                        "batch_idx": outputs[i]['batch_idx']}
-                       for i in range(len(outputs))]
+        outputs_cpu = TransferLearningClassifier.outputs_to_cpu(outputs)
         self.log_epoch_level_metrics(outputs_cpu, dataset_str='valid')
         self.valid_outputs.append(outputs_cpu)
         del outputs  # free from CUDA
@@ -119,10 +118,7 @@ class TransferLearningClassifier(pl.LightningModule):
                                          self.optimizers().optimizer.defaults['lr'])
 
     def test_epoch_end(self, outputs):
-        outputs_cpu = [{"scores": outputs[i]['scores'].cpu(),
-                        "y": outputs[i]['y'].cpu(),
-                        "batch_idx": outputs[i]['batch_idx']}
-                       for i in range(len(outputs))]
+        outputs_cpu = TransferLearningClassifier.outputs_to_cpu(outputs)
         self.log_epoch_level_metrics(outputs_cpu, dataset_str='test')
         self.test_outputs = outputs_cpu
         del outputs  # free from CUDA
@@ -131,7 +127,7 @@ class TransferLearningClassifier(pl.LightningModule):
         return self.forward(batch)
 
     def log_metrics(self, y_true, y_pred, logits, dataset_str):
-        if self.class_to_ind is None or len(np.unique(y_true))==1:
+        if self.class_to_ind is None or len(np.unique(y_true)) == 1:
             return
         target_names = self.class_to_ind.keys()
         # precision, recall, f1 per class
@@ -163,3 +159,15 @@ class TransferLearningClassifier(pl.LightningModule):
         fig = generate_confusion_matrix_figure(y_true, y_pred, target_names)
         self.logger.experiment.log_figure(self.logger.run_id, fig,
                                           f"confusion_matrix_{dataset_str}_{self.current_epoch}.png")
+
+    @staticmethod
+    def outputs_to_cpu(outputs):
+        outputs_cpu = []
+        for out in outputs:
+            d = {}
+            for k, v in out.items():
+                if isinstance(v, torch.Tensor):
+                    v = v.cpu()
+                d[k] = v
+            outputs_cpu.append(d)
+        return outputs_cpu

@@ -47,40 +47,43 @@ class ProcessedTileDataset(Dataset, Logger):
     def __getitem__(self, index):
         if self.group_size == -1:
             row = self.df_labels.loc[index]
-            img, cohort, y = self.load_single_tile(row)
+            img, cohort, y, slide_id = self.load_single_tile(row)
             if self.cohort_to_index is not None:
-                return img, cohort, y
-            return img, y
+                return img, cohort, y, slide_id
+            return img, y, slide_id
         else:
             index += self.index_shift
-            imgs, cohort, y = self.load_group_tiles(index)
+            imgs, cohort, y, slide_id = self.load_group_tiles(index)
             if self.cohort_to_index is not None:
-                return imgs, cohort, y
-            return imgs, y
+                return imgs, cohort, y, slide_id
+            return imgs, y, slide_id
 
     def load_group_tiles(self, index):
         group_rows = self.df_labels.loc[index]  # Get all rows of the group
         images = []
         labels = []
         cohorts = []
+        slide_ids = []
         for _, row in group_rows.iterrows():
-            img, cohort, y = self.load_single_tile(row)
+            img, cohort, y, slide_id = self.load_single_tile(row)
             images.append(img)
             labels.append(y)
             cohorts.append(cohort)
-        return torch.stack(images), cohorts[-1], labels[-1]
+            slide_ids.append(slide_id)
+        return torch.stack(images), cohorts[-1], labels[-1], slide_ids
 
     def load_single_tile(self, row):
         img = Image.open(row['tile_path'])
         y = row['y']
         cohort = row['cohort']
+        slide_id = row['slide_id']
         if self.transform:
             img = self.transform(img)
         if self.target_transform:
             y = self.target_transform(y)
         if self.cohort_to_index is not None:
-            return img, self.cohort_to_index[cohort], y
-        return img, None, y
+            return img, self.cohort_to_index[cohort], y, slide_id
+        return img, None, y, slide_id
 
     def __len__(self):
         return self.dataset_length
