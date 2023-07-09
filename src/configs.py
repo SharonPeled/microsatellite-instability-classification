@@ -23,7 +23,7 @@ class GeneralConfigs:
 
 @dataclass
 class PreprocessingConfigs:
-    PREPROCESS_RUN_NAME = '224'
+    PREPROCESS_RUN_NAME = '512'
     METADATA_JSON_FILENAME = f'metadata_{PREPROCESS_RUN_NAME}.json'
     SUMMARY_DF_FILENAME = f'summary_df_{PREPROCESS_RUN_NAME}.csv'
     THUMBNAIL_FILENAME = f'thumbnail_{PREPROCESS_RUN_NAME}.png'
@@ -33,11 +33,11 @@ class PreprocessingConfigs:
     TO_MACENKO_NORMALIZE = False
     PREPROCESSING_DEVICE = 'cpu'
     # Assuming TCGA folder structure, where each slide is in a separate dir and the dir is named after the slide ID
-    SLIDES_DIR = os.path.join(GeneralConfigs.ROOT, 'data', 'slides')
-    PROCESSED_TILES_DIR = os.path.join(GeneralConfigs.ROOT, 'data', f'processed_tiles_{PREPROCESS_RUN_NAME}')
-    # SLIDES_DIR = '/mnt/data/users/sharonpe/slides'
-    # PROCESSED_TILES_DIR = '/mnt/data/users/sharonpe/processed_tiles_224'
-    TILE_SIZE = 224  # should be divisible by downsample of reduced image, the easiest way is to set to be a power of 2
+    # SLIDES_DIR = os.path.join(GeneralConfigs.ROOT, 'data', 'slides')
+    # PROCESSED_TILES_DIR = os.path.join(GeneralConfigs.ROOT, 'data', f'processed_tiles_{PREPROCESS_RUN_NAME}')
+    SLIDES_DIR = '/mnt/data/users/sharonpe/slides'
+    PROCESSED_TILES_DIR = '/mnt/data/users/sharonpe/processed_tiles_224'
+    TILE_SIZE = 512  # should be divisible by downsample of reduced image, the easiest way is to set to be a power of 2
     REDUCED_LEVEL_TO_MEMORY = [3, 2]  # attempting to load according to order
     TARGET_MAG_POWER = 20
     MAG_ATTR = 'openslide.objective-power'
@@ -158,8 +158,8 @@ class TumorRegressionConfigs:
 class SubtypeClassificationConfigs:
     SC_EXPERIMENT_NAME = 'subtype_classification_tile_based'
     SC_FORMULATION = 'fine_aug_cls_w'
-    SC_RUN_NAME = f"SSL_IMG_{SC_FORMULATION}_12"
-    SC_RUN_DESCRIPTION = f"""Pretrained resnet imagenet, fine 1e-6 1e-4 lr.
+    SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_12"
+    SC_RUN_DESCRIPTION = f"""Pretrained VIT DINO, fine 1e-6 1e-4 lr.
     Class weights: ['GS': 770, 'CIN': 235]
     Cohort weight - inverse propotional to caridnality of classXcohort - with COAD and READ times 5.
     Sampling 5000 from each slide and shuffling tiles.
@@ -188,7 +188,7 @@ class SubtypeClassificationConfigs:
     SC_COHORT_WEIGHT = None # {('COAD', 'CIN'): 0.052, ('COAD', 'GS'): 0.231, ('ESCA', 'CIN'): 0.043, ('ESCA', 'GS'): 0.231, ('READ', 'CIN'): 0.127, ('READ', 'GS'): 0.231, ('STAD', 'CIN'): 0.011, ('STAD', 'GS'): 0.045, ('UCEC', 'CIN'): 0.014, ('UCEC', 'GS'): 0.015}
     SC_TEST_ONLY = None
     SC_NUM_EPOCHS = 1
-    SC_NUM_DEVICES = [0, ]
+    SC_NUM_DEVICES = [1, ]
     SC_DEVICE = 'gpu'
     SC_TEST_BATCH_SIZE = 256
     SC_SAVE_CHECKPOINT_STEP_INTERVAL = 10000
@@ -197,11 +197,11 @@ class SubtypeClassificationConfigs:
     SC_NUM_WORKERS = 20
     SC_TEST_SIZE = 0.1
     SC_VALID_SIZE = 0.1
-    SC_INIT_LR = [1e-5, 1e-4]  # per part of the network, in order of the actual nn
+    SC_INIT_LR = [1e-6, 1e-4]  # per part of the network, in order of the actual nn
     SC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count, 5000)
     SC_FROZEN_BACKBONE = False
-    SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 1000
-    SC_TILE_ENCODER = 'pretrained_resent_imagenet'
+    SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 5000
+    SC_TILE_ENCODER = 'SSL_VIT_PRETRAINED'
     # MIL STUFF
     SC_MIL_GROUP_SIZE = 512
     SC_MIL_VIT_MODEL_VARIANT = 'SSL_VIT_PRETRAINED'

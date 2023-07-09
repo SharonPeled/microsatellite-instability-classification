@@ -78,7 +78,7 @@ class SubtypeClassifier(PretrainedClassifier):
                                                                          df_group.CIN_score))
         for cohort, auc in df_slide_cohort.iteritems():
             self.logger.experiment.log_metric(self.logger.run_id, f"{dataset_str}_slide_{cohort}_CIN_AUC",
-                                              slide_cin_auc)
+                                              auc)
 
         super().log_metrics(y_true, y_pred, logits, dataset_str=dataset_str)
 
