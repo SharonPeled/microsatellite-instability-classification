@@ -14,6 +14,8 @@ Look on the AUC per dataset in the experiement.
 
 to do:
 Fix the objective power differences ...
+remove submodules
+find more papers about UCEC
 
     tile based:
         test imagenet

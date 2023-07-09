@@ -65,7 +65,7 @@ class ResNetTrunk(ResNet):
         return x
 
 
-def resnet50(pretrained, progress, key, **kwargs):
+def SSL_resnet50(pretrained, progress, key, **kwargs):
     model = ResNetTrunk(Bottleneck, [3, 4, 6, 3], **kwargs)
     if pretrained:
         pretrained_url = get_pretrained_url(key)
@@ -98,7 +98,7 @@ def load_headless_tile_encoder(tile_encoder_name, path=None):
         model = SLL_vit_small(pretrained=True, progress=False, key="DINO_p16", patch_size=16)
         return model, model.num_features
     elif tile_encoder_name == 'SSL_RESNET_PRETRAINED':
-        model = resnet50(pretrained=True, progress=False, key="MoCoV2")
+        model = SSL_resnet50(pretrained=True, progress=False, key="MoCoV2")
         return model, model.num_features
 
 
