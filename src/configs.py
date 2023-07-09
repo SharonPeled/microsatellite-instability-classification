@@ -194,7 +194,7 @@ class SubtypeClassificationConfigs:
     SC_SAVE_CHECKPOINT_STEP_INTERVAL = 10000
     SC_VAL_STEP_INTERVAL = 1/3  # 10 times an epoch
     SC_TRAINING_BATCH_SIZE = 128  # accumulating gradients in MIL only
-    SC_NUM_WORKERS = 20
+    SC_NUM_WORKERS = 5
     SC_TEST_SIZE = 0.1
     SC_VALID_SIZE = 0.1
     SC_INIT_LR = [1e-6, 1e-4]  # per part of the network, in order of the actual nn
