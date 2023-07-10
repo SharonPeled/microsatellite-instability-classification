@@ -7,14 +7,16 @@
 
 
 test:
+train last on CRC .. with more tiles
 
 
 on hold:
-Fix the objective power differences ...
 Look on the AUC per dataset in the experiement.
 
 
 to do:
+train with 512 + infa
+calibrated agg
 
 remove submodules
 find more papers about UCEC
@@ -23,6 +25,7 @@ find more papers about UCEC
         review all runs and decide on a strategy for 512 - (DINO/moco, 512/224) (resnet moco works good, dino?, imagnet?)
         create infa for 512
         probably run fine tuned both dino/moco..
+
 fine tune SSL chosen model
 move to mil
 

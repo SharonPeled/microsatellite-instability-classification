@@ -44,7 +44,7 @@ def train():
 
         transforms.Resize(224),
         transforms.ToTensor(),
-        # MacenkoNormalizerTransform(Configs.COLOR_NORM_REF_IMG),  # gets tensor and output PIL ...
+
         transforms.Normalize([0.485, 0.456, 0.406],
                              [0.229, 0.224, 0.225])
     ])
@@ -52,7 +52,7 @@ def train():
     test_transform = transforms.Compose([
         transforms.Resize(224),
         transforms.ToTensor(),
-        # MacenkoNormalizerTransform(Configs.COLOR_NORM_REF_IMG),
+
         transforms.Normalize([0.485, 0.456, 0.406],
                              [0.229, 0.224, 0.225])
     ])
@@ -68,13 +68,23 @@ def train():
     # sampling from each slide to reduce computational costs
     df_labels_merged_tiles_sampled = df_labels_merged_tiles.groupby('slide_uuid').apply(
         lambda slide_df: slide_df.sample(n=Configs.SC_TILE_SAMPLE_LAMBDA_TRAIN(len(slide_df)),
-                                         random_state=Configs.RANDOM_SEED)).reset_index(drop=True)
-    # split to train, valid, test
+                                         random_state=Configs.RANDOM_SEED))
+
+   # split to train, valid, test
     df_train, df_valid, df_test = train_test_valid_split_patients_stratified(df_labels_merged_tiles_sampled,
                                                                              y_col='y_to_be_stratified',
                                                                              test_size=Configs.SC_TEST_SIZE,
                                                                              valid_size=Configs.SC_VALID_SIZE,
                                                                              random_seed=Configs.RANDOM_SEED)
+
+    if Configs.SC_COHORT_TUNE is not None:
+        # concat to end more tile from the tuned cohorts
+        df_train_cohort_tune = df_train[df_train.cohort.isin(Configs.SC_COHORT_TUNE)]
+        df_train_cohort_tune_sampled = df_train_cohort_tune.groupby('slide_uuid').apply(
+            lambda slide_df: slide_df.sample(n=Configs.SC_TILE_SAMPLE_LAMBDA_TRAIN_TUNE(len(slide_df)),
+                                             random_state=Configs.RANDOM_SEED))
+        df_train = pd.concat([df_train.sample(frac=1), df_train_cohort_tune_sampled.sample(frac=1)],
+                             ignore_index=True)
 
     train_dataset = ProcessedTileDataset(df_labels=df_train, transform=train_transform,
                                          cohort_to_index=Configs.SC_COHORT_TO_IND)
@@ -83,7 +93,7 @@ def train():
     test_dataset = ProcessedTileDataset(df_labels=df_test, transform=test_transform,
                                         cohort_to_index=Configs.SC_COHORT_TO_IND)
 
-    train_loader = DataLoader(train_dataset, batch_size=Configs.SC_TRAINING_BATCH_SIZE, shuffle=True,
+    train_loader = DataLoader(train_dataset, batch_size=Configs.SC_TRAINING_BATCH_SIZE, shuffle=Configs.SC_COHORT_TUNE is None,
                               persistent_workers=True, num_workers=Configs.SC_NUM_WORKERS,
                               worker_init_fn=set_worker_sharing_strategy)
     valid_loader = DataLoader(valid_dataset, batch_size=Configs.SC_TEST_BATCH_SIZE, shuffle=False,
