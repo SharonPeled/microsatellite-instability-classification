@@ -157,11 +157,11 @@ class TumorRegressionConfigs:
 
 class SubtypeClassificationConfigs:
     SC_EXPERIMENT_NAME = 'subtype_classification_tile_based'
-    SC_FORMULATION = 'fine_aug_cls_w'
-    SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_13"
-    SC_RUN_DESCRIPTION = f"""Pretrained VIT DINO, fine 1e-6 1e-4 lr.
+    SC_FORMULATION = 'fine_aug_crc_w'
+    SC_RUN_NAME = f"SSL_RESNET_{SC_FORMULATION}_14"
+    SC_RUN_DESCRIPTION = f"""Pretrained resent moco, fine 1e-6 1e-4 lr.
     Class weights: ['GS': 770, 'CIN': 235]
-    Cohort weight - inverse propotional to caridnality of classXcohort - with COAD and READ times 5.
+    Cohort weight - x3 of CRC
     Sampling 5000 from each slide and shuffling tiles.
     AUG with blur.
     Big validation (0.1) and small test (0.1)"""
@@ -185,23 +185,24 @@ class SubtypeClassificationConfigs:
     SC_CLASS_TO_IND = {'GS': 0, 'CIN': 1}
     SC_CLASS_WEIGHT = {'GS': 770, 'CIN': 235}
     SC_COHORT_TO_IND = {'COAD': 0, 'READ': 1, 'STAD': 2, 'ESCA': 3, 'UCEC': 4}
-    SC_COHORT_WEIGHT = None # {('COAD', 'CIN'): 0.052, ('COAD', 'GS'): 0.231, ('ESCA', 'CIN'): 0.043, ('ESCA', 'GS'): 0.231, ('READ', 'CIN'): 0.127, ('READ', 'GS'): 0.231, ('STAD', 'CIN'): 0.011, ('STAD', 'GS'): 0.045, ('UCEC', 'CIN'): 0.014, ('UCEC', 'GS'): 0.015}
+    # SC_COHORT_WEIGHT = {('COAD', 'CIN'): 0.052, ('COAD', 'GS'): 0.231, ('ESCA', 'CIN'): 0.043, ('ESCA', 'GS'): 0.231, ('READ', 'CIN'): 0.127, ('READ', 'GS'): 0.231, ('STAD', 'CIN'): 0.011, ('STAD', 'GS'): 0.045, ('UCEC', 'CIN'): 0.014, ('UCEC', 'GS'): 0.015}
+    SC_COHORT_WEIGHT = {('COAD', 'CIN'): 0.75, ('COAD', 'GS'): 2.25, ('ESCA', 'CIN'): 0.25, ('ESCA', 'GS'): 0.75, ('READ', 'CIN'): 0.75, ('READ', 'GS'): 2.25, ('STAD', 'CIN'): 0.25, ('STAD', 'GS'): 0.75, ('UCEC', 'CIN'): 0.25, ('UCEC', 'GS'): 0.75}
     SC_TEST_ONLY = None
     SC_NUM_EPOCHS = 1
-    SC_NUM_DEVICES = [1, ]
+    SC_NUM_DEVICES = [0, ]
     SC_DEVICE = 'gpu'
     SC_TEST_BATCH_SIZE = 256
     SC_SAVE_CHECKPOINT_STEP_INTERVAL = 10000
     SC_VAL_STEP_INTERVAL = 1/3  # 10 times an epoch
-    SC_TRAINING_BATCH_SIZE = 128  # accumulating gradients in MIL only
-    SC_NUM_WORKERS = 5
+    SC_TRAINING_BATCH_SIZE = 200  # accumulating gradients in MIL only
+    SC_NUM_WORKERS = 20
     SC_TEST_SIZE = 0.1
     SC_VALID_SIZE = 0.1
     SC_INIT_LR = [1e-6, 1e-4]  # per part of the network, in order of the actual nn
     SC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count, 5000)
     SC_FROZEN_BACKBONE = False
     SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 5000
-    SC_TILE_ENCODER = 'SSL_VIT_PRETRAINED'
+    SC_TILE_ENCODER = 'SSL_RESNET_PRETRAINED'
     # MIL STUFF
     SC_MIL_GROUP_SIZE = 512
     SC_MIL_VIT_MODEL_VARIANT = 'SSL_VIT_PRETRAINED'

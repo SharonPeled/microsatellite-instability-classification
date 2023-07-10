@@ -1,28 +1,30 @@
 
-P_SSL (DINO/MOCO), P_IMG (VIT/RESENT)
-F_PRE - TO BE DONE
-SUP, FINE, FROZEN - FINE/FROZEN - FROZEN (so no leakage)
-AUG - fine
-cls_w/cht_w - dino/MOCo fine/frozen
+
+
+
+
 
 
 
 test:
+
+
+on hold:
+Fix the objective power differences ...
 Look on the AUC per dataset in the experiement.
 
 
-
 to do:
-Fix the objective power differences ...
+
 remove submodules
 find more papers about UCEC
 
     tile based:
-        test imagenet
-        run with full aug (fine tuned, for long time)
-
-    mil:
-        DINO fine tune on images
+        review all runs and decide on a strategy for 512 - (DINO/moco, 512/224) (resnet moco works good, dino?, imagnet?)
+        create infa for 512
+        probably run fine tuned both dino/moco..
+fine tune SSL chosen model
+move to mil
 
 
 
