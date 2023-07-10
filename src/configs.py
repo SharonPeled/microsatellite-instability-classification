@@ -158,8 +158,8 @@ class TumorRegressionConfigs:
 class SubtypeClassificationConfigs:
     SC_EXPERIMENT_NAME = 'subtype_classification_tile_based'
     SC_FORMULATION = 'fine_aug_cls_w_t_512'
-    SC_RUN_NAME = f"SSL_RESNET_{SC_FORMULATION}_15"
-    SC_RUN_DESCRIPTION = f"""Pretrained resent moco, fine 1e-6 1e-4 lr.
+    SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_15"
+    SC_RUN_DESCRIPTION = f"""Pretrained VIT moco, fine 1e-6 1e-4 lr.
     Tuned to COAD and READ - 1000 tiles per slide at the end.
     Class weights: ['GS': 770, 'CIN': 235]
     Cohort weight - x3 of CRC
@@ -191,12 +191,12 @@ class SubtypeClassificationConfigs:
     SC_COHORT_TUNE = ['COAD', 'READ']
     SC_TEST_ONLY = None
     SC_NUM_EPOCHS = 1
-    SC_NUM_DEVICES = [0, ]
+    SC_NUM_DEVICES = [1, ]
     SC_DEVICE = 'gpu'
     SC_TEST_BATCH_SIZE = 256
     SC_SAVE_CHECKPOINT_STEP_INTERVAL = 10000
     SC_VAL_STEP_INTERVAL = 1/3  # 10 times an epoch
-    SC_TRAINING_BATCH_SIZE = 256  # accumulating gradients in MIL only
+    SC_TRAINING_BATCH_SIZE = 128  # accumulating gradients in MIL only
     SC_NUM_WORKERS = 20
     SC_TEST_SIZE = 0.1
     SC_VALID_SIZE = 0.1
@@ -204,8 +204,8 @@ class SubtypeClassificationConfigs:
     SC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count, 1e10) # all tiles
     SC_TILE_SAMPLE_LAMBDA_TRAIN_TUNE = lambda self, tile_count: min(tile_count, 1000)
     SC_FROZEN_BACKBONE = False
-    SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 2500
-    SC_TILE_ENCODER = 'SSL_RESNET_PRETRAINED'
+    SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 1
+    SC_TILE_ENCODER = 'SSL_VIT_PRETRAINED'
     # MIL STUFF
     SC_MIL_GROUP_SIZE = 512
     SC_MIL_VIT_MODEL_VARIANT = 'SSL_VIT_PRETRAINED'
