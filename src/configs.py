@@ -204,7 +204,7 @@ class SubtypeClassificationConfigs:
     SC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count, 1e10) # all tiles
     SC_TILE_SAMPLE_LAMBDA_TRAIN_TUNE = lambda self, tile_count: min(tile_count, 1000)
     SC_FROZEN_BACKBONE = False
-    SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 1
+    SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 2500
     SC_TILE_ENCODER = 'SSL_VIT_PRETRAINED'
     # MIL STUFF
     SC_MIL_GROUP_SIZE = 512
