@@ -11,7 +11,7 @@ from datetime import datetime
 
 @dataclass
 class GeneralConfigs:
-    RANDOM_SEED = 1234
+    RANDOM_SEED = 12345
     VERBOSE = 3  # 1 logs to LOG_FILE, 2 logs to console, 3 logs to both to file and console
     ROOT = Path(__file__).parent.parent.resolve()
     PROGRAM_LOG_FILE_ARGS = ['log.txt', 'a+']  # slide level log is in the slide dir. Use --bring-slide-logs to get all slide logs.
@@ -157,15 +157,15 @@ class TumorRegressionConfigs:
 
 class SubtypeClassificationConfigs:
     SC_EXPERIMENT_NAME = 'subtype_classification_tile_based'
-    SC_FORMULATION = 'fine_aug_cls_w_t_512'
-    SC_RUN_NAME = f"SSL_RESNET_{SC_FORMULATION}_14"
-    SC_RUN_DESCRIPTION = f"""Pretrained resnet moco, fine 1e-6 1e-4 lr.
-    Tuned to COAD and READ - 1000 tiles per slide at the end.
+    SC_FORMULATION = 'fine_aug_cls_w_512'
+    SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_16"
+    SC_RUN_DESCRIPTION = f"""Pretrained VIT DINO, fine 1e-6 1e-4 lr.
     Class weights: ['GS': 770, 'CIN': 235]
-    Cohort weight - x3 of CRC
-    All Tiles.
+    20% test, 10% valid
+    sampling 5000.
     AUG with blur.
-    Big validation (0.1) and small test (0.1)"""
+    Big validation (0.1) and small test (0.1)
+    Warmup 2500"""
     SC_LABEL_DF_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                         'manifest_labeled_dx_molecular_subtype.tsv')
     SC_DF_TILE_PATHS_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
@@ -189,23 +189,23 @@ class SubtypeClassificationConfigs:
     # SC_COHORT_WEIGHT = {('COAD', 'CIN'): 0.052, ('COAD', 'GS'): 0.231, ('ESCA', 'CIN'): 0.043, ('ESCA', 'GS'): 0.231, ('READ', 'CIN'): 0.127, ('READ', 'GS'): 0.231, ('STAD', 'CIN'): 0.011, ('STAD', 'GS'): 0.045, ('UCEC', 'CIN'): 0.014, ('UCEC', 'GS'): 0.015}
     SC_COHORT_WEIGHT = None # {('COAD', 'CIN'): 0.75, ('COAD', 'GS'): 2.25, ('ESCA', 'CIN'): 0.25, ('ESCA', 'GS'): 0.75, ('READ', 'CIN'): 0.75, ('READ', 'GS'): 2.25, ('STAD', 'CIN'): 0.25, ('STAD', 'GS'): 0.75, ('UCEC', 'CIN'): 0.25, ('UCEC', 'GS'): 0.75}
     SC_COHORT_TUNE = None # ['COAD', 'READ']
-    SC_TEST_ONLY = "/home/sharonpe/microsatellite-instability-classification/models/mlruns/221205223188518797/57f1a070b81c4abc8094cc6836f0d937/checkpoints/SSL_RESNET_fine_aug_cls_w_t_512_15_epoch=0_global_step=10000.ckpt"
+    SC_TEST_ONLY = None
     SC_NUM_EPOCHS = 1
     SC_NUM_DEVICES = [0, ]
     SC_DEVICE = 'gpu'
-    SC_TEST_BATCH_SIZE = 256
+    SC_TEST_BATCH_SIZE = 128
     SC_SAVE_CHECKPOINT_STEP_INTERVAL = 10000
     SC_VAL_STEP_INTERVAL = 1/3  # 10 times an epoch
     SC_TRAINING_BATCH_SIZE = 128  # accumulating gradients in MIL only
     SC_NUM_WORKERS = 20
-    SC_TEST_SIZE = 0.1
+    SC_TEST_SIZE = 0.2
     SC_VALID_SIZE = 0.1
     SC_INIT_LR = [1e-6, 1e-4]  # per part of the network, in order of the actual nn
-    SC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count, 1e10) # all tiles
-    SC_TILE_SAMPLE_LAMBDA_TRAIN_TUNE = lambda self, tile_count: min(tile_count, 1000)
+    SC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count, 5000) # all tiles
+    SC_TILE_SAMPLE_LAMBDA_TRAIN_TUNE = None
     SC_FROZEN_BACKBONE = False
     SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 2500
-    SC_TILE_ENCODER = 'SSL_RESNET_PRETRAINED'
+    SC_TILE_ENCODER = 'SSL_VIT_PRETRAINED'
     # MIL STUFF
     SC_MIL_GROUP_SIZE = 512
     SC_MIL_VIT_MODEL_VARIANT = 'SSL_VIT_PRETRAINED'

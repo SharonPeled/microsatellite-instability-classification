@@ -14,7 +14,10 @@ Look on the AUC per dataset in the experiement.
 
 
 to do:
+validate again on 512 with cohort tune and with sampling
 try 1024 tiles..
+
+
 fine tune SSL chosen model (looks like DINO)
 find more papers about UCEC
 remove submodules
