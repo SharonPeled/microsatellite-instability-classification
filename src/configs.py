@@ -11,7 +11,7 @@ from datetime import datetime
 
 @dataclass
 class GeneralConfigs:
-    RANDOM_SEED = 123
+    RANDOM_SEED = 1234
     VERBOSE = 3  # 1 logs to LOG_FILE, 2 logs to console, 3 logs to both to file and console
     ROOT = Path(__file__).parent.parent.resolve()
     PROGRAM_LOG_FILE_ARGS = ['log.txt', 'a+']  # slide level log is in the slide dir. Use --bring-slide-logs to get all slide logs.
@@ -23,21 +23,21 @@ class GeneralConfigs:
 
 @dataclass
 class PreprocessingConfigs:
-    PREPROCESS_RUN_NAME = '512'
+    PREPROCESS_RUN_NAME = '1024'
     METADATA_JSON_FILENAME = f'metadata_{PREPROCESS_RUN_NAME}.json'
     SUMMARY_DF_FILENAME = f'summary_df_{PREPROCESS_RUN_NAME}.csv'
     THUMBNAIL_FILENAME = f'thumbnail_{PREPROCESS_RUN_NAME}.png'
     SLIDE_LOG_FILE_ARGS = ['log.txt', 'w']  # slide level log
     TILE_PROGRESS_LOG_FREQ = 1000  # report progress every process of x tiles (convenient for multiprocessing)
-    LOAD_METADATA = True
+    LOAD_METADATA = False
     TO_MACENKO_NORMALIZE = False
     PREPROCESSING_DEVICE = 'cpu'
     # Assuming TCGA folder structure, where each slide is in a separate dir and the dir is named after the slide ID
     # SLIDES_DIR = os.path.join(GeneralConfigs.ROOT, 'data', 'slides')
     # PROCESSED_TILES_DIR = os.path.join(GeneralConfigs.ROOT, 'data', f'processed_tiles_{PREPROCESS_RUN_NAME}')
     SLIDES_DIR = '/mnt/data/users/sharonpe/slides'
-    PROCESSED_TILES_DIR = '/mnt/data/users/sharonpe/processed_tiles_512'
-    TILE_SIZE = 512  # should be divisible by downsample of reduced image, the easiest way is to set to be a power of 2
+    PROCESSED_TILES_DIR = f'/mnt/data/users/sharonpe/processed_tiles_{PREPROCESS_RUN_NAME}'
+    TILE_SIZE = 1024  # should be divisible by downsample of reduced image, the easiest way is to set to be a power of 2
     REDUCED_LEVEL_TO_MEMORY = [3, 2]  # attempting to load according to order
     TARGET_MAG_POWER = 20
     MAG_ATTR = 'openslide.objective-power'
