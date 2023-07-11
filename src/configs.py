@@ -188,10 +188,10 @@ class SubtypeClassificationConfigs:
     SC_COHORT_TO_IND = {'COAD': 0, 'READ': 1, 'STAD': 2, 'ESCA': 3, 'UCEC': 4}
     # SC_COHORT_WEIGHT = {('COAD', 'CIN'): 0.052, ('COAD', 'GS'): 0.231, ('ESCA', 'CIN'): 0.043, ('ESCA', 'GS'): 0.231, ('READ', 'CIN'): 0.127, ('READ', 'GS'): 0.231, ('STAD', 'CIN'): 0.011, ('STAD', 'GS'): 0.045, ('UCEC', 'CIN'): 0.014, ('UCEC', 'GS'): 0.015}
     SC_COHORT_WEIGHT = None # {('COAD', 'CIN'): 0.75, ('COAD', 'GS'): 2.25, ('ESCA', 'CIN'): 0.25, ('ESCA', 'GS'): 0.75, ('READ', 'CIN'): 0.75, ('READ', 'GS'): 2.25, ('STAD', 'CIN'): 0.25, ('STAD', 'GS'): 0.75, ('UCEC', 'CIN'): 0.25, ('UCEC', 'GS'): 0.75}
-    SC_COHORT_TUNE = ['COAD', 'READ']
-    SC_TEST_ONLY = None
+    SC_COHORT_TUNE = None # ['COAD', 'READ']
+    SC_TEST_ONLY = " /home/sharonpe/microsatellite-instability-classification/models/mlruns/221205223188518797/0d41aa5b677e44719f6baaab7f6d707c/checkpoints/SSL_VIT_fine_aug_cls_w_t_512_15_epoch=0_global_step=20000.ckpt"
     SC_NUM_EPOCHS = 1
-    SC_NUM_DEVICES = [1, ]
+    SC_NUM_DEVICES = [0, ]
     SC_DEVICE = 'gpu'
     SC_TEST_BATCH_SIZE = 256
     SC_SAVE_CHECKPOINT_STEP_INTERVAL = 10000
