@@ -10,13 +10,17 @@ test:
 
 
 on hold:
-Look on the AUC per dataset in the experiement.
+validate again on 512 with cohort tune and with sampling
 
 
 to do:
-validate again on 512 with cohort tune and with sampling
 try 1024 tiles..
+cross-validate using very small number of tiles 512 & 1024 - Today!
 
+# add avg metrics to logger
+# per tiles RandStain statistics - tommorow
+# test on all - tommorow
+# per cohort head- tommorow
 
 fine tune SSL chosen model (looks like DINO)
 find more papers about UCEC

@@ -14,147 +14,108 @@ from pytorch_lightning.callbacks import LearningRateMonitor
 from src.components.models.SubtypeClassifier import SubtypeClassifier
 import os
 from src.components.objects.RandStainNA.randstainna import RandStainNA
+from src.subtype_classification.init_task import init_task, get_loader_and_datasets
 
 
 def set_worker_sharing_strategy(worker_id: int) -> None:
     set_sharing_strategy('file_system')
 
 
-def train():
-    set_sharing_strategy('file_system')
-    set_start_method("spawn")
-    train_transform = transforms.Compose([
-        transforms.RandomHorizontalFlip(),  # reverse 50% of images
-        transforms.RandomVerticalFlip(),  # reverse 50% of images
-
-        transforms.RandomApply([transforms.GaussianBlur(kernel_size=(5, 5), sigma=(0.25, 1)),
-                                transforms.RandomAdjustSharpness(sharpness_factor=2)], p=0.1),
-
-        transforms.RandomApply([transforms.Grayscale(num_output_channels=3), ], p=0.2),  # grayscale 20% of the images
-        transforms.RandomApply([transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1)], p=0.8),
-
-        transforms.RandomApply([
-            RandStainNA(yaml_file=Configs.SSL_STATISTICS['HSV'], std_hyper=0.01, probability=1.0, distribution="normal",
-                        is_train=True),
-            RandStainNA(yaml_file=Configs.SSL_STATISTICS['HED'], std_hyper=0.01, probability=1.0, distribution="normal",
-                        is_train=True),
-            RandStainNA(yaml_file=Configs.SSL_STATISTICS['LAB'], std_hyper=0.01, probability=1.0, distribution="normal",
-                        is_train=True)],
-            p=0.8),
-
-        transforms.Resize(224),
-        transforms.ToTensor(),
-
-        transforms.Normalize([0.485, 0.456, 0.406],
-                             [0.229, 0.224, 0.225])
-    ])
-
-    test_transform = transforms.Compose([
-        transforms.Resize(224),
-        transforms.ToTensor(),
-
-        transforms.Normalize([0.485, 0.456, 0.406],
-                             [0.229, 0.224, 0.225])
-    ])
-    Logger.log("Loading Datasets..", log_importance=1)
-    df_labels = pd.read_csv(Configs.SC_LABEL_DF_PATH, sep='\t')
-    df_labels = df_labels[df_labels[Configs.SC_LABEL_COL].isin(Configs.SC_CLASS_TO_IND.keys())]
-    df_labels['slide_uuid'] = df_labels.slide_path.apply(lambda p: os.path.basename(os.path.dirname(p)))
-    df_labels['y'] = df_labels[Configs.SC_LABEL_COL].apply(lambda s: Configs.SC_CLASS_TO_IND[s])
-    df_labels['y_to_be_stratified'] = df_labels['y'].astype(str) + '_' + df_labels['cohort']
-    # merging labels and tiles
-    df_tiles = pd.read_csv(Configs.SC_DF_TILE_PATHS_PATH)
-    df_labels_merged_tiles = df_labels.merge(df_tiles, how='inner', on='slide_uuid')
-    # sampling from each slide to reduce computational costs
-    df_labels_merged_tiles_sampled = df_labels_merged_tiles.groupby('slide_uuid').apply(
-        lambda slide_df: slide_df.sample(n=Configs.SC_TILE_SAMPLE_LAMBDA_TRAIN(len(slide_df)),
-                                         random_state=Configs.RANDOM_SEED))
-
-   # split to train, valid, test
-    df_train, df_valid, df_test = train_test_valid_split_patients_stratified(df_labels_merged_tiles_sampled,
-                                                                             y_col='y_to_be_stratified',
-                                                                             test_size=Configs.SC_TEST_SIZE,
-                                                                             valid_size=Configs.SC_VALID_SIZE,
-                                                                             random_seed=Configs.RANDOM_SEED)
-
-    if Configs.SC_COHORT_TUNE is not None:
-        # concat to end more tile from the tuned cohorts
-        df_train_cohort_tune = df_train[df_train.cohort.isin(Configs.SC_COHORT_TUNE)]
-        df_train_cohort_tune_sampled = df_train_cohort_tune.groupby('slide_uuid').apply(
-            lambda slide_df: slide_df.sample(n=Configs.SC_TILE_SAMPLE_LAMBDA_TRAIN_TUNE(len(slide_df)),
-                                             random_state=Configs.RANDOM_SEED))
-        df_train = pd.concat([df_train.sample(frac=1), df_train_cohort_tune_sampled.sample(frac=1)],
-                             ignore_index=True)
-
-    train_dataset = ProcessedTileDataset(df_labels=df_train, transform=train_transform,
-                                         cohort_to_index=Configs.SC_COHORT_TO_IND)
-    valid_dataset = ProcessedTileDataset(df_labels=df_valid, transform=test_transform,
-                                         cohort_to_index=Configs.SC_COHORT_TO_IND)
-    test_dataset = ProcessedTileDataset(df_labels=df_test, transform=test_transform,
-                                        cohort_to_index=Configs.SC_COHORT_TO_IND)
-
-    train_loader = DataLoader(train_dataset, batch_size=Configs.SC_TRAINING_BATCH_SIZE, shuffle=Configs.SC_COHORT_TUNE is None,
-                              persistent_workers=True, num_workers=Configs.SC_NUM_WORKERS,
-                              worker_init_fn=set_worker_sharing_strategy)
-    valid_loader = DataLoader(valid_dataset, batch_size=Configs.SC_TEST_BATCH_SIZE, shuffle=False,
-                              persistent_workers=True, num_workers=Configs.SC_NUM_WORKERS,
-                              worker_init_fn=set_worker_sharing_strategy)
-    test_loader = DataLoader(test_dataset, batch_size=Configs.SC_TEST_BATCH_SIZE, shuffle=False,
-                             persistent_workers=True, num_workers=Configs.SC_NUM_WORKERS,
-                             worker_init_fn=set_worker_sharing_strategy)
-
-    model = SubtypeClassifier(tile_encoder_name=Configs.SC_TILE_ENCODER, class_to_ind=Configs.SC_CLASS_TO_IND,
-                                 learning_rate=Configs.SC_INIT_LR, frozen_backbone=Configs.SC_FROZEN_BACKBONE,
-                                 class_to_weight=Configs.SC_CLASS_WEIGHT,
-                                 num_iters_warmup_wo_backbone=Configs.SC_ITER_TRAINING_WARMUP_WO_BACKBONE,
-                                 cohort_to_ind=Configs.SC_COHORT_TO_IND, cohort_weight=Configs.SC_COHORT_WEIGHT)
-    if Configs.SC_TEST_ONLY is not None:
+def train_single_split(df_train, df_valid, df_test, train_transform, test_transform, logger, callbacks=()):
+    train_dataset, valid_dataset, test_dataset, train_loader, valid_loader, test_loader = get_loader_and_datasets(df_train,
+                                                                    df_valid, df_test, train_transform, test_transform)
+    # after split and loaders
+    if Configs.SC_TEST_ONLY is None:
+        model = SubtypeClassifier(tile_encoder_name=Configs.SC_TILE_ENCODER, class_to_ind=Configs.SC_CLASS_TO_IND,
+                                  learning_rate=Configs.SC_INIT_LR, frozen_backbone=Configs.SC_FROZEN_BACKBONE,
+                                  class_to_weight=Configs.SC_CLASS_WEIGHT,
+                                  num_iters_warmup_wo_backbone=Configs.SC_ITER_TRAINING_WARMUP_WO_BACKBONE,
+                                  cohort_to_ind=Configs.SC_COHORT_TO_IND, cohort_weight=Configs.SC_COHORT_WEIGHT)
+    else:
         model = SubtypeClassifier.load_from_checkpoint(Configs.SC_TEST_ONLY, tile_encoder_name=Configs.SC_TILE_ENCODER,
-                                                          class_to_ind=Configs.SC_CLASS_TO_IND,
-                                                          learning_rate=Configs.SC_INIT_LR,
-                                                          frozen_backbone=Configs.SC_FROZEN_BACKBONE,
-                                                          class_to_weight=Configs.SC_CLASS_WEIGHT,
-                                                          num_iters_warmup_wo_backbone=Configs.SC_ITER_TRAINING_WARMUP_WO_BACKBONE,
-                                                          cohort_to_ind=Configs.SC_COHORT_TO_IND,
-                                                          cohort_weight=Configs.SC_COHORT_WEIGHT)
-    mlflow_logger = MLFlowLogger(experiment_name=Configs.SC_EXPERIMENT_NAME, run_name=Configs.SC_RUN_NAME,
-                                 save_dir=Configs.MLFLOW_SAVE_DIR,
-                                 artifact_location=Configs.MLFLOW_SAVE_DIR,
-                                 log_model='all',
-                                 tags={"mlflow.note.content": Configs.SC_RUN_DESCRIPTION})
-    lr_monitor = LearningRateMonitor(logging_interval='epoch')
+                                                       class_to_ind=Configs.SC_CLASS_TO_IND,
+                                                       learning_rate=Configs.SC_INIT_LR,
+                                                       frozen_backbone=Configs.SC_FROZEN_BACKBONE,
+                                                       class_to_weight=Configs.SC_CLASS_WEIGHT,
+                                                       num_iters_warmup_wo_backbone=Configs.SC_ITER_TRAINING_WARMUP_WO_BACKBONE,
+                                                       cohort_to_ind=Configs.SC_COHORT_TO_IND,
+                                                       cohort_weight=Configs.SC_COHORT_WEIGHT)
     Logger.log("Starting Training.", log_importance=1)
     trainer = pl.Trainer(devices=Configs.SC_NUM_DEVICES, accelerator=Configs.SC_DEVICE,
                          deterministic=True,
                          val_check_interval=Configs.SC_VAL_STEP_INTERVAL,
-                         callbacks=[lr_monitor, CheckpointEveryNSteps(
-                             prefix=Configs.SC_RUN_NAME,
-                             save_step_frequency=Configs.SC_SAVE_CHECKPOINT_STEP_INTERVAL)],
+                         callbacks=callbacks,
                          enable_checkpointing=True,
-                         logger=mlflow_logger,
+                         logger=logger,
                          num_sanity_val_steps=2,
                          max_epochs=Configs.SC_NUM_EPOCHS)
     if Configs.SC_TEST_ONLY is None:
-        trainer.fit(model, train_loader, valid_loader, ckpt_path=None)
-        trainer.save_checkpoint(Configs.SC_TRAINED_MODEL_PATH)
+        if valid_loader is None:
+            trainer.fit(model, train_loader, ckpt_path=None)
+            trainer.save_checkpoint(Configs.SC_TRAINED_MODEL_PATH)
+        else:
+            trainer.fit(model, train_loader, valid_loader, ckpt_path=None)
+            trainer.save_checkpoint(Configs.SC_TRAINED_MODEL_PATH)
     Logger.log("Done Training.", log_importance=1)
     Logger.log("Starting Test.", log_importance=1)
     trainer.test(model, test_loader)
     Logger.log(f"Done Test.", log_importance=1)
+    save_results(model, test_dataset, valid_dataset)
+    return model
+
+
+def save_results(model, test_dataset, valid_dataset):
     Logger.log(f"Saving test results...", log_importance=1)
     # since shuffle=False in test we can infer the batch_indices from batch_inx
     _, df_pred_path = save_pred_outputs(model.test_outputs, test_dataset, Configs.SC_TEST_BATCH_SIZE,
                                         save_path=Configs.SC_TEST_PREDICT_OUTPUT_PATH,
                                         class_to_ind=Configs.SC_CLASS_TO_IND)
     Logger.log(f"""Saved Test df_pred: {df_pred_path}""", log_importance=1)
-    trainer.validate(model, valid_loader)
-    for i, outputs in enumerate(model.valid_outputs):
-        _, df_pred_path = save_pred_outputs(outputs, valid_dataset, Configs.SC_TEST_BATCH_SIZE,
+    if valid_dataset is not None and model.valid_outputs is not None:
+        _, df_pred_path = save_pred_outputs(model.valid_outputs, valid_dataset, Configs.SC_TEST_BATCH_SIZE,
                                             save_path=Configs.SC_VALID_PREDICT_OUTPUT_PATH,
-                                            class_to_ind=Configs.SC_CLASS_TO_IND, suffix=str(i))
-        Logger.log(f"""Saved valid {i} df_pred: {df_pred_path}""", log_importance=1)
-    Logger.log(f"""Saving Done, df_pred saved in: {df_pred_path}""", log_importance=1)
+                                            class_to_ind=Configs.SC_CLASS_TO_IND, suffix='')
+        Logger.log(f"""Saved valid df_pred: {df_pred_path}""", log_importance=1)
+
+
+def train():
+    # TODO: test mlflow loggings
+    df, train_transform, test_transform = init_task()
+    mlflow_logger = MLFlowLogger(experiment_name=Configs.SC_EXPERIMENT_NAME, run_name=Configs.SC_RUN_NAME,
+                                 save_dir=Configs.MLFLOW_SAVE_DIR,
+                                 artifact_location=Configs.MLFLOW_SAVE_DIR,
+                                 log_model='all',
+                                 tags={"mlflow.note.content": Configs.SC_RUN_DESCRIPTION})
+    lr_monitor = LearningRateMonitor(logging_interval='epoch')
+    checkpoint_callback = CheckpointEveryNSteps(prefix=Configs.SC_RUN_NAME,
+                                                save_step_frequency=Configs.SC_SAVE_CHECKPOINT_STEP_INTERVAL)
+    if Configs.SC_CROSS_VALIDATE:
+        cross_validate(df, train_transform, test_transform, mlflow_logger, callbacks=[lr_monitor, checkpoint_callback])
+    else:
+        df_train, df_valid, df_test = train_test_valid_split_patients_stratified(df,
+                                                                                 y_col='y_to_be_stratified',
+                                                                                 test_size=Configs.SC_TEST_SIZE,
+                                                                                 valid_size=Configs.SC_VALID_SIZE,
+                                                                                 random_seed=Configs.RANDOM_SEED)
+        train_single_split(df_train, df_valid, df_test, train_transform, test_transform, mlflow_logger,
+                           callbacks=[lr_monitor, checkpoint_callback])
     Logger.log(f"Finished.", log_importance=1)
+
+
+def cross_validate(df, train_transform, test_transform, mlflow_logger, callbacks):
+    split_obj = train_test_valid_split_patients_stratified(df,
+                                                           y_col='y_to_be_stratified',
+                                                           test_size=Configs.SC_TEST_SIZE,
+                                                           valid_size=0,
+                                                           random_seed=Configs.RANDOM_SEED,
+                                                           return_split_obj=True)
+    for i, (train_inds, test_inds) in enumerate(split_obj):
+        Logger.log(f"Fold {i}", log_importance=1)
+        df_train = df.iloc[train_inds].reset_index(drop=True)
+        df_test = df.iloc[test_inds].reset_index(drop=True)
+        # get all the scores..
+        train_single_split(df_train, None, df_test, train_transform, test_transform, mlflow_logger,
+                           callbacks=callbacks)
 
 
 

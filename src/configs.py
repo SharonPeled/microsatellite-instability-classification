@@ -158,18 +158,19 @@ class TumorRegressionConfigs:
 class SubtypeClassificationConfigs:
     SC_EXPERIMENT_NAME = 'subtype_classification_tile_based'
     SC_FORMULATION = 'fine_aug_cls_w_512'
-    SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_16"
+    SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_CV_17"
     SC_RUN_DESCRIPTION = f"""Pretrained VIT DINO, fine 1e-6 1e-4 lr.
     Class weights: ['GS': 770, 'CIN': 235]
-    20% test, 10% valid
-    sampling 5000.
+    20% test, cross validate
+    sampling 1000.
     AUG with blur.
     Big validation (0.1) and small test (0.1)
     Warmup 2500"""
+    TILE_SIZE = 512
     SC_LABEL_DF_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                         'manifest_labeled_dx_molecular_subtype.tsv')
     SC_DF_TILE_PATHS_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
-                                         'df_processed_tile_paths_512.csv')
+                                         f'df_processed_tile_paths_{TILE_SIZE}.csv')
     SC_LABEL_COL = 'subtype'
     SC_TRAINED_MODEL_PATH = os.path.join(GeneralConfigs.ROOT, 'models', 'subtype_classification',
                                          f'SC_{SC_RUN_NAME}_{GeneralConfigs.START_TIME}' + '{run_suffix}.ckpt')
@@ -178,20 +179,24 @@ class SubtypeClassificationConfigs:
     SC_VALID_PREDICT_OUTPUT_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                                 f'{SC_RUN_NAME}_pred', 'valid')
     SSL_STATISTICS = {'HSV': os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
-                                          'HSV_statistics_30.yaml'),
+                                          f'HSV_statistics_30.yaml'),
+                                          # f'HSV_statistics_30_{TILE_SIZE}.yaml'),
                       'HED': os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
-                                          'HED_statistics_30.yaml'),
+                                          f'HED_statistics_30.yaml'),
+                                          # f'HED_statistics_30_{TILE_SIZE}.yaml'),
                       'LAB': os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
-                                          'LAB_statistics_30.yaml')}
+                                          f'LAB_statistics_30.yaml')}
+                                          # f'LAB_statistics_30_{TILE_SIZE}.yaml')}
+    SC_CROSS_VALIDATE = True  # num folds according to test size
     SC_CLASS_TO_IND = {'GS': 0, 'CIN': 1}
     SC_CLASS_WEIGHT = {'GS': 770, 'CIN': 235}
     SC_COHORT_TO_IND = {'COAD': 0, 'READ': 1, 'STAD': 2, 'ESCA': 3, 'UCEC': 4}
     # SC_COHORT_WEIGHT = {('COAD', 'CIN'): 0.052, ('COAD', 'GS'): 0.231, ('ESCA', 'CIN'): 0.043, ('ESCA', 'GS'): 0.231, ('READ', 'CIN'): 0.127, ('READ', 'GS'): 0.231, ('STAD', 'CIN'): 0.011, ('STAD', 'GS'): 0.045, ('UCEC', 'CIN'): 0.014, ('UCEC', 'GS'): 0.015}
     SC_COHORT_WEIGHT = None # {('COAD', 'CIN'): 0.75, ('COAD', 'GS'): 2.25, ('ESCA', 'CIN'): 0.25, ('ESCA', 'GS'): 0.75, ('READ', 'CIN'): 0.75, ('READ', 'GS'): 2.25, ('STAD', 'CIN'): 0.25, ('STAD', 'GS'): 0.75, ('UCEC', 'CIN'): 0.25, ('UCEC', 'GS'): 0.75}
-    SC_COHORT_TUNE = None # ['COAD', 'READ']
+    # SC_COHORT_TUNE = None # ['COAD', 'READ']
     SC_TEST_ONLY = None
     SC_NUM_EPOCHS = 1
-    SC_NUM_DEVICES = [0, ]
+    SC_NUM_DEVICES = [1, ]
     SC_DEVICE = 'gpu'
     SC_TEST_BATCH_SIZE = 128
     SC_SAVE_CHECKPOINT_STEP_INTERVAL = 10000
@@ -199,9 +204,9 @@ class SubtypeClassificationConfigs:
     SC_TRAINING_BATCH_SIZE = 128  # accumulating gradients in MIL only
     SC_NUM_WORKERS = 20
     SC_TEST_SIZE = 0.2
-    SC_VALID_SIZE = 0.1
+    SC_VALID_SIZE = 0.1  # not used if CV=True
     SC_INIT_LR = [1e-6, 1e-4]  # per part of the network, in order of the actual nn
-    SC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count, 5000) # all tiles
+    SC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count, 1000) # all tiles
     SC_TILE_SAMPLE_LAMBDA_TRAIN_TUNE = None
     SC_FROZEN_BACKBONE = False
     SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 2500

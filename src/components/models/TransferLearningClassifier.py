@@ -34,7 +34,7 @@ class TransferLearningClassifier(pl.LightningModule):
         else:
             self.model = model
         self.test_outputs = None
-        self.valid_outputs = []
+        self.valid_outputs = None
         Logger.log(f"""TransferLearningClassifier created with loss weights: {self.class_weights}.""", log_importance=1)
 
     def init_weights(self, class_to_weight):
@@ -110,7 +110,7 @@ class TransferLearningClassifier(pl.LightningModule):
     def validation_epoch_end(self, outputs):
         outputs_cpu = TransferLearningClassifier.outputs_to_cpu(outputs)
         self.log_epoch_level_metrics(outputs_cpu, dataset_str='valid')
-        self.valid_outputs.append(outputs_cpu)
+        self.valid_outputs = outputs_cpu
         del outputs  # free from CUDA
         if not self.optimizers():
             return
