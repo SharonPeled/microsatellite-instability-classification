@@ -65,10 +65,7 @@ def init_task():
     df_tiles = pd.read_csv(Configs.SC_DF_TILE_PATHS_PATH)
     df_labels_merged_tiles = df_labels.merge(df_tiles, how='inner', on='slide_uuid')
     # sampling from each slide to reduce computational costs
-    df_labels_merged_tiles_sampled = df_labels_merged_tiles.groupby('slide_uuid').apply(
-        lambda slide_df: slide_df.sample(n=Configs.SC_TILE_SAMPLE_LAMBDA_TRAIN(len(slide_df)),
-                                         random_state=Configs.RANDOM_SEED))
-    return df_labels_merged_tiles_sampled, train_transform, test_transform
+    return df_labels_merged_tiles, train_transform, test_transform
 
 
 def get_loader_and_datasets(df_train, df_valid, df_test, train_transform, test_transform):

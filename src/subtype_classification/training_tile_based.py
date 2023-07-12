@@ -22,7 +22,10 @@ def set_worker_sharing_strategy(worker_id: int) -> None:
 
 
 def train_single_split(df_train, df_valid, df_test, train_transform, test_transform, logger, callbacks=()):
-    train_dataset, valid_dataset, test_dataset, train_loader, valid_loader, test_loader = get_loader_and_datasets(df_train,
+    df_train_sampled = df_train.groupby('slide_uuid').apply(
+        lambda slide_df: slide_df.sample(n=Configs.SC_TILE_SAMPLE_LAMBDA_TRAIN(len(slide_df)),
+                                         random_state=Configs.RANDOM_SEED))
+    train_dataset, valid_dataset, test_dataset, train_loader, valid_loader, test_loader = get_loader_and_datasets(df_train_sampled,
                                                                     df_valid, df_test, train_transform, test_transform)
     # after split and loaders
     if Configs.SC_TEST_ONLY is None:
