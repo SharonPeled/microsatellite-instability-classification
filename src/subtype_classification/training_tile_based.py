@@ -79,7 +79,6 @@ def save_results(model, test_dataset, valid_dataset):
 
 
 def train():
-    # TODO: test mlflow loggings
     df, train_transform, test_transform = init_task()
     mlflow_logger = MLFlowLogger(experiment_name=Configs.SC_EXPERIMENT_NAME, run_name=Configs.SC_RUN_NAME,
                                  save_dir=Configs.MLFLOW_SAVE_DIR,
