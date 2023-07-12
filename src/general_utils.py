@@ -219,7 +219,7 @@ def train_test_valid_split_patients_stratified(df_full, y_col, test_size, valid_
     df_train = df_full.iloc[train_inds].reset_index(drop=True)
     df_test = df_full.iloc[test_inds].reset_index(drop=True)
     if valid_size == 0:
-        return df_train, df_test
+        return df_train, None, df_test
     splitter = StratifiedGroupKFold(n_splits=int(1/valid_size), shuffle=True, random_state=random_seed)
     split = splitter.split(X=df_train, y=df_train[y_col], groups=df_train['patient_id'])
     train_inds, valid_inds = next(split)
