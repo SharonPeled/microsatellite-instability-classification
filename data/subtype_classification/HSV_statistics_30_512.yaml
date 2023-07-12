@@ -1,0 +1,30 @@
+H:
+  avg:
+    distribution: laplace
+    mean: 148.643
+    std: 16.666
+  std:
+    distribution: laplace
+    mean: 21.569
+    std: 16.462
+S:
+  avg:
+    distribution: norm
+    mean: 80.378
+    std: 29.046
+  std:
+    distribution: norm
+    mean: 35.364
+    std: 11.07
+V:
+  avg:
+    distribution: norm
+    mean: 188.023
+    std: 27.394
+  std:
+    distribution: norm
+    mean: 37.182
+    std: 10.453
+color_space: HSV
+methods: Reinhard
+tiles_per_slide: 30
