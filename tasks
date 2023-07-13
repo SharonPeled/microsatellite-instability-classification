@@ -10,24 +10,31 @@ test:
 
 
 on hold:
-run 512 & 1024 experiments with different seeds.
-
+preprocess 2048
 
 to do:
-
-find more papers about UCEC
 start variants!
+try different FoVs.
 
 fine tune SSL chosen model (looks like DINO)
 remove submodules
+
 
 move to mil
 # till 28, 10 israel, 10$, till 100k
 # 0.1% 5,  0.1% 8$, 0.025%
 
+past:
+find more papers about UCEC - didn't found anything else.
+run 512 & 1024 experiments with different seeds.
+
+
 thinking:
+when increasing FoVs - adjust the tissue threshold
+look at the cleaning phases of Cell and the paper about UCEC
 calibrated agg
-per cohort head- tommorow
+per cohort head - tommorow
+
 
 Questions:
 differences in high vs low CNV, why everybody cite this as 0.87 and 0.65..

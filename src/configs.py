@@ -23,25 +23,25 @@ class GeneralConfigs:
 
 @dataclass
 class PreprocessingConfigs:
-    PREPROCESS_RUN_NAME = '2048'
+    TILE_SIZE = 512  # should be divisible by downsample of reduced image, the easiest way is to set to be a power of 2
+    PREPROCESS_RUN_NAME = f'{TILE_SIZE}'
     METADATA_JSON_FILENAME = f'metadata_{PREPROCESS_RUN_NAME}.json'
     SUMMARY_DF_FILENAME = f'summary_df_{PREPROCESS_RUN_NAME}.csv'
     THUMBNAIL_FILENAME = f'thumbnail_{PREPROCESS_RUN_NAME}.png'
     SLIDE_LOG_FILE_ARGS = ['log.txt', 'w']  # slide level log
     TILE_PROGRESS_LOG_FREQ = 1000  # report progress every process of x tiles (convenient for multiprocessing)
-    LOAD_METADATA = False
+    LOAD_METADATA = True
     TO_MACENKO_NORMALIZE = False
     PREPROCESSING_DEVICE = 'cpu'
     # Assuming TCGA folder structure, where each slide is in a separate dir and the dir is named after the slide ID
-    # SLIDES_DIR = os.path.join(GeneralConfigs.ROOT, 'data', 'slides')
+    SLIDES_DIR = os.path.join(GeneralConfigs.ROOT, 'data', 'slides')
     # PROCESSED_TILES_DIR = os.path.join(GeneralConfigs.ROOT, 'data', f'processed_tiles_{PREPROCESS_RUN_NAME}')
-    SLIDES_DIR = '/mnt/data/users/sharonpe/slides'
+    # SLIDES_DIR = '/mnt/data/users/sharonpe/slides'
     PROCESSED_TILES_DIR = f'/mnt/data/users/sharonpe/processed_tiles_{PREPROCESS_RUN_NAME}'
-    TILE_SIZE = 2048  # should be divisible by downsample of reduced image, the easiest way is to set to be a power of 2
     REDUCED_LEVEL_TO_MEMORY = [3, 2]  # attempting to load according to order
     TARGET_MAG_POWER = 20
     MAG_ATTR = 'openslide.objective-power'
-    TILE_NON_TISSUE_THRESHOLD = 0.25  # tiles with more non tissue percent than threshold are filtered
+    TILE_NON_TISSUE_THRESHOLD = 0.5  # tiles with more non tissue percent than threshold are filtered
     OTSU_FILTER = {'reduced_img_factor': 0.8, 'attr_name': 'Background',
                    'color_palette': {'s': 10, 'otsu_val_factor': 1.1}}
     BLACK_FILTER = {'attr_name': 'Black', 'color_palette': [{'v': 50}, {'v': 200, 's': 25}]}
@@ -233,7 +233,7 @@ class VariantClassificationConfigs:
     VC_RUN_DESCRIPTION = f"""Resent50 backbone, regular tile, variant prediction. Sampling min(50%, 1000) and shuffling tiles.
     0. Only 5 variant of the best performing AUCs, TYPED only."""
     VC_LABEL_DF_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'variant_classification',
-                                    'variant_labels_0.csv')
+                                    'variant_labels_1_cancers.csv')
     VC_DF_TILE_PATHS_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'variant_classification',
                                          'df_processed_tile_paths_merged.csv')
     VC_TRAINED_MODEL_PATH = os.path.join(GeneralConfigs.ROOT, 'models', 'variant_classification',

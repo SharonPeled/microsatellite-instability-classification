@@ -12,6 +12,7 @@ from collections import defaultdict
 from torchvision import transforms
 import torchstain
 import time
+import warnings
 
 
 class Slide(Image):
@@ -31,7 +32,12 @@ class Slide(Image):
         self.metadata_filename = metadata_filename
         self.summary_df_filename = summary_df_filename
         self.set('summary_df_path', os.path.join(os.path.dirname(self.path), summary_df_filename))
-        self.set('metadata_path', os.path.join(os.path.dirname(self.path), metadata_filename))
+
+        # self.set('metadata_path', os.path.join(os.path.dirname(self.path), metadata_filename))
+        self.set('metadata_path', os.path.join(f'/mnt/data/users/sharonpe/slides',
+                                               os.path.basename(os.path.dirname(self.path)), metadata_filename))
+        warnings.warn('-'*10 + 'LOADING METADATA FROM DIFFERENT SLIDE DIR!! ' + '-'*10)
+
         if load_metadata:
             self.load_slide_metadata()
         self.img_r = None  # reduced image
