@@ -10,28 +10,27 @@ test:
 
 
 on hold:
-validate again on 512 with cohort tune and with sampling
+run 512 & 1024 experiments with different seeds.
 
 
 to do:
-try 1024 tiles..
-cross-validate using very small number of tiles 512 & 1024 - Today!
 
-# add avg metrics to logger
-# per tiles RandStain statistics - tommorow
-# test on all - tommorow
-# per cohort head- tommorow
+find more papers about UCEC
+start variants!
 
 fine tune SSL chosen model (looks like DINO)
-find more papers about UCEC
 remove submodules
 
 move to mil
-
+# till 28, 10 israel, 10$, till 100k
+# 0.1% 5,  0.1% 8$, 0.025%
 
 thinking:
 calibrated agg
+per cohort head- tommorow
 
+Questions:
+differences in high vs low CNV, why everybody cite this as 0.87 and 0.65..
 
 
 comments:

@@ -11,7 +11,7 @@ from datetime import datetime
 
 @dataclass
 class GeneralConfigs:
-    RANDOM_SEED = 1232
+    RANDOM_SEED = 123
     VERBOSE = 3  # 1 logs to LOG_FILE, 2 logs to console, 3 logs to both to file and console
     ROOT = Path(__file__).parent.parent.resolve()
     PROGRAM_LOG_FILE_ARGS = ['log.txt', 'a+']  # slide level log is in the slide dir. Use --bring-slide-logs to get all slide logs.
@@ -23,7 +23,7 @@ class GeneralConfigs:
 
 @dataclass
 class PreprocessingConfigs:
-    PREPROCESS_RUN_NAME = '1024'
+    PREPROCESS_RUN_NAME = '2048'
     METADATA_JSON_FILENAME = f'metadata_{PREPROCESS_RUN_NAME}.json'
     SUMMARY_DF_FILENAME = f'summary_df_{PREPROCESS_RUN_NAME}.csv'
     THUMBNAIL_FILENAME = f'thumbnail_{PREPROCESS_RUN_NAME}.png'
@@ -37,7 +37,7 @@ class PreprocessingConfigs:
     # PROCESSED_TILES_DIR = os.path.join(GeneralConfigs.ROOT, 'data', f'processed_tiles_{PREPROCESS_RUN_NAME}')
     SLIDES_DIR = '/mnt/data/users/sharonpe/slides'
     PROCESSED_TILES_DIR = f'/mnt/data/users/sharonpe/processed_tiles_{PREPROCESS_RUN_NAME}'
-    TILE_SIZE = 1024  # should be divisible by downsample of reduced image, the easiest way is to set to be a power of 2
+    TILE_SIZE = 2048  # should be divisible by downsample of reduced image, the easiest way is to set to be a power of 2
     REDUCED_LEVEL_TO_MEMORY = [3, 2]  # attempting to load according to order
     TARGET_MAG_POWER = 20
     MAG_ATTR = 'openslide.objective-power'
