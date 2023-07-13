@@ -11,7 +11,7 @@ from datetime import datetime
 
 @dataclass
 class GeneralConfigs:
-    RANDOM_SEED = 123
+    RANDOM_SEED = 12321
     VERBOSE = 3  # 1 logs to LOG_FILE, 2 logs to console, 3 logs to both to file and console
     ROOT = Path(__file__).parent.parent.resolve()
     PROGRAM_LOG_FILE_ARGS = ['log.txt', 'a+']  # slide level log is in the slide dir. Use --bring-slide-logs to get all slide logs.
@@ -157,15 +157,15 @@ class TumorRegressionConfigs:
 
 class SubtypeClassificationConfigs:
     SC_EXPERIMENT_NAME = 'subtype_classification_tile_based'
-    SC_FORMULATION = 'fine_aug_cls_w_2048'
-    SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_18"
+    SC_FORMULATION = 'fine_aug_cls_w_512'
+    SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_16"
     SC_RUN_DESCRIPTION = f"""Pretrained VIT DINO, fine 1e-6 1e-4 lr.
     Class weights: ['GS': 770, 'CIN': 235]
     20% test, seed:{GeneralConfigs.RANDOM_SEED}
     sampling 1500.
     AUG with blur.
     Warmup 2000"""
-    TILE_SIZE = 2048
+    TILE_SIZE = 512
     SC_LABEL_DF_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                         'manifest_labeled_dx_molecular_subtype.tsv')
     SC_DF_TILE_PATHS_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
@@ -192,20 +192,20 @@ class SubtypeClassificationConfigs:
     # SC_COHORT_TUNE = None # ['COAD', 'READ']
     SC_TEST_ONLY = None
     SC_NUM_EPOCHS = 1
-    SC_NUM_DEVICES = [1, ]
+    SC_NUM_DEVICES = [0, ]
     SC_DEVICE = 'gpu'
-    SC_TEST_BATCH_SIZE = 32
+    SC_TEST_BATCH_SIZE = 128
     SC_SAVE_CHECKPOINT_STEP_INTERVAL = 10000
     SC_VAL_STEP_INTERVAL = 1/3  # 10 times an epoch
-    SC_TRAINING_BATCH_SIZE = 32  # accumulating gradients in MIL only
+    SC_TRAINING_BATCH_SIZE = 128  # accumulating gradients in MIL only
     SC_NUM_WORKERS = 20
-    SC_TEST_SIZE = 0.3
+    SC_TEST_SIZE = 0.2
     SC_VALID_SIZE = 0  # not used if CV=True
     SC_INIT_LR = [1e-6, 1e-4]  # per part of the network, in order of the actual nn
     SC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count, 3000)  # all tiles
     SC_TILE_SAMPLE_LAMBDA_TRAIN_TUNE = None
     SC_FROZEN_BACKBONE = False
-    SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 750
+    SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 2500
     SC_TILE_ENCODER = 'SSL_VIT_PRETRAINED'
     # MIL STUFF
     SC_MIL_GROUP_SIZE = 512
@@ -247,10 +247,10 @@ class VariantClassificationConfigs:
     VC_NUM_DEVICES = [0, ]
     VC_DEVICE = 'gpu'
     VC_TEST_BATCH_SIZE = 256
-    VC_SAVE_CHECKPOINT_STEP_INTERVAL = 7000
+    VC_SAVE_CHECKPOINT_STEP_INTERVAL = 10000
     VC_VAL_STEP_INTERVAL = 0.2  # 10 times an epoch
     VC_TRAINING_BATCH_SIZE = 128
-    VC_NUM_WORKERS = 10
+    VC_NUM_WORKERS = 20
     VC_TEST_SIZE = 0.2
     VC_VALID_SIZE = 0.05
     VC_INIT_LR = 1e-5
