@@ -10,19 +10,18 @@ test:
 
 
 on hold:
-preprocess 2048
+
 
 to do:
 start variants!
 try different FoVs.
 
-fine tune SSL chosen model (looks like DINO)
+fine tune SSL chosen model (looks like DINO) - try to use all of coad and other unlabeled slides!!
 remove submodules
 
 
 move to mil
-# till 28, 10 israel, 10$, till 100k
-# 0.1% 5,  0.1% 8$, 0.025%
+
 
 past:
 find more papers about UCEC - didn't found anything else.
@@ -31,6 +30,7 @@ run 512 & 1024 experiments with different seeds.
 
 thinking:
 when increasing FoVs - adjust the tissue threshold
+combine different FoVs as aug?
 look at the cleaning phases of Cell and the paper about UCEC
 calibrated agg
 per cohort head - tommorow
