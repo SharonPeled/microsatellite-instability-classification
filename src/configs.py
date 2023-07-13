@@ -23,7 +23,7 @@ class GeneralConfigs:
 
 @dataclass
 class PreprocessingConfigs:
-    PREPROCESS_RUN_NAME = '224_2.1875mag'
+    PREPROCESS_RUN_NAME = '224_5mag'
     METADATA_JSON_FILENAME = f'metadata_{PREPROCESS_RUN_NAME}.json'
     SUMMARY_DF_FILENAME = f'summary_df_{PREPROCESS_RUN_NAME}.csv'
     THUMBNAIL_FILENAME = f'thumbnail_{PREPROCESS_RUN_NAME}.png'
@@ -39,9 +39,9 @@ class PreprocessingConfigs:
     PROCESSED_TILES_DIR = f'/mnt/data/users/sharonpe/processed_tiles_{PREPROCESS_RUN_NAME}'
     TILE_SIZE = 224  # should be divisible by downsample of reduced image, the easiest way is to set to be a power of 2
     REDUCED_LEVEL_TO_MEMORY = [3, 2]  # attempting to load according to order
-    TARGET_MAG_POWER = 2.1875
+    TARGET_MAG_POWER = 5
     MAG_ATTR = 'openslide.objective-power'
-    TILE_NON_TISSUE_THRESHOLD = 0.5  # tiles with more non tissue percent than threshold are filtered
+    TILE_NON_TISSUE_THRESHOLD = 0.25  # tiles with more non tissue percent than threshold are filtered
     OTSU_FILTER = {'reduced_img_factor': 0.8, 'attr_name': 'Background',
                    'color_palette': {'s': 10, 'otsu_val_factor': 1.1}}
     BLACK_FILTER = {'attr_name': 'Black', 'color_palette': [{'v': 50}, {'v': 200, 's': 25}]}
