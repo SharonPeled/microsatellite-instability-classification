@@ -30,7 +30,6 @@ def init_model(num_snps):
     if Configs.VC_TEST_ONLY is None:
         model = VariantClassifier(output_shape=(3, num_snps), tile_encoder_name=Configs.VC_TILE_ENCODER, class_to_ind=Configs.VC_CLASS_TO_IND,
                                   learning_rate=Configs.VC_INIT_LR, frozen_backbone=Configs.VC_FROZEN_BACKBONE,
-                                  class_to_weight=Configs.VC_CLASS_WEIGHT,
                                   num_iters_warmup_wo_backbone=Configs.VC_ITER_TRAINING_WARMUP_WO_BACKBONE)
     else:
         model = VariantClassifier.load_from_checkpoint(Configs.VC_TEST_ONLY, output_shape=(3, num_snps),
@@ -38,7 +37,6 @@ def init_model(num_snps):
                                                        class_to_ind=Configs.VC_CLASS_TO_IND,
                                                        learning_rate=Configs.VC_INIT_LR,
                                                        frozen_backbone=Configs.VC_FROZEN_BACKBONE,
-                                                       class_to_weight=Configs.VC_CLASS_WEIGHT,
                                                        num_iters_warmup_wo_backbone=Configs.VC_ITER_TRAINING_WARMUP_WO_BACKBONE)
     return model
 
