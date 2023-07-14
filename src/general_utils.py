@@ -228,7 +228,7 @@ def train_test_valid_split_patients_stratified(df_full, y_col, test_size, valid_
     if y_col is not None:
         split = splitter.split(X=df_train, y=df_train[y_col], groups=df_train['patient_id'])
     else:
-        split = splitter.split(X=df_train, y=np.ones(len(df_full)), groups=df_train['patient_id'])
+        split = splitter.split(X=df_train, y=np.ones(len(df_train)), groups=df_train['patient_id'])
     train_inds, valid_inds = next(split)
     df_valid = df_train.iloc[valid_inds].reset_index(drop=True)
     df_train = df_train.iloc[train_inds].reset_index(drop=True)
