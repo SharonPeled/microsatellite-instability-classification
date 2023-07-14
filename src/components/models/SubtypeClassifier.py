@@ -11,9 +11,9 @@ import numpy as np
 
 class SubtypeClassifier(PretrainedClassifier):
     def __init__(self, tile_encoder_name, class_to_ind, learning_rate, frozen_backbone, class_to_weight=None,
-                 num_iters_warmup_wo_backbone=None, cohort_to_ind=None, cohort_weight=None):
+                 num_iters_warmup_wo_backbone=None, cohort_to_ind=None, cohort_weight=None, nn_output_size=None):
         super(SubtypeClassifier, self).__init__(tile_encoder_name, class_to_ind, learning_rate, frozen_backbone,
-                                                class_to_weight, num_iters_warmup_wo_backbone)
+                                                class_to_weight, num_iters_warmup_wo_backbone, nn_output_size)
         self.cohort_to_ind = cohort_to_ind
         self.ind_to_cohort = {value: key for key, value in cohort_to_ind.items()}
         self.ind_to_class = {value: key for key, value in class_to_ind.items()}

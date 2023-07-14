@@ -82,12 +82,16 @@ def main():
     if args.train_tumor_regression:
         train_tumor_regression()
     if args.train_subtype_classification_tile:
+        Configs.set_task_configs('SC')
         train_subtype_classification_tile()
     if args.train_subtype_classification_mil:
+        Configs.set_task_configs('SC')
         train_subtype_classification_mil()
     if args.train_variant_classification:
+        Configs.set_task_configs('VC')
         train_variant_classification()
     if args.permutation_variant_classification:
+        Configs.set_task_configs('VC')
         permutation_variant_classification()
     if args.generate_tumor_thumbnails:
         df_pred = load_df_pred(pred_dir=Configs.TUMOR_PREDICT_OUTPUT_PATH,

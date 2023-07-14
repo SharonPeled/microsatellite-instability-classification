@@ -7,11 +7,12 @@ import torch
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning, module="torchstain")
 from datetime import datetime
+from collections import defaultdict
 
 
 @dataclass
 class GeneralConfigs:
-    RANDOM_SEED = 12321
+    RANDOM_SEED = 123
     VERBOSE = 3  # 1 logs to LOG_FILE, 2 logs to console, 3 logs to both to file and console
     ROOT = Path(__file__).parent.parent.resolve()
     PROGRAM_LOG_FILE_ARGS = ['log.txt', 'a+']  # slide level log is in the slide dir. Use --bring-slide-logs to get all slide logs.
@@ -165,11 +166,11 @@ class SubtypeClassificationConfigs:
     sampling 1500.
     AUG with blur.
     Warmup 2000"""
-    TILE_SIZE = 1024
+    SC_TILE_SIZE = 1024
     SC_LABEL_DF_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                         'manifest_labeled_dx_molecular_subtype.tsv')
     SC_DF_TILE_PATHS_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
-                                         f'df_processed_tile_paths_{TILE_SIZE}.csv')
+                                         f'df_processed_tile_paths_{SC_TILE_SIZE}.csv')
     SC_LABEL_COL = 'subtype'
     SC_TRAINED_MODEL_PATH = os.path.join(GeneralConfigs.ROOT, 'models', 'subtype_classification',
                                          f'SC_{SC_RUN_NAME}_{GeneralConfigs.START_TIME}' + '{run_suffix}.ckpt')
@@ -177,13 +178,14 @@ class SubtypeClassificationConfigs:
                                                f'{SC_RUN_NAME}_pred', 'test')
     SC_VALID_PREDICT_OUTPUT_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                                 f'{SC_RUN_NAME}_pred', 'valid')
-    SSL_STATISTICS = {'HSV': os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
-                                          f'HSV_statistics_30_512.yaml'),
-                      'HED': os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
-                                          f'HED_statistics_30_512.yaml'),
-                      'LAB': os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
-                                          f'LAB_statistics_30_512.yaml')}
+    SC_SSL_STATISTICS = {'HSV': os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
+                                             f'HSV_statistics_30_512.yaml'),
+                         'HED': os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
+                                             f'HED_statistics_30_512.yaml'),
+                         'LAB': os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
+                                             f'LAB_statistics_30_512.yaml')}
     SC_CROSS_VALIDATE = False  # num folds according to test size
+    SC_Y_TO_BE_STRATIFIED = 'y_to_be_stratified'
     SC_CLASS_TO_IND = {'GS': 0, 'CIN': 1}
     SC_CLASS_WEIGHT = {'GS': 770, 'CIN': 235}
     SC_COHORT_TO_IND = {'COAD': 0, 'READ': 1, 'STAD': 2, 'ESCA': 3, 'UCEC': 4}
@@ -227,34 +229,46 @@ class SubtypeClassificationConfigs:
 
 
 class VariantClassificationConfigs:
-    VC_EXPERIMENT_NAME = 'variant_classification_tile_based_permutation'
-    VC_FORMULATION = 'CE_5_high_AUC_SNPs'
-    VC_RUN_NAME = f"resnet_" + VC_FORMULATION + '_{permutation_num}'
-    VC_RUN_DESCRIPTION = f"""Resent50 backbone, regular tile, variant prediction. Sampling min(50%, 1000) and shuffling tiles.
-    0. Only 5 variant of the best performing AUCs, TYPED only."""
+    VC_EXPERIMENT_NAME = 'cancer_variant_classification_tile_based'
+    VC_FORMULATION = 'fine_aug_512'
+    VC_RUN_NAME = f'SSL_VIT_{VC_FORMULATION}'
+    # VC_RUN_NAME = f"resnet_" + VC_FORMULATION + '_{permutation_num}'
+    VC_RUN_DESCRIPTION = f"""SSL_VIT - fill this
+    """
+    VC_TILE_SIZE = 512
     VC_LABEL_DF_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'variant_classification',
                                     'variant_labels_1_cancers.csv')
     VC_DF_TILE_PATHS_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'variant_classification',
-                                         'df_processed_tile_paths_merged.csv')
+                                         f'df_processed_tile_paths_{VC_TILE_SIZE}.csv')
     VC_TRAINED_MODEL_PATH = os.path.join(GeneralConfigs.ROOT, 'models', 'variant_classification',
                                          f'VC_{VC_RUN_NAME}_{GeneralConfigs.START_TIME}.ckpt')
     VC_TEST_PREDICT_OUTPUT_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'variant_classification',
                                                f'{VC_RUN_NAME}_pred', 'test')
     VC_VALID_PREDICT_OUTPUT_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'variant_classification',
                                                 f'{VC_RUN_NAME}_pred', 'valid')
+    VC_SSL_STATISTICS = {'HSV': os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
+                                             f'HSV_statistics_30_512.yaml'),
+                         'HED': os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
+                                             f'HED_statistics_30_512.yaml'),
+                         'LAB': os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
+                                             f'LAB_statistics_30_512.yaml')}
+    VC_CROSS_VALIDATE = False
+    VC_Y_TO_BE_STRATIFIED = None
     VC_CLASS_TO_IND = {'GT0': 0, 'GT1': 1, 'GT2': 2}
     VC_NUM_EPOCHS = 1
     VC_NUM_DEVICES = [0, ]
     VC_DEVICE = 'gpu'
     VC_TEST_BATCH_SIZE = 256
     VC_SAVE_CHECKPOINT_STEP_INTERVAL = 10000
-    VC_VAL_STEP_INTERVAL = 0.2  # 10 times an epoch
-    VC_TRAINING_BATCH_SIZE = 128
+    VC_VAL_STEP_INTERVAL = 0.333  # 10 times an epoch
+    VC_TRAINING_BATCH_SIZE = 256
     VC_NUM_WORKERS = 20
     VC_TEST_SIZE = 0.2
-    VC_VALID_SIZE = 0.05
-    VC_INIT_LR = 1e-5
-    VC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count // 2, 1000)
+    VC_VALID_SIZE = 0.1
+    VC_INIT_LR = [1e-6, 1e-4]  # per part of the network, in order of the actual nn
+    VC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count, 3000)
+    VC_TILE_ENCODER = 'SSL_VIT_PRETRAINED'
+    # permutation stuff
     VC_NUM_PERMUTATIONS = 10
     VC_LAST_PERMUTATION = 4
 
@@ -262,6 +276,8 @@ class VariantClassificationConfigs:
 @dataclass
 class ConfigsClass(GeneralConfigs, PreprocessingConfigs, TumorClassificationConfigs, SemanticSegConfigs,
                    TumorRegressionConfigs, SubtypeClassificationConfigs, VariantClassificationConfigs):
+    TASK_PREFIX = ''
+
     def __init__(self):
         set_global_configs(verbose=self.VERBOSE,
                            log_file_args=self.PROGRAM_LOG_FILE_ARGS,
@@ -269,6 +285,19 @@ class ConfigsClass(GeneralConfigs, PreprocessingConfigs, TumorClassificationConf
                            log_format=self.LOG_FORMAT,
                            random_seed=self.RANDOM_SEED,
                            tile_progress_log_freq=self.TILE_PROGRESS_LOG_FREQ)
+        self.joined = defaultdict(lambda: None)
+
+    def set_task_configs(self, task_prefix):
+        self.TASK_PREFIX = task_prefix
+        common_configs = ['EXPERIMENT_NAME', 'RUN_NAME', 'RUN_DESCRIPTION', 'LABEL_DF_PATH', 'DF_TILE_PATHS_PATH',
+                          'TRAINED_MODEL_PATH', 'CLASS_TO_IND', 'NUM_EPOCHS', 'NUM_DEVICES', 'DEVICE', 'TEST_BATCH_SIZE',
+                          'SAVE_CHECKPOINT_STEP_INTERVAL', 'VAL_STEP_INTERVAL', 'TRAINING_BATCH_SIZE', 'NUM_WORKERS',
+                          'TEST_SIZE', 'VALID_SIZE', 'INIT_LR', 'TILE_SAMPLE_LAMBDA_TRAIN', 'SSL_STATISTICS',
+                          'CROSS_VALIDATE', 'Y_TO_BE_STRATIFIED', 'TEST_ONLY', 'TEST_PREDICT_OUTPUT_PATH',
+                          'VALID_PREDICT_OUTPUT_PATH', 'COHORT_TO_IND']
+        for c in common_configs:
+            task_c = f'{self.TASK_PREFIX}_{c}'
+            self.joined[c] = getattr(self, task_c, None)
 
 
 Configs = ConfigsClass()

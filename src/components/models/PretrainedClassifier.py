@@ -7,11 +7,12 @@ from src.training_utils import load_headless_tile_encoder
 
 class PretrainedClassifier(TransferLearningClassifier):
     def __init__(self, tile_encoder_name, class_to_ind, learning_rate, frozen_backbone, class_to_weight=None,
-                 num_iters_warmup_wo_backbone=None):
+                 num_iters_warmup_wo_backbone=None, nn_output_size=None):
         super(PretrainedClassifier, self).__init__(model='ignore', class_to_ind=class_to_ind, learning_rate=learning_rate,
                                                    class_to_weight=class_to_weight,
                                                    num_iters_warmup_wo_backbone=num_iters_warmup_wo_backbone)
         self.model, num_features = load_headless_tile_encoder(tile_encoder_name)
+        self.nn_output_size = nn_output_size
         self.frozen_backbone = frozen_backbone
         if self.frozen_backbone:
             for param in self.model.parameters():
@@ -20,7 +21,10 @@ class PretrainedClassifier(TransferLearningClassifier):
             if isinstance(self.learning_rate, list):
                 self.learning_rate = self.learning_rate[-1]
             Logger.log(f"Backbone frozen.", log_importance=1)
-        self.head = nn.Linear(num_features, len(self.class_to_ind))
+        if self.nn_output_size is None:
+            self.head = nn.Linear(num_features, len(self.class_to_ind))
+        else:
+            self.head = nn.Linear(num_features, self.nn_output_size)
         self.model = nn.Sequential(self.model, self.head)
         Logger.log(f"""TransferLearningClassifier created with encoder name: {tile_encoder_name}.""", log_importance=1)
 

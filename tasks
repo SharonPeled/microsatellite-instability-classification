@@ -1,6 +1,8 @@
 
 
-
+write email:
+1)
+2) try FoVs aug - 512 base and add all others (224, 1024, 2048(not really maybe) )
 
 
 
@@ -13,8 +15,9 @@ on hold:
 
 
 to do:
+
 start variants!
-try different FoVs.
+512 work better on UCEC and 1024 on COAD - 3 CV? or continueing CV? or next time?
 
 fine tune SSL chosen model (looks like DINO) - try to use all of coad and other unlabeled slides!!
 remove submodules
