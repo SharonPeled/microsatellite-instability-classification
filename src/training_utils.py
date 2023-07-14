@@ -22,13 +22,13 @@ from src.general_utils import train_test_valid_split_patients_stratified
 
 
 def train(df, train_transform, test_transform, logger, callbacks, model):
-    if Configs.joined['SC_CROSS_VALIDATE']:
+    if Configs.joined['CROSS_VALIDATE']:
         cross_validate(df, train_transform, test_transform, logger, model, callbacks=callbacks)
     else:
         df_train, df_valid, df_test = train_test_valid_split_patients_stratified(df,
                                                                                  y_col=Configs.joined['Y_TO_BE_STRATIFIED'],
-                                                                                 test_size=Configs.SC_TEST_SIZE,
-                                                                                 valid_size=Configs.SC_VALID_SIZE,
+                                                                                 test_size=Configs.joined['TEST_SIZE'],
+                                                                                 valid_size=Configs.joined['VALID_SIZE'],
                                                                                  random_seed=Configs.RANDOM_SEED)
         train_single_split(df_train, df_valid, df_test, train_transform, test_transform, logger, model,
                            callbacks=callbacks)
@@ -82,7 +82,7 @@ def train_single_split(df_train, df_valid, df_test, train_transform, test_transf
     return model
 
 
-def save_results(model, test_dataset, valid_dataset):
+def save_results(model, test_dataset, valid_dataset):# TODO: fix this for variants
     Logger.log(f"Saving test results...", log_importance=1)
     # since shuffle=False in test we can infer the batch_indices from batch_inx
     _, df_pred_path = save_pred_outputs(model.test_outputs, test_dataset, Configs.joined['TEST_BATCH_SIZE'],

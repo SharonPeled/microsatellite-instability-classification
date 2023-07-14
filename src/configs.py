@@ -229,16 +229,16 @@ class SubtypeClassificationConfigs:
 
 
 class VariantClassificationConfigs:
-    VC_EXPERIMENT_NAME = 'rand_variant_classification_tile_based'
-    VC_FORMULATION = 'fine_aug_512'
+    VC_EXPERIMENT_NAME = 'cancer_variant_classification_tile_based'
+    VC_FORMULATION = 'cancer_fine_aug_512'
     VC_RUN_NAME = f'SSL_VIT_{VC_FORMULATION}'
     # VC_RUN_NAME = f"resnet_" + VC_FORMULATION + '_{permutation_num}'
     VC_RUN_DESCRIPTION = f"""SSL_VIT - fill this
     """
     VC_TILE_SIZE = 512
     VC_LABEL_DF_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'variant_classification',
-                                    # 'variant_labels_1_cancer.csv')
-                                    'variant_labels_0.csv')
+                                    'variant_labels_1_cancer.csv')
+                                    # 'variant_labels_0.csv')
     VC_DF_TILE_PATHS_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'variant_classification',
                                          f'df_processed_tile_paths_{VC_TILE_SIZE}.csv')
     VC_TRAINED_MODEL_PATH = os.path.join(GeneralConfigs.ROOT, 'models', 'variant_classification',
@@ -254,15 +254,15 @@ class VariantClassificationConfigs:
                          'LAB': os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                              f'LAB_statistics_30_512.yaml')}
     VC_CROSS_VALIDATE = False
-    VC_TEST_ONLY = None
+    VC_TEST_ONLY = None #"/home/sharonpe/microsatellite-instability-classification/models/variant_classification/VC_SSL_VIT_fine_aug_512_14_07_2023_15_18.ckpt"
     VC_Y_TO_BE_STRATIFIED = None
     VC_CLASS_TO_IND = {'GT0': 0, 'GT1': 1, 'GT2': 2}
     VC_NUM_EPOCHS = 1
-    VC_NUM_DEVICES = [1, ]
+    VC_NUM_DEVICES = [0, ]
     VC_DEVICE = 'gpu'
     VC_TEST_BATCH_SIZE = 128
     VC_SAVE_CHECKPOINT_STEP_INTERVAL = 10000
-    VC_VAL_STEP_INTERVAL = 0.333  # 10 times an epoch
+    VC_VAL_STEP_INTERVAL = 0.25  # 10 times an epoch
     VC_TRAINING_BATCH_SIZE = 128
     VC_NUM_WORKERS = 20
     VC_TEST_SIZE = 0.2
