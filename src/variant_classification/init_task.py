@@ -16,9 +16,11 @@ def init_task():
     df_labels = pd.read_csv(Configs.VC_LABEL_DF_PATH)
     df_labels.rename(columns={'GT_array': 'y'}, inplace=True)
     df_labels.y = df_labels.y.apply(lambda a: torch.Tensor(eval(a)).long())
+    df_labels['cohort'] = 'CRC'
     # loading tile filepaths
     df_tiles = pd.read_csv(Configs.VC_DF_TILE_PATHS_PATH)
     df_labels_merged_tiles = df_labels.merge(df_tiles, how='inner', on='patient_id')
+    df_labels_merged_tiles['slide_id'] = df_labels_merged_tiles.slide_uuid
 
     num_snps = len(df_labels.y.iloc[0])
     model = init_model(num_snps)

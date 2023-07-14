@@ -60,7 +60,7 @@ def train_single_split(df_train, df_valid, df_test, train_transform, test_transf
         df_valid, df_test, train_transform, test_transform)
     Logger.log("Starting Training.", log_importance=1)
     trainer = pl.Trainer(devices=Configs.joined['NUM_DEVICES'], accelerator=Configs.joined['DEVICE'],
-                         deterministic=True,
+                         deterministic=False,
                          val_check_interval=Configs.joined['VAL_STEP_INTERVAL'],
                          callbacks=callbacks,
                          enable_checkpointing=True,

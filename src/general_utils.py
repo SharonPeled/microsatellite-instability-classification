@@ -190,8 +190,9 @@ def save_pred_outputs(outputs, dataset, batch_size, save_path, class_to_ind, suf
     except Exception as e:
         Logger.log("Error in Saving results." + '-'*100, log_importance=1)
         print(e)
-        save_pred_outputs_raw(outputs, dataset, save_path, f'{suffix}_{time_str}')
+        _, outputs_path = save_pred_outputs_raw(outputs, dataset, save_path, f'{suffix}_{time_str}')
         Logger.log("Saving raw results.", log_importance=1)
+        return None, outputs_path
 
 
 def load_df_pred(pred_dir, class_to_index):
