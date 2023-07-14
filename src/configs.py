@@ -229,7 +229,7 @@ class SubtypeClassificationConfigs:
 
 
 class VariantClassificationConfigs:
-    VC_EXPERIMENT_NAME = 'rand_variant_classification_tile_based'
+    VC_EXPERIMENT_NAME = 'cancer_variant_classification_tile_based'
     VC_FORMULATION = 'fine_aug_512'
     VC_RUN_NAME = f'SSL_VIT_{VC_FORMULATION}'
     # VC_RUN_NAME = f"resnet_" + VC_FORMULATION + '_{permutation_num}'
