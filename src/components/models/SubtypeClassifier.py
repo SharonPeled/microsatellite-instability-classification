@@ -44,6 +44,8 @@ class SubtypeClassifier(PretrainedClassifier):
         if len(batch) == 4:
             x, c, y, slide_id = batch
             if self.other_kwargs.get('one_hot_cohort_head', None):
+                scores = self.forward(x, c)
+            else:
                 scores = self.forward(x)
             loss = self.loss(scores, y, c)
             return {'loss': loss, 'c': c, 'scores': scores, 'y': y, 'slide_id': slide_id}
