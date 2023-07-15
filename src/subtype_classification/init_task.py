@@ -16,6 +16,7 @@ def init_task():
     df_labels = df_labels[df_labels[Configs.SC_LABEL_COL].isin(Configs.SC_CLASS_TO_IND.keys())]
     df_labels['slide_uuid'] = df_labels.slide_path.apply(lambda p: os.path.basename(os.path.dirname(p)))
     df_labels['y'] = df_labels[Configs.SC_LABEL_COL].apply(lambda s: Configs.SC_CLASS_TO_IND[s])
+    df_labels.cohort = df_labels.cohort.apply(lambda c: c if c not in ['COAD', 'READ'] else 'CRC')
     df_labels[Configs.joined['Y_TO_BE_STRATIFIED']] = df_labels['y'].astype(str) + '_' + df_labels['cohort']
     # merging labels and tiles
     df_tiles = pd.read_csv(Configs.SC_DF_TILE_PATHS_PATH)
