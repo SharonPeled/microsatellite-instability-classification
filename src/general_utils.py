@@ -160,8 +160,8 @@ def save_pred_outputs_raw(outputs, dataset, save_path, suffix):
     dataset_df_path = os.path.join(save_path, f"dataset_df_{suffix}.csv")
     os.makedirs(os.path.dirname(outputs_path), exist_ok=True)
     os.makedirs(os.path.dirname(dataset_df_path), exist_ok=True)
-    torch.save(outputs, outputs_path)
     dataset.df_labels.to_csv(dataset_df_path, index=False)
+    torch.save(outputs, outputs_path)
     return None, outputs_path
 
 
