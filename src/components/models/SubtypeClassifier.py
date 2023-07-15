@@ -9,16 +9,29 @@ import pandas as pd
 from src.training_utils import calc_safe_auc
 import numpy as np
 
+
 class SubtypeClassifier(PretrainedClassifier):
     def __init__(self, tile_encoder_name, class_to_ind, learning_rate, frozen_backbone, class_to_weight=None,
-                 num_iters_warmup_wo_backbone=None, cohort_to_ind=None, cohort_weight=None, nn_output_size=None):
+                 num_iters_warmup_wo_backbone=None, cohort_to_ind=None, cohort_weight=None, nn_output_size=None,
+                 **other_kwargs):
         super(SubtypeClassifier, self).__init__(tile_encoder_name, class_to_ind, learning_rate, frozen_backbone,
                                                 class_to_weight, num_iters_warmup_wo_backbone, nn_output_size)
         self.cohort_to_ind = cohort_to_ind
         self.ind_to_cohort = {value: key for key, value in cohort_to_ind.items()}
         self.ind_to_class = {value: key for key, value in class_to_ind.items()}
         self.cohort_weight = cohort_weight
+        self.other_kwargs = other_kwargs
+        if self.other_kwargs.get('one_hot_cohort_head', None):
+            self.head = nn.Linear(self.num_features * len(self.cohort_to_ind), len(self.class_to_ind))
+            self.model = nn.Sequential(self.backbone, self.head)
         Logger.log(f"""TransferLearningClassifier created with cohort weights: {self.cohort_weight}.""", log_importance=1)
+
+    def forward(self, x, c=None):
+        if self.other_kwargs.get('one_hot_cohort_head', None):
+            x = self.backbone(x)
+            x = self.features_to_one_hot(x, c, num_cohorts=len(self.cohort_to_ind))
+            return self.head(x)
+        return self.model(x)
 
     def general_loop(self, batch, batch_idx):
         if isinstance(batch, list) and len(batch) == 1:
@@ -28,9 +41,10 @@ class SubtypeClassifier(PretrainedClassifier):
             scores = self.forward(x)
             loss = self.loss(scores, y)
             return {'loss': loss, 'scores': scores, 'y': y, 'slide_id': slide_id}
-        else:
+        if len(batch) == 4:
             x, c, y, slide_id = batch
-            scores = self.forward(x)
+            if self.other_kwargs.get('one_hot_cohort_head', None):
+                scores = self.forward(x)
             loss = self.loss(scores, y, c)
             return {'loss': loss, 'c': c, 'scores': scores, 'y': y, 'slide_id': slide_id}
 

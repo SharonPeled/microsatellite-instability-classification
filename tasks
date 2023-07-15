@@ -3,7 +3,8 @@
 write email:
 1)
 2) try FoVs aug - 512 base and add all others (224, 1024, 2048(not really maybe) )
-
+3) variants - tell about the experiment and show histogram
+    I can show that specific SNPs get high AUC while other not
 
 
 
@@ -15,6 +16,10 @@ on hold:
 
 
 to do:
+change to CRC!!
+PER patient scores..
+one hot cohort
+cohort prior
 
 start variants!
 512 work better on UCEC and 1024 on COAD - 3 CV? or continueing CV? or next time?

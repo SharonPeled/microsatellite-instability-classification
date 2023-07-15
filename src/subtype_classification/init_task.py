@@ -32,7 +32,8 @@ def init_model():
                                   learning_rate=Configs.SC_INIT_LR, frozen_backbone=Configs.SC_FROZEN_BACKBONE,
                                   class_to_weight=Configs.SC_CLASS_WEIGHT,
                                   num_iters_warmup_wo_backbone=Configs.SC_ITER_TRAINING_WARMUP_WO_BACKBONE,
-                                  cohort_to_ind=Configs.SC_COHORT_TO_IND, cohort_weight=Configs.SC_COHORT_WEIGHT)
+                                  cohort_to_ind=Configs.SC_COHORT_TO_IND, cohort_weight=Configs.SC_COHORT_WEIGHT,
+                                  **Configs.SC_KW_ARGS)
     else:
         model = SubtypeClassifier.load_from_checkpoint(Configs.SC_TEST_ONLY, tile_encoder_name=Configs.SC_TILE_ENCODER,
                                                        class_to_ind=Configs.SC_CLASS_TO_IND,
@@ -41,7 +42,8 @@ def init_model():
                                                        class_to_weight=Configs.SC_CLASS_WEIGHT,
                                                        num_iters_warmup_wo_backbone=Configs.SC_ITER_TRAINING_WARMUP_WO_BACKBONE,
                                                        cohort_to_ind=Configs.SC_COHORT_TO_IND,
-                                                       cohort_weight=Configs.SC_COHORT_WEIGHT)
+                                                       cohort_weight=Configs.SC_COHORT_WEIGHT,
+                                                       **Configs.SC_KW_ARGS)
     return model
 
 
