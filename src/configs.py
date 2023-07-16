@@ -166,7 +166,7 @@ class SubtypeClassificationConfigs:
     20% test, seed:{GeneralConfigs.RANDOM_SEED}
     sampling 3000.
     AUG with blur.
-    Warmup 3000"""
+    Warmup 2000"""
     SC_LABEL_DF_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                         'manifest_labeled_dx_molecular_subtype.tsv')
     SC_DF_TILE_PATHS_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
@@ -196,10 +196,10 @@ class SubtypeClassificationConfigs:
     SC_NUM_EPOCHS = 1
     SC_NUM_DEVICES = [0, ]
     SC_DEVICE = 'gpu'
-    SC_TEST_BATCH_SIZE = 128
+    SC_TEST_BATCH_SIZE = 64
     SC_SAVE_CHECKPOINT_STEP_INTERVAL = 10000
     SC_VAL_STEP_INTERVAL = 1/3  # 10 times an epoch
-    SC_TRAINING_BATCH_SIZE = 128  # accumulating gradients in MIL only
+    SC_TRAINING_BATCH_SIZE = 64  # accumulating gradients in MIL only
     SC_NUM_WORKERS = 20
     SC_TEST_SIZE = 0.2
     SC_VALID_SIZE = 0  # not used if CV=True
@@ -207,7 +207,7 @@ class SubtypeClassificationConfigs:
     SC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count, 1e10)  # all tiles
     SC_TILE_SAMPLE_LAMBDA_TRAIN_TUNE = None
     SC_FROZEN_BACKBONE = False
-    SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 2000
+    SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 1
     SC_TILE_ENCODER = 'SSL_VIT_PRETRAINED'
     SC_KW_ARGS = {'one_hot_cohort_head': False,
                   'calc_proportions_class_w': True,
