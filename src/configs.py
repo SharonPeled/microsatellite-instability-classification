@@ -12,7 +12,7 @@ from collections import defaultdict
 
 @dataclass
 class GeneralConfigs:
-    RANDOM_SEED = 1233333
+    RANDOM_SEED = 1236
     VERBOSE = 3  # 1 logs to LOG_FILE, 2 logs to console, 3 logs to both to file and console
     ROOT = Path(__file__).parent.parent.resolve()
     PROGRAM_LOG_FILE_ARGS = ['log.txt', 'a+']  # slide level log is in the slide dir. Use --bring-slide-logs to get all slide logs.
@@ -158,8 +158,8 @@ class TumorRegressionConfigs:
 
 class SubtypeClassificationConfigs:
     SC_EXPERIMENT_NAME = 'subtype_classification_tile_based'
-    SC_FORMULATION = 'fine_aug_cls_w_chot_1024'
-    SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_19"
+    SC_FORMULATION = 'fine_aug_cls_w_1024'
+    SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_17"
     SC_RUN_DESCRIPTION = f"""Pretrained VIT DINO, fine 1e-6 1e-4 lr.
     Class weights: ['GS': 770, 'CIN': 235]
     20% test, seed:{GeneralConfigs.RANDOM_SEED}
@@ -209,7 +209,7 @@ class SubtypeClassificationConfigs:
     SC_FROZEN_BACKBONE = False
     SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 2000
     SC_TILE_ENCODER = 'SSL_VIT_PRETRAINED'
-    SC_KW_ARGS = {'one_hot_cohort_head': True}
+    SC_KW_ARGS = {'one_hot_cohort_head': False}
     # MIL STUFF
     SC_MIL_GROUP_SIZE = 512
     SC_MIL_VIT_MODEL_VARIANT = 'SSL_VIT_PRETRAINED'

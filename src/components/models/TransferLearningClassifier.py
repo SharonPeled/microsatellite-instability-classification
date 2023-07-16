@@ -69,10 +69,10 @@ class TransferLearningClassifier(pl.LightningModule):
     def general_loop(self, batch, batch_idx):
         if isinstance(batch, list) and len(batch) == 1:
             batch = batch[0]
-        x, y, slide_id = batch
+        x, y, slide_id, patient_id = batch
         scores = self.forward(x)
         loss = self.loss(scores, y)
-        return {'loss': loss.cpu(), 'scores': scores.cpu(), 'y': y.cpu(), 'slide_id': slide_id}
+        return {'loss': loss.cpu(), 'scores': scores.cpu(), 'y': y.cpu(), 'slide_id': slide_id, 'patient_id': patient_id}
 
     def training_step(self, batch, batch_idx):
         if self.num_iters_warmup_wo_backbone is not None and not self.backbone_grad_status \

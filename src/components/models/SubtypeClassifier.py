@@ -36,19 +36,19 @@ class SubtypeClassifier(PretrainedClassifier):
     def general_loop(self, batch, batch_idx):
         if isinstance(batch, list) and len(batch) == 1:
             batch = batch[0]
-        if len(batch) == 3:
-            x, y, slide_id = batch
+        if len(batch) == 4:
+            x, y, slide_id, patient_id = batch
             scores = self.forward(x)
             loss = self.loss(scores, y)
-            return {'loss': loss, 'scores': scores, 'y': y, 'slide_id': slide_id}
-        if len(batch) == 4:
-            x, c, y, slide_id = batch
+            return {'loss': loss, 'scores': scores, 'y': y, 'slide_id': slide_id, 'patient_id': patient_id}
+        if len(batch) == 5:
+            x, c, y, slide_id, patient_id = batch
             if self.other_kwargs.get('one_hot_cohort_head', None):
                 scores = self.forward(x, c)
             else:
                 scores = self.forward(x)
             loss = self.loss(scores, y, c)
-            return {'loss': loss, 'c': c, 'scores': scores, 'y': y, 'slide_id': slide_id}
+            return {'loss': loss, 'c': c, 'scores': scores, 'y': y, 'slide_id': slide_id, 'patient_id': patient_id}
 
     def loss(self, scores, y, c=None):
         if self.cohort_weight is None or c is None:
@@ -69,10 +69,12 @@ class SubtypeClassifier(PretrainedClassifier):
         y_true = torch.concat([out["y"] for out in outputs]).numpy()
         cohort = torch.concat([out["c"] for out in outputs]).numpy()
         slide_id = np.concatenate([out["slide_id"] for out in outputs])
+        patient_id = np.concatenate([out["patient_id"] for out in outputs])
         df = pd.DataFrame({
             "y_true": y_true,
             "cohort": cohort,
             "slide_id": slide_id,
+            "patient_id": patient_id,
             "CIN_score": logits[:, 1]
         })
 
@@ -80,20 +82,19 @@ class SubtypeClassifier(PretrainedClassifier):
         self.logger.experiment.log_metric(self.logger.run_id, f"{dataset_str}_tile_CIN_AUC",
                                           tile_cin_auc)
 
-        df_slide = df.groupby('slide_id').agg({
+        df_slide = df.groupby(['patient_id', 'cohort'], as_index=False).agg({
             'y_true': 'max',
-            'cohort': 'max',
             'CIN_score': 'mean'
         })
         slide_cin_auc = calc_safe_auc(df_slide.y_true, df_slide.CIN_score)
-        self.logger.experiment.log_metric(self.logger.run_id, f"{dataset_str}_slide_CIN_AUC",
+        self.logger.experiment.log_metric(self.logger.run_id, f"{dataset_str}_patient_CIN_AUC",
                                           slide_cin_auc)
 
         df_slide_cohort = df_slide.groupby('cohort').apply(lambda df_group:
                                                            calc_safe_auc(df_group.y_true,
                                                                          df_group.CIN_score))
         for cohort, auc in df_slide_cohort.iteritems():
-            self.logger.experiment.log_metric(self.logger.run_id, f"{dataset_str}_slide_{cohort}_CIN_AUC",
+            self.logger.experiment.log_metric(self.logger.run_id, f"{dataset_str}_patient_{cohort}_CIN_AUC",
                                               auc)
 
         super().log_metrics(y_true, y_pred, logits, dataset_str=dataset_str)
