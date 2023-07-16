@@ -26,6 +26,25 @@ def init_task():
     if Configs.SC_KW_ARGS.get('calc_proportions_class_w', None):
         Configs.SC_CLASS_WEIGHT = df_labels.groupby(Configs.SC_LABEL_COL).slide_uuid.nunique().to_dict()
 
+    if Configs.SC_KW_ARGS.get('FoVs_augs_amounts', None):
+        tile_df_paths = [path for path in [Configs.SC_DF_TILE_PATHS_PATH_224,
+                                           Configs.SC_DF_TILE_PATHS_PATH_512,
+                                           Configs.SC_DF_TILE_PATHS_PATH_1024]
+                         if path != Configs.SC_DF_TILE_PATHS_PATH]
+        df_list = []
+        for i, path in enumerate(tile_df_paths):
+            df_tiles_aug = pd.read_csv(path)
+            num_tiles = Configs.SC_KW_ARGS.get('FoVs_augs_amounts')[i] * len(df_labels_merged_tiles)
+            num_tiles_per_slide = int(num_tiles / len(df_labels))
+            df_tiles_aug_sampled = df_tiles_aug.groupby('slide_uuid', as_index=False).apply(
+                lambda slide_df: slide_df.sample(num_tiles_per_slide, random_state=Configs.RANDOM_SEED))
+            df_list.append(df_tiles_aug_sampled)
+            Logger.log(f"Number of aug tiles {i}: {len(df_tiles_aug_sampled)}, {num_tiles_per_slide} per slide.",
+                       log_importance=True)
+        df_tiles_aug_sampled = pd.concat(df_list)
+        df_labels_merged_aug_tiles = df_labels.merge(df_tiles_aug_sampled, how='inner', on='slide_uuid')
+        df_labels_merged_tiles = pd.concat([df_labels_merged_tiles, df_labels_merged_aug_tiles])
+
     model = init_model()
 
     return df_labels_merged_tiles, train_transform, test_transform, logger, callbacks, model

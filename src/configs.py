@@ -168,9 +168,15 @@ class SubtypeClassificationConfigs:
     AUG with blur.
     Warmup 2000"""
     SC_LABEL_DF_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
-                                        'manifest_labeled_dx_molecular_subtype.tsv')
+                                    'manifest_labeled_dx_molecular_subtype.tsv')
     SC_DF_TILE_PATHS_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                          f'df_processed_tile_paths_{SC_TILE_SIZE}.csv')
+    SC_DF_TILE_PATHS_PATH_224 = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
+                                             f'df_processed_tile_paths_224.csv')
+    SC_DF_TILE_PATHS_PATH_512 = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
+                                             f'df_processed_tile_paths_512.csv')
+    SC_DF_TILE_PATHS_PATH_1024 = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
+                                              f'df_processed_tile_paths_1024.csv')
     SC_LABEL_COL = 'subtype'
     SC_TRAINED_MODEL_PATH = os.path.join(GeneralConfigs.ROOT, 'models', 'subtype_classification',
                                          f'SC_{SC_RUN_NAME}_{GeneralConfigs.START_TIME}' + '{run_suffix}.ckpt')
@@ -203,15 +209,17 @@ class SubtypeClassificationConfigs:
     SC_NUM_WORKERS = 20
     SC_TEST_SIZE = 0.2
     SC_VALID_SIZE = 0  # not used if CV=True
-    SC_INIT_LR = [1e-6, 1e-4]  # per part of the network, in order of the actual nn
+    SC_INIT_LR = [5e-7, 5e-5]  # per part of the network, in order of the actual nn
     SC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count, 1e10)  # all tiles
     SC_TILE_SAMPLE_LAMBDA_TRAIN_TUNE = None
     SC_FROZEN_BACKBONE = False
-    SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 1
+    SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 2000
     SC_TILE_ENCODER = 'SSL_VIT_PRETRAINED'
     SC_KW_ARGS = {'one_hot_cohort_head': False,
                   'calc_proportions_class_w': True,
-                  'learnable_cohort_prior_init_val': None}
+                  'learnable_cohort_prior_init_val': None,
+                  'FoVs_augs_amounts': None # (0.1, 0.1)
+                  }
     # MIL STUFF
     SC_MIL_GROUP_SIZE = 512
     SC_MIL_VIT_MODEL_VARIANT = 'SSL_VIT_PRETRAINED'

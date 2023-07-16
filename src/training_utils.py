@@ -55,6 +55,12 @@ def train_single_split(df_train, df_valid, df_test, train_transform, test_transf
     df_train_sampled = df_train.groupby('slide_uuid').apply(
         lambda slide_df: slide_df.sample(n=Configs.joined['TILE_SAMPLE_LAMBDA_TRAIN'](len(slide_df)),
                                          random_state=Configs.RANDOM_SEED))
+
+    if "is_aug" in df_train.columns:
+        df_test = df_test[~df_test.is_aug]
+        if df_valid is not None:
+            df_valid = df_valid[~df_valid.is_aug]
+
     train_dataset, valid_dataset, test_dataset, train_loader, valid_loader, test_loader = get_loader_and_datasets(
         df_train_sampled,
         df_valid, df_test, train_transform, test_transform)
