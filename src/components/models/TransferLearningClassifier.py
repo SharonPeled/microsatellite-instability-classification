@@ -13,10 +13,11 @@ import numpy as np
 
 class TransferLearningClassifier(pl.LightningModule):
     def __init__(self, class_to_ind=None, model=None, learning_rate=1e-4, class_to_weight=None,
-                 num_iters_warmup_wo_backbone=None):
+                 num_iters_warmup_wo_backbone=None, **other_kwargs):
         super().__init__()
         if model is None and class_to_ind is None:
             raise "Invalid parameters."
+        self.other_kwargs = other_kwargs
         self.class_to_ind = class_to_ind
         self.class_weights = self.init_weights(class_to_weight)
         self.learning_rate = learning_rate
@@ -41,6 +42,9 @@ class TransferLearningClassifier(pl.LightningModule):
         if class_to_weight is None:
             return None
         sum_w = float(sum(class_to_weight.values()))
+        weights = [0 for _ in range(len(self.class_to_ind))]
+        for c_name, ind in self.class_to_ind.items():
+            weights[ind] = class_to_weight[c_name] / sum_w
         return torch.Tensor([w / sum_w for w in class_to_weight.values()])
 
     def forward(self, x):

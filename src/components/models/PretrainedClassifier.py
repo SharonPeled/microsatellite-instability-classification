@@ -7,10 +7,11 @@ from src.training_utils import load_headless_tile_encoder
 
 class PretrainedClassifier(TransferLearningClassifier):
     def __init__(self, tile_encoder_name, class_to_ind, learning_rate, frozen_backbone, class_to_weight=None,
-                 num_iters_warmup_wo_backbone=None, nn_output_size=None):
+                 num_iters_warmup_wo_backbone=None, nn_output_size=None, **other_kwargs):
         super(PretrainedClassifier, self).__init__(model='ignore', class_to_ind=class_to_ind, learning_rate=learning_rate,
                                                    class_to_weight=class_to_weight,
-                                                   num_iters_warmup_wo_backbone=num_iters_warmup_wo_backbone)
+                                                   num_iters_warmup_wo_backbone=num_iters_warmup_wo_backbone,
+                                                   **other_kwargs)
         self.backbone, self.num_features = load_headless_tile_encoder(tile_encoder_name)
         self.nn_output_size = nn_output_size
         self.frozen_backbone = frozen_backbone
@@ -41,7 +42,6 @@ class PretrainedClassifier(TransferLearningClassifier):
         optimizer = torch.optim.Adam(grouped_parameters)
 
         return {'optimizer': optimizer}
-
 
     @staticmethod
     def features_to_one_hot(x, c, num_cohorts):

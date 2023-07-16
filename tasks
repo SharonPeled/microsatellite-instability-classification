@@ -4,20 +4,18 @@
 
 
 test:
+1. per cohort CIN/GS
+2. cohort prior
 
 
 on hold:
+one hot cohort - decide what to do
+
 
 
 to do:
-PER patient scores..
 FoVs aug
-
-one hot cohort
-cohort prior
-
-start variants!
-512 work better on UCEC and 1024 on COAD - 3 CV? or continueing CV? or next time?
+3 CV
 
 fine tune SSL chosen model (looks like DINO) - try to use all of coad and other unlabeled slides!!
 remove submodules

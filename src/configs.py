@@ -157,16 +157,16 @@ class TumorRegressionConfigs:
 
 
 class SubtypeClassificationConfigs:
-    SC_EXPERIMENT_NAME = 'subtype_classification_tile_based'
-    SC_FORMULATION = 'fine_aug_cls_w_1024'
-    SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_17"
+    SC_TILE_SIZE = 512
+    SC_EXPERIMENT_NAME = 'SC_tile_based'
+    SC_FORMULATION = f'fine_aug_cls_w_{SC_TILE_SIZE}'
+    SC_RUN_NAME = f"COAD_SSL_VIT_{SC_FORMULATION}_21"
     SC_RUN_DESCRIPTION = f"""Pretrained VIT DINO, fine 1e-6 1e-4 lr.
     Class weights: ['GS': 770, 'CIN': 235]
     20% test, seed:{GeneralConfigs.RANDOM_SEED}
     sampling 3000.
     AUG with blur.
     Warmup 3000"""
-    SC_TILE_SIZE = 1024
     SC_LABEL_DF_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                         'manifest_labeled_dx_molecular_subtype.tsv')
     SC_DF_TILE_PATHS_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
@@ -188,7 +188,7 @@ class SubtypeClassificationConfigs:
     SC_Y_TO_BE_STRATIFIED = 'y_to_be_stratified'
     SC_CLASS_TO_IND = {'GS': 0, 'CIN': 1}
     SC_CLASS_WEIGHT = {'GS': 770, 'CIN': 235}
-    SC_COHORT_TO_IND = {'CRC': 0, 'STAD': 1, 'ESCA': 2, 'UCEC': 3}
+    SC_COHORT_TO_IND = {'CRC': 0} # {'CRC': 0, 'STAD': 1, 'ESCA': 2, 'UCEC': 3}
     # SC_COHORT_WEIGHT = {('COAD', 'CIN'): 0.052, ('COAD', 'GS'): 0.231, ('ESCA', 'CIN'): 0.043, ('ESCA', 'GS'): 0.231, ('READ', 'CIN'): 0.127, ('READ', 'GS'): 0.231, ('STAD', 'CIN'): 0.011, ('STAD', 'GS'): 0.045, ('UCEC', 'CIN'): 0.014, ('UCEC', 'GS'): 0.015}
     SC_COHORT_WEIGHT = None # {('COAD', 'CIN'): 0.75, ('COAD', 'GS'): 2.25, ('ESCA', 'CIN'): 0.25, ('ESCA', 'GS'): 0.75, ('READ', 'CIN'): 0.75, ('READ', 'GS'): 2.25, ('STAD', 'CIN'): 0.25, ('STAD', 'GS'): 0.75, ('UCEC', 'CIN'): 0.25, ('UCEC', 'GS'): 0.75}
     # SC_COHORT_TUNE = None # ['COAD', 'READ']
@@ -196,20 +196,22 @@ class SubtypeClassificationConfigs:
     SC_NUM_EPOCHS = 1
     SC_NUM_DEVICES = [0, ]
     SC_DEVICE = 'gpu'
-    SC_TEST_BATCH_SIZE = 64
+    SC_TEST_BATCH_SIZE = 128
     SC_SAVE_CHECKPOINT_STEP_INTERVAL = 10000
     SC_VAL_STEP_INTERVAL = 1/3  # 10 times an epoch
-    SC_TRAINING_BATCH_SIZE = 64  # accumulating gradients in MIL only
+    SC_TRAINING_BATCH_SIZE = 128  # accumulating gradients in MIL only
     SC_NUM_WORKERS = 20
     SC_TEST_SIZE = 0.2
     SC_VALID_SIZE = 0  # not used if CV=True
     SC_INIT_LR = [1e-6, 1e-4]  # per part of the network, in order of the actual nn
-    SC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count, 1500)  # all tiles
+    SC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count, 1e10)  # all tiles
     SC_TILE_SAMPLE_LAMBDA_TRAIN_TUNE = None
     SC_FROZEN_BACKBONE = False
     SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 2000
     SC_TILE_ENCODER = 'SSL_VIT_PRETRAINED'
-    SC_KW_ARGS = {'one_hot_cohort_head': False}
+    SC_KW_ARGS = {'one_hot_cohort_head': False,
+                  'calc_proportions_class_w': True,
+                  'learnable_cohort_prior_init_val': None}
     # MIL STUFF
     SC_MIL_GROUP_SIZE = 512
     SC_MIL_VIT_MODEL_VARIANT = 'SSL_VIT_PRETRAINED'

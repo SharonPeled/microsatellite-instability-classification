@@ -18,9 +18,13 @@ def init_task():
     df_labels['y'] = df_labels[Configs.SC_LABEL_COL].apply(lambda s: Configs.SC_CLASS_TO_IND[s])
     df_labels.cohort = df_labels.cohort.apply(lambda c: c if c not in ['COAD', 'READ'] else 'CRC')
     df_labels[Configs.joined['Y_TO_BE_STRATIFIED']] = df_labels['y'].astype(str) + '_' + df_labels['cohort']
+    df_labels = df_labels[df_labels.cohort.isin(Configs.SC_COHORT_TO_IND.keys())]
     # merging labels and tiles
     df_tiles = pd.read_csv(Configs.SC_DF_TILE_PATHS_PATH)
     df_labels_merged_tiles = df_labels.merge(df_tiles, how='inner', on='slide_uuid')
+
+    if Configs.SC_KW_ARGS.get('calc_proportions_class_w', None):
+        Configs.SC_CLASS_WEIGHT = df_labels.groupby(Configs.SC_LABEL_COL).slide_uuid.nunique().to_dict()
 
     model = init_model()
 

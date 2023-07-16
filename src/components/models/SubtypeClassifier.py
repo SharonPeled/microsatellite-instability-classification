@@ -15,23 +15,32 @@ class SubtypeClassifier(PretrainedClassifier):
                  num_iters_warmup_wo_backbone=None, cohort_to_ind=None, cohort_weight=None, nn_output_size=None,
                  **other_kwargs):
         super(SubtypeClassifier, self).__init__(tile_encoder_name, class_to_ind, learning_rate, frozen_backbone,
-                                                class_to_weight, num_iters_warmup_wo_backbone, nn_output_size)
+                                                class_to_weight, num_iters_warmup_wo_backbone, nn_output_size,
+                                                **other_kwargs)
         self.cohort_to_ind = cohort_to_ind
         self.ind_to_cohort = {value: key for key, value in cohort_to_ind.items()}
         self.ind_to_class = {value: key for key, value in class_to_ind.items()}
         self.cohort_weight = cohort_weight
-        self.other_kwargs = other_kwargs
         if self.other_kwargs.get('one_hot_cohort_head', None):
             self.head = nn.Linear(self.num_features * len(self.cohort_to_ind), len(self.class_to_ind))
             self.model = nn.Sequential(self.backbone, self.head)
+        if self.other_kwargs.get('learnable_cohort_prior_init_val', None):
+            self.learnable_priors = nn.Parameter(torch.full((len(self.cohort_to_ind),),
+                                                            self.other_kwargs.get('learnable_cohort_prior_init_val'))).float()
         Logger.log(f"""TransferLearningClassifier created with cohort weights: {self.cohort_weight}.""", log_importance=1)
 
     def forward(self, x, c=None):
         if self.other_kwargs.get('one_hot_cohort_head', None):
             x = self.backbone(x)
             x = self.features_to_one_hot(x, c, num_cohorts=len(self.cohort_to_ind))
-            return self.head(x)
-        return self.model(x)
+            x = self.head(x)
+        else:
+            x = self.model(x)
+        if self.other_kwargs.get('learnable_cohort_prior_init_val', None):
+            c = torch.eye((len(self.cohort_to_ind)), dtype=x.dtype, device=x.device)[c]
+            priors = c.matmul(self.learnable_priors)
+            x += priors
+        return x
 
     def general_loop(self, batch, batch_idx):
         if isinstance(batch, list) and len(batch) == 1:
@@ -43,7 +52,8 @@ class SubtypeClassifier(PretrainedClassifier):
             return {'loss': loss, 'scores': scores, 'y': y, 'slide_id': slide_id, 'patient_id': patient_id}
         if len(batch) == 5:
             x, c, y, slide_id, patient_id = batch
-            if self.other_kwargs.get('one_hot_cohort_head', None):
+            if self.other_kwargs.get('one_hot_cohort_head', None) or \
+                    self.other_kwargs.get('learnable_cohort_prior_init_val', None):
                 scores = self.forward(x, c)
             else:
                 scores = self.forward(x)
