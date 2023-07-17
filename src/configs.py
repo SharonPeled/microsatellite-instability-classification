@@ -159,7 +159,7 @@ class TumorRegressionConfigs:
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
     SC_EXPERIMENT_NAME = 'SC_tile_based'
-    SC_FORMULATION = f'fine_aug_cls_w_{SC_TILE_SIZE}'
+    SC_FORMULATION = f'fine_aug_cls_w_CV_{SC_TILE_SIZE}'
     SC_RUN_NAME = f"COAD_SSL_VIT_{SC_FORMULATION}_21"
     SC_RUN_DESCRIPTION = f"""Pretrained VIT DINO, fine 1e-6 1e-4 lr.
     Class weights: ['GS': 770, 'CIN': 235]
@@ -190,7 +190,7 @@ class SubtypeClassificationConfigs:
                                              f'HED_statistics_30_512.yaml'),
                          'LAB': os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                              f'LAB_statistics_30_512.yaml')}
-    SC_CROSS_VALIDATE = False  # num folds according to test size
+    SC_CROSS_VALIDATE = True  # num folds according to test size
     SC_Y_TO_BE_STRATIFIED = 'y_to_be_stratified'
     SC_CLASS_TO_IND = {'GS': 0, 'CIN': 1}
     SC_CLASS_WEIGHT = {'GS': 770, 'CIN': 235}
@@ -207,7 +207,7 @@ class SubtypeClassificationConfigs:
     SC_VAL_STEP_INTERVAL = 1/3  # 10 times an epoch
     SC_TRAINING_BATCH_SIZE = 64  # accumulating gradients in MIL only
     SC_NUM_WORKERS = 20
-    SC_TEST_SIZE = 0.2
+    SC_TEST_SIZE = 0.333
     SC_VALID_SIZE = 0  # not used if CV=True
     SC_INIT_LR = [5e-7, 5e-5]  # per part of the network, in order of the actual nn
     SC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count, 1e10)  # all tiles
