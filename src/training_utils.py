@@ -43,6 +43,9 @@ def cross_validate(df, train_transform, test_transform, mlflow_logger, model, ca
                                                            random_seed=Configs.RANDOM_SEED,
                                                            return_split_obj=True)
     for i, (train_inds, test_inds) in enumerate(split_obj):
+        if Configs.joined['CONTINUE_FROM_FOLD'] and Configs.joined['CONTINUE_FROM_FOLD'] > i:
+            Logger.log(f"Skipped Fold {i}", log_importance=1)
+            continue
         Logger.log(f"Fold {i}", log_importance=1)
         df_train = df.iloc[train_inds].reset_index(drop=True)
         df_test = df.iloc[test_inds].reset_index(drop=True)
@@ -155,8 +158,11 @@ def set_worker_sharing_strategy(worker_id: int) -> None:
 
 
 def get_loader_and_datasets(df_train, df_valid, df_test, train_transform, test_transform):
-    set_sharing_strategy('file_system')
-    set_start_method("spawn")
+    try:
+        set_sharing_strategy('file_system')
+        set_start_method("spawn")
+    except Exception as e:
+        print(e)
     train_dataset = ProcessedTileDataset(df_labels=df_train, transform=train_transform,
                                          cohort_to_index=Configs.joined['COHORT_TO_IND'])
     test_dataset = ProcessedTileDataset(df_labels=df_test, transform=test_transform,
