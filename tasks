@@ -6,6 +6,7 @@
 test:
 1. per cohort CIN/GS
 2. cohort prior
+3. FoVs aug
 
 
 on hold:
@@ -14,7 +15,6 @@ one hot cohort - decide what to do
 
 
 to do:
-FoVs aug
 3 CV
 
 fine tune SSL chosen model (looks like DINO) - try to use all of coad and other unlabeled slides!!
