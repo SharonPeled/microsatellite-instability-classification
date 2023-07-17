@@ -12,7 +12,7 @@ from collections import defaultdict
 
 @dataclass
 class GeneralConfigs:
-    RANDOM_SEED = 1236
+    RANDOM_SEED = 1231
     VERBOSE = 3  # 1 logs to LOG_FILE, 2 logs to console, 3 logs to both to file and console
     ROOT = Path(__file__).parent.parent.resolve()
     PROGRAM_LOG_FILE_ARGS = ['log.txt', 'a+']  # slide level log is in the slide dir. Use --bring-slide-logs to get all slide logs.
@@ -159,7 +159,7 @@ class TumorRegressionConfigs:
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
     SC_EXPERIMENT_NAME = 'SC_tile_based'
-    SC_FORMULATION = f'fine_aug_cls_w_CV_{SC_TILE_SIZE}'
+    SC_FORMULATION = f'fine_aug_cls_w_CV_p_{SC_TILE_SIZE}'
     SC_RUN_NAME = f"COAD_SSL_VIT_{SC_FORMULATION}_21"
     SC_RUN_DESCRIPTION = f"""Pretrained VIT DINO, fine 1e-6 1e-4 lr.
     Class weights: ['GS': 770, 'CIN': 235]
