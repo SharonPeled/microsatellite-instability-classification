@@ -13,6 +13,10 @@ class PretrainedClassifier(TransferLearningClassifier):
                                                    num_iters_warmup_wo_backbone=num_iters_warmup_wo_backbone,
                                                    **other_kwargs)
         self.backbone, self.num_features = load_headless_tile_encoder(tile_encoder_name)
+        if len(self.class_to_ind) == 2:
+            self.head_out_size = 1
+        else:
+            self.head_out_size = len(self.class_to_ind)
         self.nn_output_size = nn_output_size
         self.frozen_backbone = frozen_backbone
         if self.frozen_backbone:
@@ -23,7 +27,7 @@ class PretrainedClassifier(TransferLearningClassifier):
                 self.learning_rate = self.learning_rate[-1]
             Logger.log(f"Backbone frozen.", log_importance=1)
         if self.nn_output_size is None:
-            self.head = nn.Linear(self.num_features, len(self.class_to_ind))
+            self.head = nn.Linear(self.num_features, self.head_out_size)
         else:
             self.head = nn.Linear(self.num_features, self.nn_output_size)
         self.model = nn.Sequential(self.backbone, self.head)

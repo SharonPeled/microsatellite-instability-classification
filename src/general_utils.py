@@ -175,11 +175,14 @@ def save_pred_outputs(outputs, dataset, batch_size, save_path, class_to_ind, suf
             [batch_inx_to_batch_indices(out["batch_idx"], batch_size, len(dataset))
              for out in outputs])
         scores = torch.concat([out["scores"] for out in outputs]).cpu()
-        logits = softmax(scores, dim=1).cpu().numpy()
-        y_pred = torch.argmax(scores, dim=1).cpu().numpy()
+        if len(scores.shape) == 1:
+            df_pred = pd.DataFrame(data=scores.cpu().numpy(), columns=list(class_to_ind.keys())[1:])
+        else:
+            logits = softmax(scores, dim=1).cpu().numpy()
+            y_pred = torch.argmax(scores, dim=1).cpu().numpy()
+            df_pred = pd.DataFrame(data=logits, columns=list(class_to_ind.keys()))
+            df_pred['y_pred'] = y_pred
         y_true = torch.concat([out["y"] for out in outputs]).cpu().numpy()
-        df_pred = pd.DataFrame(data=logits, columns=list(class_to_ind.keys()))
-        df_pred['y_pred'] = y_pred
         df_pred['y_true'] = y_true
         df_pred['dataset_ind'] = dataset_indices
         df_pred = dataset.join_metadata(df_pred, dataset_indices)

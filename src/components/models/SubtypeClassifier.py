@@ -22,7 +22,7 @@ class SubtypeClassifier(PretrainedClassifier):
         self.ind_to_class = {value: key for key, value in class_to_ind.items()}
         self.cohort_weight = cohort_weight
         if self.other_kwargs.get('one_hot_cohort_head', None):
-            self.head = nn.Linear(self.num_features * len(self.cohort_to_ind), len(self.class_to_ind))
+            self.head = nn.Linear(self.num_features * len(self.cohort_to_ind), self.head_out_size)
             self.model = nn.Sequential(self.backbone, self.head)
         if self.other_kwargs.get('learnable_cohort_prior_init_val', None):
             self.learnable_priors = nn.Parameter(torch.full((len(self.cohort_to_ind),),
@@ -35,7 +35,7 @@ class SubtypeClassifier(PretrainedClassifier):
             x = self.features_to_one_hot(x, c, num_cohorts=len(self.cohort_to_ind))
             x = self.head(x)
         else:
-            x = self.model(x)
+            x = self.model(x).squeeze()
         if self.other_kwargs.get('learnable_cohort_prior_init_val', None):
             c = torch.eye((len(self.cohort_to_ind)), dtype=x.dtype, device=x.device)[c]
             priors = c.matmul(self.learnable_priors)
@@ -74,8 +74,10 @@ class SubtypeClassifier(PretrainedClassifier):
 
     def log_epoch_level_metrics(self, outputs, dataset_str):
         scores = torch.concat([out["scores"] for out in outputs])
-        logits = softmax(scores, dim=1)
-        y_pred = torch.argmax(logits, dim=1).numpy()
+        if len(scores.shape) == 1:
+            cin_scores = scores
+        else:
+            cin_scores = scores[:, 1]
         y_true = torch.concat([out["y"] for out in outputs]).numpy()
         cohort = torch.concat([out["c"] for out in outputs]).numpy()
         slide_id = np.concatenate([out["slide_id"] for out in outputs])
@@ -85,7 +87,7 @@ class SubtypeClassifier(PretrainedClassifier):
             "cohort": cohort,
             "slide_id": slide_id,
             "patient_id": patient_id,
-            "CIN_score": logits[:, 1]
+            "CIN_score": cin_scores
         })
 
         tile_cin_auc = calc_safe_auc(df.y_true, df.CIN_score)
@@ -106,8 +108,5 @@ class SubtypeClassifier(PretrainedClassifier):
         for cohort, auc in df_slide_cohort.iteritems():
             self.logger.experiment.log_metric(self.logger.run_id, f"{dataset_str}_patient_{cohort}_CIN_AUC",
                                               auc)
-
-        super().log_metrics(y_true, y_pred, logits, dataset_str=dataset_str)
-
 
 

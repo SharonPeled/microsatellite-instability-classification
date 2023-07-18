@@ -159,15 +159,16 @@ class TumorRegressionConfigs:
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
     SC_EXPERIMENT_NAME = 'SC_tile_based'
-    SC_FORMULATION = f'fine_aug_cls_w_CV_p_F_{SC_TILE_SIZE}'
-    SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_22"
+    SC_FORMULATION = f'fine_aug_cls_w_CV_p_LP_{SC_TILE_SIZE}'
+    SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_23"
     SC_RUN_DESCRIPTION = f"""Pretrained VIT DINO, fine 1e-6 1e-4 lr.
     Class weights: ['GS': 770, 'CIN': 235]
     20% test, seed:{GeneralConfigs.RANDOM_SEED}
     sampling 3000.
     AUG with blur.
     Warmup 2000,
-    AUG FoVs (0.1, 0.1)."""
+    AUG FoVs (0.1, 0.1).
+    Learnable priors 0.1."""
     SC_LABEL_DF_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                     'manifest_labeled_dx_molecular_subtype.tsv')
     SC_DF_TILE_PATHS_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
@@ -201,7 +202,7 @@ class SubtypeClassificationConfigs:
     # SC_COHORT_TUNE = None # ['COAD', 'READ']
     SC_TEST_ONLY = None
     SC_NUM_EPOCHS = 1
-    SC_NUM_DEVICES = [0, ]
+    SC_NUM_DEVICES = [1, ]
     SC_DEVICE = 'gpu'
     SC_TEST_BATCH_SIZE = 128
     SC_SAVE_CHECKPOINT_STEP_INTERVAL = 10000
@@ -218,8 +219,8 @@ class SubtypeClassificationConfigs:
     SC_TILE_ENCODER = 'SSL_VIT_PRETRAINED'
     SC_KW_ARGS = {'one_hot_cohort_head': False,
                   'calc_proportions_class_w': True,
-                  'learnable_cohort_prior_init_val': None,
-                  'FoVs_augs_amounts': (0.1, 0.1)
+                  'learnable_cohort_prior_init_val': 0.1,  # initial prior value
+                  'FoVs_augs_amounts': None  # (0.1, 0.1) - tuple of % from each FoVs to add
                   }
     # MIL STUFF
     SC_MIL_GROUP_SIZE = 512

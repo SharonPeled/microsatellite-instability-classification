@@ -53,6 +53,9 @@ class TransferLearningClassifier(pl.LightningModule):
     def loss(self, scores, y):
         if self.class_weights is None:
             return F.cross_entropy(scores, y)
+        if len(scores.shape) == 1 or (scores.shape[-1] == 1 and len(self.class_weights) == 2):
+            return F.binary_cross_entropy_with_logits(scores, y.to(scores.dtype),
+                                                      pos_weight=self.class_weights[1].to(scores.device))
         return F.cross_entropy(scores, y, weight=self.class_weights.to(scores.device))
 
     def set_training_warmup(self):
