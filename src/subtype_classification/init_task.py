@@ -39,6 +39,7 @@ def init_task():
             df_tiles_aug_sampled = df_tiles_aug.groupby('slide_uuid', as_index=False).apply(
                 lambda slide_df: slide_df.sample(min(num_tiles_per_slide, len(slide_df)),
                                                  random_state=Configs.RANDOM_SEED))
+            df_tiles_aug_sampled = df_tiles_aug_sampled[df_tiles_aug_sampled.slide_uuid.isin(df_labels.slide_uuid)]
             df_list.append(df_tiles_aug_sampled)
             Logger.log(f"Number of aug tiles {i}: {len(df_tiles_aug_sampled)}, {num_tiles_per_slide} per slide.",
                        log_importance=True)

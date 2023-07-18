@@ -14,11 +14,11 @@ on hold:
 
 
 to do:
-do on a patient level (and not cohort/patient level)
 
 fine tune SSL chosen model (looks like DINO) - try to use all of coad and other unlabeled slides!!
-remove submodules
 
+create experiment with all tiles.
+do on a patient level (and not cohort/patient level)
 
 move to mil
 
