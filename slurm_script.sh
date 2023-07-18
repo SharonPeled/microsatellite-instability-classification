@@ -1,10 +1,10 @@
 #!/bin/bash
 
-#SBATCH --job-name=FV_512
+#SBATCH --job-name=LP_512
 #SBATCH --output=%x.%j.out
 #SBATCH --error=%x.%j.err
 #SBATCH --mem=25GB
-#SBATCH --gres=gpu:0
+#SBATCH --gres=gpu:1
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
