@@ -10,12 +10,11 @@ test:
 
 
 on hold:
-one hot cohort - decide what to do
-
+3 CV
 
 
 to do:
-3 CV
+do on a patient level (and not cohort/patient level)
 
 fine tune SSL chosen model (looks like DINO) - try to use all of coad and other unlabeled slides!!
 remove submodules
@@ -26,15 +25,12 @@ move to mil
 
 past:
 find more papers about UCEC - didn't found anything else.
-run 512 & 1024 experiments with different seeds.
 
 
 thinking:
-when increasing FoVs - adjust the tissue threshold
-combine different FoVs as aug?
 look at the cleaning phases of Cell and the paper about UCEC
-calibrated agg
-per cohort head - tommorow
+blur slides ect.. (error analysis)
+
 
 
 Questions:
