@@ -15,6 +15,7 @@ on hold:
 
 
 to do:
+add to git slurm_script
 fine tune SSL chosen model (looks like DINO) - try to use all of coad and other unlabeled slides!!
 move to mil
 
