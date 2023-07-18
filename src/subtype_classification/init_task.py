@@ -4,9 +4,13 @@ import pandas as pd
 import os
 from src.training_utils import init_training_transforms, init_training_callbacks
 from src.components.models.SubtypeClassifier import SubtypeClassifier
+from torch.multiprocessing import set_start_method, set_sharing_strategy
 
 
 def init_task():
+    set_sharing_strategy('file_system')
+    set_start_method("forkserver")
+
     train_transform, test_transform = init_training_transforms()
 
     logger, callbacks = init_training_callbacks()

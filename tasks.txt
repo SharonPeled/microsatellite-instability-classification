@@ -4,37 +4,36 @@
 
 
 test:
-1. per cohort CIN/GS
-2. cohort prior
-3. FoVs aug
+
 
 
 on hold:
-3 CV
+1. per cohort CIN/GS - only stad left
+2. cohort prior
+3. FoVs aug
+4. do on a patient level (and not cohort/patient level)
 
 
 to do:
-
 fine tune SSL chosen model (looks like DINO) - try to use all of coad and other unlabeled slides!!
-
-create experiment with all tiles.
-do on a patient level (and not cohort/patient level)
-
 move to mil
 
 
-past:
-find more papers about UCEC - didn't found anything else.
 
 
 thinking:
+how to combine class weight CIN/GS with learnable priors
 look at the cleaning phases of Cell and the paper about UCEC
 blur slides ect.. (error analysis)
 
 
+future:
+3/5 CV - on all results before submission
+testing on OOD dataset - could be a potential for improvement.
+
 
 Questions:
-differences in high vs low CNV, why everybody cite this as 0.87 and 0.65..
+differences in high vs low CNV
 
 
 comments:
