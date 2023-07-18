@@ -37,7 +37,8 @@ def init_task():
             num_tiles = Configs.SC_KW_ARGS.get('FoVs_augs_amounts')[i] * len(df_labels_merged_tiles)
             num_tiles_per_slide = int(num_tiles / len(df_labels))
             df_tiles_aug_sampled = df_tiles_aug.groupby('slide_uuid', as_index=False).apply(
-                lambda slide_df: slide_df.sample(num_tiles_per_slide, random_state=Configs.RANDOM_SEED))
+                lambda slide_df: slide_df.sample(min(num_tiles_per_slide, len(slide_df)),
+                                                 random_state=Configs.RANDOM_SEED))
             df_list.append(df_tiles_aug_sampled)
             Logger.log(f"Number of aug tiles {i}: {len(df_tiles_aug_sampled)}, {num_tiles_per_slide} per slide.",
                        log_importance=True)
