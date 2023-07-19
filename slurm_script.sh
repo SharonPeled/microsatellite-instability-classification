@@ -6,11 +6,7 @@
 #SBATCH --nodes=1            # This needs to match Trainer(num_nodes=...)
 #SBATCH --gres=gpu:1
 #SBATCH --ntasks-per-node=1   # This needs to match Trainer(devices=...)
-#SBATCH --mem=0
-
-
-export NCCL_DEBUG=INFO
-export PYTHONFAULTHANDLER=1
+#SBATCH --mem=25GB
 
 hostname
 pwd

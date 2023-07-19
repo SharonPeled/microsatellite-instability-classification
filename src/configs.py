@@ -159,8 +159,8 @@ class TumorRegressionConfigs:
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
     SC_EXPERIMENT_NAME = 'SC_tile_based'
-    SC_FORMULATION = f'fine_aug_cls_w_CV_p_LP_{SC_TILE_SIZE}'
-    SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_23"
+    SC_FORMULATION = f'fine_aug_cls_w_CV_p_FV_{SC_TILE_SIZE}'
+    SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_22"
     SC_RUN_DESCRIPTION = f"""Pretrained VIT DINO, fine 1e-6 1e-4 lr.
     Class weights: auto compute
     20% test, seed:{GeneralConfigs.RANDOM_SEED}
@@ -202,14 +202,14 @@ class SubtypeClassificationConfigs:
     # SC_COHORT_TUNE = None # ['COAD', 'READ']
     SC_TEST_ONLY = None
     SC_NUM_EPOCHS = 1
-    SC_NUM_DEVICES = 1
+    SC_NUM_DEVICES = [1, ]
     NUM_NODES = 1
     SC_DEVICE = 'gpu'
-    SC_TEST_BATCH_SIZE = 128
+    SC_TEST_BATCH_SIZE = 256
     SC_SAVE_CHECKPOINT_STEP_INTERVAL = 10000
     SC_VAL_STEP_INTERVAL = 1/2  # 10 times an epoch
-    SC_TRAINING_BATCH_SIZE = 128  # accumulating gradients in MIL only
-    SC_NUM_WORKERS = 20
+    SC_TRAINING_BATCH_SIZE = 256  # accumulating gradients in MIL only
+    SC_NUM_WORKERS = 30
     SC_TEST_SIZE = 0.333
     SC_VALID_SIZE = 0  # not used if CV=True
     SC_INIT_LR = [1e-6, 1e-4]  # per part of the network, in order of the actual nn
@@ -220,8 +220,8 @@ class SubtypeClassificationConfigs:
     SC_TILE_ENCODER = 'SSL_VIT_PRETRAINED'
     SC_KW_ARGS = {'one_hot_cohort_head': False,
                   'calc_proportions_class_w': True,
-                  'learnable_cohort_prior_init_val': 0.1,  # initial prior value
-                  'FoVs_augs_amounts': None #  (0.15, 0.15)  # tuple of % from each FoVs to add
+                  'learnable_cohort_prior_init_val': None, # 0.1,  # initial prior value
+                  'FoVs_augs_amounts': (0.15, 0.15)  # tuple of % from each FoVs to add
                   }
     # MIL STUFF
     SC_MIL_GROUP_SIZE = 512
