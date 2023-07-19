@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --job-name=bash
+#SBATCH --job-name=test
 #SBATCH --output=%x.%j.out
 #SBATCH --error=%x.%j.err
 #SBATCH --mem=50GB
