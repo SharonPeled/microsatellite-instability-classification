@@ -8,7 +8,7 @@
 #SBATCH --nodes=1            # This needs to match Trainer(num_nodes=...)
 #SBATCH --ntasks-per-node=1   # This needs to match Trainer(devices=...)
 #SBATCH --cpus-per-task=1
-#SBATCH --signal=SIGUSR1@600
+#SBATCH --signal=SIGHUP@600
 
 echo "Current date and time: $(date)"
 hostname
