@@ -4,7 +4,7 @@
 #SBATCH --output=%x.%j.out
 #SBATCH --error=%x.%j.err
 #SBATCH --mem=50GB
-#SBATCH --gres=gpu:[0, ]
+#SBATCH --gres=gpu:1
 #SBATCH --nodes=1            # This needs to match Trainer(num_nodes=...)
 #SBATCH --ntasks-per-node=1   # This needs to match Trainer(devices=...)
 #SBATCH --signal=SIGUSR1@2600
