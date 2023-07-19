@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --job-name=LP_512
+#SBATCH --job-name=NM_LP_512
 #SBATCH --output=%x.%j.out
 #SBATCH --error=%x.%j.err
 #SBATCH --mem=25GB
