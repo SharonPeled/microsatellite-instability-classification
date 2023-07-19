@@ -202,13 +202,14 @@ class SubtypeClassificationConfigs:
     # SC_COHORT_TUNE = None # ['COAD', 'READ']
     SC_TEST_ONLY = None
     SC_NUM_EPOCHS = 1
-    SC_NUM_DEVICES = [0, ]  # always 0 when using slurm
+    SC_NUM_DEVICES = 1
+    NUM_NODES = 1
     SC_DEVICE = 'gpu'
-    SC_TEST_BATCH_SIZE = 256
+    SC_TEST_BATCH_SIZE = 128
     SC_SAVE_CHECKPOINT_STEP_INTERVAL = 10000
     SC_VAL_STEP_INTERVAL = 1/2  # 10 times an epoch
-    SC_TRAINING_BATCH_SIZE = 256  # accumulating gradients in MIL only
-    SC_NUM_WORKERS = 0
+    SC_TRAINING_BATCH_SIZE = 128  # accumulating gradients in MIL only
+    SC_NUM_WORKERS = 20
     SC_TEST_SIZE = 0.333
     SC_VALID_SIZE = 0  # not used if CV=True
     SC_INIT_LR = [1e-6, 1e-4]  # per part of the network, in order of the actual nn
@@ -311,7 +312,7 @@ class ConfigsClass(GeneralConfigs, PreprocessingConfigs, TumorClassificationConf
                           'SAVE_CHECKPOINT_STEP_INTERVAL', 'VAL_STEP_INTERVAL', 'TRAINING_BATCH_SIZE', 'NUM_WORKERS',
                           'TEST_SIZE', 'VALID_SIZE', 'INIT_LR', 'TILE_SAMPLE_LAMBDA_TRAIN', 'SSL_STATISTICS',
                           'CROSS_VALIDATE', 'Y_TO_BE_STRATIFIED', 'TEST_ONLY', 'TEST_PREDICT_OUTPUT_PATH',
-                          'VALID_PREDICT_OUTPUT_PATH', 'COHORT_TO_IND', 'CONTINUE_FROM_FOLD']
+                          'VALID_PREDICT_OUTPUT_PATH', 'COHORT_TO_IND', 'CONTINUE_FROM_FOLD', 'NUM_NODES']
         for c in common_configs:
             task_c = f'{self.TASK_PREFIX}_{c}'
             self.joined[c] = getattr(self, task_c, None)

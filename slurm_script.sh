@@ -1,20 +1,23 @@
 #!/bin/bash
 
-#SBATCH --job-name=NM_LP_512
+#SBATCH --job-name=L_LP_512
 #SBATCH --output=%x.%j.out
 #SBATCH --error=%x.%j.err
-#SBATCH --mem=25GB
+#SBATCH --nodes=1            # This needs to match Trainer(num_nodes=...)
 #SBATCH --gres=gpu:1
-#SBATCH --nodes=1
-#SBATCH --ntasks=1
-#SBATCH --cpus-per-task=1
+#SBATCH --ntasks-per-node=1   # This needs to match Trainer(devices=...)
+#SBATCH --mem=0
+
+
+export NCCL_DEBUG=INFO
+export PYTHONFAULTHANDLER=1
 
 hostname
 pwd
 
-source /tcmldrive/lib/miniconda3/etc/profile.d/conda.sh
+source /home/sharonpe/miniconda3/etc/profile.d/conda.sh
 conda activate MSI
 
-nohup python /home/sharonpe/microsatellite-instability-classification/main.py --train-subtype-classification-tile
+srun python /home/sharonpe/microsatellite-instability-classification/main.py --train-subtype-classification-tile
 
 echo "END"
