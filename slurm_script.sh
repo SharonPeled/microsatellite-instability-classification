@@ -3,12 +3,12 @@
 #SBATCH --job-name=test
 #SBATCH --output=%x.%j.out
 #SBATCH --error=%x.%j.err
-#SBATCH --mem=50GB
+#SBATCH --mem=25GB
 #SBATCH --gres=gpu:1
 #SBATCH --nodes=1            # This needs to match Trainer(num_nodes=...)
 #SBATCH --ntasks-per-node=1   # This needs to match Trainer(devices=...)
 #SBATCH --cpus-per-task=1
-#SBATCH --signal=SIGUSR1@2600
+#SBATCH --signal=SIGUSR1@600
 
 echo "Current date and time: $(date)"
 hostname
