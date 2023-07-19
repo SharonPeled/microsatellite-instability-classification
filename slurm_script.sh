@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --job-name=L_FV_512
+#SBATCH --job-name=bash
 #SBATCH --output=%x.%j.out
 #SBATCH --error=%x.%j.err
 #SBATCH --nodes=1            # This needs to match Trainer(num_nodes=...)

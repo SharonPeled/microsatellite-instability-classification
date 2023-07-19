@@ -8,8 +8,8 @@ from torch.multiprocessing import set_start_method, set_sharing_strategy
 
 
 def init_task():
-    # set_sharing_strategy('file_system')
-    # set_start_method("spawn")
+    set_sharing_strategy('file_system')
+    set_start_method("spawn")
 
     train_transform, test_transform = init_training_transforms()
 
