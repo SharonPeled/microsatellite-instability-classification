@@ -153,8 +153,8 @@ def init_training_transforms():
     return train_transform, test_transform
 
 
-def set_worker_sharing_strategy(worker_id: int) -> None:
-    set_sharing_strategy('file_system')
+# def set_worker_sharing_strategy(worker_id: int) -> None:
+#     set_sharing_strategy('file_system')
 
 
 def get_loader_and_datasets(df_train, df_valid, df_test, train_transform, test_transform):
@@ -165,19 +165,16 @@ def get_loader_and_datasets(df_train, df_valid, df_test, train_transform, test_t
 
     train_loader = DataLoader(train_dataset, batch_size=Configs.joined['TRAINING_BATCH_SIZE'],
                               shuffle=True,
-                              persistent_workers=True, num_workers=Configs.joined['NUM_WORKERS'],
-                              worker_init_fn=set_worker_sharing_strategy)
+                              )
     test_loader = DataLoader(test_dataset, batch_size=Configs.joined['TEST_BATCH_SIZE'], shuffle=False,
-                             persistent_workers=True, num_workers=Configs.joined['NUM_WORKERS'],
-                             worker_init_fn=set_worker_sharing_strategy)
+                             )
     if df_valid is None:
         return train_dataset, None, test_dataset, train_loader, None, test_loader
 
     valid_dataset = ProcessedTileDataset(df_labels=df_valid, transform=test_transform,
                                          cohort_to_index=Configs.joined['COHORT_TO_IND'])
     valid_loader = DataLoader(valid_dataset, batch_size=Configs.joined['TEST_BATCH_SIZE'], shuffle=False,
-                              persistent_workers=True, num_workers=Configs.joined['NUM_WORKERS'],
-                              worker_init_fn=set_worker_sharing_strategy)
+                              )
 
     return train_dataset, valid_dataset, test_dataset, train_loader, valid_loader, test_loader
 
