@@ -19,6 +19,8 @@ from torch.multiprocessing import set_start_method, set_sharing_strategy
 import pytorch_lightning as pl
 from src.general_utils import save_pred_outputs
 from src.general_utils import train_test_valid_split_patients_stratified
+from pytorch_lightning.plugins.environments import SLURMEnvironment
+import signal
 
 
 def train(df, train_transform, test_transform, logger, callbacks, model):
@@ -68,18 +70,16 @@ def train_single_split(df_train, df_valid, df_test, train_transform, test_transf
         df_train_sampled,
         df_valid, df_test, train_transform, test_transform)
     Logger.log("Starting Training.", log_importance=1)
-    trainer = pl.Trainer(accelerator="gpu", devices=1, num_nodes=1, strategy="ddp",
-
-
-        # devices=Configs.joined['NUM_DEVICES'], accelerator=Configs.joined['DEVICE'],
-        #                  num_nodes=Configs.joined['NUM_NODES'],
+    trainer = pl.Trainer(devices=Configs.joined['NUM_DEVICES'], accelerator=Configs.joined['DEVICE'],
+                         num_nodes=Configs.joined['NUM_NODES'],
                          deterministic=False,
                          val_check_interval=Configs.joined['VAL_STEP_INTERVAL'],
                          callbacks=callbacks,
                          enable_checkpointing=True,
                          logger=logger,
                          num_sanity_val_steps=2,
-                         max_epochs=Configs.joined['NUM_EPOCHS'])
+                         max_epochs=Configs.joined['NUM_EPOCHS'],
+                         plugins=[SLURMEnvironment(requeue_signal=signal.SIGUSR1)])
     if Configs.joined['TEST_ONLY'] is None:
         if valid_loader is None:
             trainer.fit(model, train_loader, ckpt_path=None)
@@ -95,7 +95,7 @@ def train_single_split(df_train, df_valid, df_test, train_transform, test_transf
     return model
 
 
-def save_results(model, test_dataset, valid_dataset):# TODO: fix this for variants
+def save_results(model, test_dataset, valid_dataset):
     Logger.log(f"Saving test results...", log_importance=1)
     # since shuffle=False in test we can infer the batch_indices from batch_inx
     _, df_pred_path = save_pred_outputs(model.test_outputs, test_dataset, Configs.joined['TEST_BATCH_SIZE'],
