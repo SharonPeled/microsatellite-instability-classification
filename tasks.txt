@@ -15,6 +15,11 @@ on hold:
 
 
 to do:
+train a simple DINO
+load a ViT and fine tune a DINO
+load a ViT and fine tune a DINO with my augs.
+
+
 fine tune SSL chosen model (looks like DINO) - try to use all of coad and other unlabeled slides!!
 move to mil
 

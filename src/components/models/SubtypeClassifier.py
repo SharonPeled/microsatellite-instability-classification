@@ -60,6 +60,18 @@ class SubtypeClassifier(PretrainedClassifier):
             loss = self.loss(scores, y, c)
             return {'loss': loss, 'c': c, 'scores': scores, 'y': y, 'slide_id': slide_id, 'patient_id': patient_id}
 
+    def configure_optimizers(self):
+        if self.other_kwargs.get('learnable_cohort_prior_init_val', None):
+            return super().configure_optimizers()
+        optimizer_dict = super().configure_optimizers()
+        if not isinstance(self.learning_rate, list):
+            lr = self.learning_rate[-1]
+        else:
+            lr = self.learning_rate
+        new_group = {"params": self.learnable_priors, "lr": lr}
+        optimizer_dict['optimizer'].add_param_group(new_group)
+        return optimizer_dict
+
     def loss(self, scores, y, c=None):
         if self.cohort_weight is None or c is None:
             return super().loss(scores, y)

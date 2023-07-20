@@ -78,8 +78,9 @@ def train_single_split(df_train, df_valid, df_test, train_transform, test_transf
                          enable_checkpointing=True,
                          logger=logger,
                          num_sanity_val_steps=2,
-                         max_epochs=Configs.joined['NUM_EPOCHS'],
-                         plugins=[SLURMEnvironment(requeue_signal=signal.SIGHUP)])
+                         max_epochs=Configs.joined['NUM_EPOCHS'])
+                         # plugins=[SLURMEnvironment(requeue_signal=signal.SIGUSR1)])
+                         # plugins = [SLURMEnvironment(requeue_signal=signal.SIGHUP)])
     if Configs.joined['TEST_ONLY'] is None:
         if valid_loader is None:
             trainer.fit(model, train_loader, ckpt_path=None)
