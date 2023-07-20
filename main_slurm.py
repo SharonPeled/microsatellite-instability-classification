@@ -5,8 +5,7 @@ import subprocess
 
 if __name__ == '__main__':
     with open("slurm_script.sh", "w") as file:
-        file.write(f"""
-#!/bin/bash
+        file.write(f"""#!/bin/bash
 
 #SBATCH --job-name={Configs.SC_RUN_NAME}
 #SBATCH --output=out_%j_%x.out
