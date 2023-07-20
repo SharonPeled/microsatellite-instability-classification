@@ -159,12 +159,12 @@ class TumorRegressionConfigs:
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
     SC_EXPERIMENT_NAME = 'SC_tile_based'
-    SC_FORMULATION = f'fine_aug_cls_w_CV_p_{SC_TILE_SIZE}'
-    SC_RUN_NAME = f"STAD_SSL_VIT_{SC_FORMULATION}_21"
+    SC_FORMULATION = f'fine_aug_cls_w_CV_p_LP_FV_{SC_TILE_SIZE}'
+    SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_25"
     SC_RUN_DESCRIPTION = f"""Pretrained VIT DINO, fine 1e-6 1e-4 lr.
     Class weights: auto compute
     20% test, seed:{GeneralConfigs.RANDOM_SEED}
-    sampling 3000.
+    all tiles.
     AUG with blur.
     Warmup 2000,
     AUG FoVs (0.15, 0.15).
@@ -197,7 +197,7 @@ class SubtypeClassificationConfigs:
     SC_Y_TO_BE_STRATIFIED = 'y_to_be_stratified'
     SC_CLASS_TO_IND = {'GS': 0, 'CIN': 1}
     SC_CLASS_WEIGHT = None #  {'GS': 770, 'CIN': 235}
-    SC_COHORT_TO_IND = {'STAD': 0} # {'CRC': 0, 'STAD': 1, 'ESCA': 2, 'UCEC': 3}
+    SC_COHORT_TO_IND = {'CRC': 0, 'STAD': 1, 'ESCA': 2, 'UCEC': 3}
     SC_COHORT_WEIGHT = None # {('COAD', 'CIN'): 0.75, ('COAD', 'GS'): 2.25, ('ESCA', 'CIN'): 0.25, ('ESCA', 'GS'): 0.75, ('READ', 'CIN'): 0.75, ('READ', 'GS'): 2.25, ('STAD', 'CIN'): 0.25, ('STAD', 'GS'): 0.75, ('UCEC', 'CIN'): 0.25, ('UCEC', 'GS'): 0.75}
     # SC_COHORT_TUNE = None # ['COAD', 'READ']
     SC_TEST_ONLY = None
@@ -207,9 +207,9 @@ class SubtypeClassificationConfigs:
     SC_DEVICE = 'gpu'
     SC_TEST_BATCH_SIZE = 256
     SC_SAVE_CHECKPOINT_STEP_INTERVAL = 10000
-    SC_VAL_STEP_INTERVAL = 1/2  # 10 times an epoch
+    SC_VAL_STEP_INTERVAL = 1/2  # 2 times an epoch
     SC_TRAINING_BATCH_SIZE = 256  # accumulating gradients in MIL only
-    SC_NUM_WORKERS = 30
+    SC_NUM_WORKERS = 40
     SC_TEST_SIZE = 0.333
     SC_VALID_SIZE = 0  # not used if CV=True
     SC_INIT_LR = [1e-6, 1e-4]  # per part of the network, in order of the actual nn
@@ -220,8 +220,8 @@ class SubtypeClassificationConfigs:
     SC_TILE_ENCODER = 'SSL_VIT_PRETRAINED'
     SC_KW_ARGS = {'one_hot_cohort_head': False,
                   'calc_proportions_class_w': True,
-                  'learnable_cohort_prior_init_val': None, #0.1, # 0.1,  # initial prior value
-                  'FoVs_augs_amounts': None, #(0.15, 0.15)  # tuple of % from each FoVs to add
+                  'learnable_cohort_prior_init_val': 0.1, # 0.1,  # initial prior value
+                  'FoVs_augs_amounts': (0.15, 0.15)  # tuple of % from each FoVs to add
                   }
     # MIL STUFF
     SC_MIL_GROUP_SIZE = 512

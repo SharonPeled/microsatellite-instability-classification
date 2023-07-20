@@ -64,7 +64,7 @@ class SubtypeClassifier(PretrainedClassifier):
         if not self.other_kwargs.get('learnable_cohort_prior_init_val', None):
             return super().configure_optimizers()
         optimizer_dict = super().configure_optimizers()
-        if not isinstance(self.learning_rate, list):
+        if isinstance(self.learning_rate, list):
             lr = self.learning_rate[-1]
         else:
             lr = self.learning_rate
