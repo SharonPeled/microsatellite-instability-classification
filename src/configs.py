@@ -203,7 +203,7 @@ class SubtypeClassificationConfigs:
     SC_TEST_ONLY = None
     SC_NUM_EPOCHS = 1
     SC_NUM_DEVICES = [0, ]  # for slurm always 0
-    NUM_NODES = 1
+    SC_NUM_NODES = 1
     SC_DEVICE = 'gpu'
     SC_TEST_BATCH_SIZE = 256
     SC_SAVE_CHECKPOINT_STEP_INTERVAL = 10000
