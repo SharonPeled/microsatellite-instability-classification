@@ -33,3 +33,4 @@ echo "END"
 """)
     proc = subprocess.Popen(['sbatch slurm_script.sh'], shell=True)
     proc.wait()
+    print('Done.')
