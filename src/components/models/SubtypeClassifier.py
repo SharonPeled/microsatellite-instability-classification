@@ -61,7 +61,7 @@ class SubtypeClassifier(PretrainedClassifier):
             return {'loss': loss, 'c': c, 'scores': scores, 'y': y, 'slide_id': slide_id, 'patient_id': patient_id}
 
     def configure_optimizers(self):
-        if self.other_kwargs.get('learnable_cohort_prior_init_val', None):
+        if not self.other_kwargs.get('learnable_cohort_prior_init_val', None):
             return super().configure_optimizers()
         optimizer_dict = super().configure_optimizers()
         if not isinstance(self.learning_rate, list):
