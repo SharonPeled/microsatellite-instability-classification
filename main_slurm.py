@@ -13,7 +13,7 @@ if __name__ == '__main__':
 #SBATCH --mem=50GB
 #SBATCH --gres=gpu:1
 #SBATCH --nodes={Configs.SC_NUM_NODES}   # This needs to match Trainer(num_nodes=...)
-#SBATCH --ntasks-per-node={len(Configs.SC_RUN_NAME)}   # This needs to match Trainer(devices=...)
+#SBATCH --ntasks-per-node={len(Configs.SC_NUM_DEVICES)}   # This needs to match Trainer(devices=...)
 #SBATCH --cpus-per-task=1
 
 export CUDA_VISIBLE_DEVICES={Configs.SC_RUN_NAME}
