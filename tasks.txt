@@ -15,6 +15,7 @@ on hold:
 
 
 to do:
+try with 1024 and -1 workers
 train a simple DINO
 load a ViT and fine tune a DINO
 load a ViT and fine tune a DINO with my augs.
