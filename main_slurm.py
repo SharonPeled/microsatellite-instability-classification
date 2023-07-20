@@ -16,8 +16,6 @@ if __name__ == '__main__':
 #SBATCH --ntasks-per-node={len(Configs.SC_NUM_DEVICES)}   # This needs to match Trainer(devices=...)
 #SBATCH --cpus-per-task=1
 
-export CUDA_VISIBLE_DEVICES={Configs.SC_RUN_NAME}
-
 echo "Current date and time: $(date)"
 hostname
 pwd
