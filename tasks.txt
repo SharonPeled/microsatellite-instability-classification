@@ -8,14 +8,16 @@ test:
 
 
 on hold:
-1. per cohort CIN/GS - only stad left
-2. cohort prior
+2. cohort prior - mul
 3. FoVs aug
-4. do on a patient level (and not cohort/patient level)
+
 
 
 to do:
 try with 1024 and -1 workers
+Daniel's files
+try 1024 tile with FoVS (224 and 512)
+
 train a simple DINO
 load a ViT and fine tune a DINO
 load a ViT and fine tune a DINO with my augs.
@@ -28,7 +30,6 @@ move to mil
 
 
 thinking:
-how to combine class weight CIN/GS with learnable priors
 look at the cleaning phases of Cell and the paper about UCEC
 blur slides ect.. (error analysis)
 
