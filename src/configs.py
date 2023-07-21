@@ -205,15 +205,15 @@ class SubtypeClassificationConfigs:
     SC_NUM_DEVICES = [0, ]  # for slurm always 0
     SC_NUM_NODES = 1
     SC_DEVICE = 'gpu'
-    SC_TEST_BATCH_SIZE = 1024
-    SC_SAVE_CHECKPOINT_STEP_INTERVAL = 2000
+    SC_TEST_BATCH_SIZE = 256
+    SC_SAVE_CHECKPOINT_STEP_INTERVAL = 5000
     SC_VAL_STEP_INTERVAL = 1/2  # 2 times an epoch
-    SC_TRAINING_BATCH_SIZE = 1024  # accumulating gradients in MIL only
-    SC_NUM_WORKERS = 50
+    SC_TRAINING_BATCH_SIZE = 256  # accumulating gradients in MIL only
+    SC_NUM_WORKERS = 40
     SC_TEST_SIZE = 0.333
     SC_VALID_SIZE = 0  # not used if CV=True
-    SC_INIT_LR = [5e-6, 5e-4]  # per part of the network, in order of the actual nn
-    SC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count, 3000)  # all tiles
+    SC_INIT_LR = [1e-6, 1e-4]  # per part of the network, in order of the actual nn
+    SC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count, 1e10)  # all tiles
     SC_TILE_SAMPLE_LAMBDA_TRAIN_TUNE = None
     SC_FROZEN_BACKBONE = False
     SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 1000
