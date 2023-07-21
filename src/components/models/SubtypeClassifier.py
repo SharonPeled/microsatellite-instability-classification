@@ -39,7 +39,7 @@ class SubtypeClassifier(PretrainedClassifier):
         if self.other_kwargs.get('learnable_cohort_prior_init_val', None):
             c = torch.eye((len(self.cohort_to_ind)), dtype=x.dtype, device=x.device)[c]
             priors = c.matmul(self.learnable_priors)
-            x *= priors
+            x += priors
         return x
 
     def general_loop(self, batch, batch_idx):

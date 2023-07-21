@@ -21,6 +21,7 @@ from src.general_utils import save_pred_outputs
 from src.general_utils import train_test_valid_split_patients_stratified
 from pytorch_lightning.plugins.environments import SLURMEnvironment
 import signal
+from copy import deepcopy
 
 
 def train(df, train_transform, test_transform, logger, callbacks, model):
@@ -52,7 +53,7 @@ def cross_validate(df, train_transform, test_transform, mlflow_logger, model, ca
         df_train = df.iloc[train_inds].reset_index(drop=True)
         df_test = df.iloc[test_inds].reset_index(drop=True)
         # get all the scores ..
-        train_single_split(df_train, None, df_test, train_transform, test_transform, mlflow_logger, model,
+        train_single_split(df_train, None, df_test, train_transform, test_transform, mlflow_logger, deepcopy(model),
                            callbacks=callbacks)
 
 

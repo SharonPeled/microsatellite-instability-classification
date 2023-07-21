@@ -8,20 +8,18 @@ test:
 
 
 on hold:
-2. cohort prior - mul
-3. FoVs aug
 
 
 
 to do:
-try with 1024 and -1 workers
+3. FoVs aug - more
 Daniel's files
-try 1024 tile with FoVS (224 and 512)
 
 train a simple DINO
 load a ViT and fine tune a DINO
 load a ViT and fine tune a DINO with my augs.
 
+try 1024 tile with FoVS (224 and 512)
 
 fine tune SSL chosen model (looks like DINO) - try to use all of coad and other unlabeled slides!!
 move to mil
