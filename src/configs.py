@@ -216,11 +216,11 @@ class SubtypeClassificationConfigs:
     SC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count, 1e10)  # all tiles
     SC_TILE_SAMPLE_LAMBDA_TRAIN_TUNE = None
     SC_FROZEN_BACKBONE = False
-    SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 1000
+    SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 500
     SC_TILE_ENCODER = 'SSL_VIT_PRETRAINED'
     SC_KW_ARGS = {'one_hot_cohort_head': False,
                   'calc_proportions_class_w': True,
-                  'learnable_cohort_prior_type': '*', # 0.1,  # initial prior value
+                  'learnable_cohort_prior_type': None, # '*', # 0.1,  # initial prior value
                   'FoVs_augs_amounts': (0.25, 0.25)  # tuple of % from each FoVs to add
                   }
     # MIL STUFF
