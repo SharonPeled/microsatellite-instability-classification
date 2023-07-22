@@ -159,8 +159,8 @@ class TumorRegressionConfigs:
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
     SC_EXPERIMENT_NAME = 'SC_tile_based'
-    SC_FORMULATION = f'CV_p_ALP_FV25_{SC_TILE_SIZE}'
-    SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_27"
+    SC_FORMULATION = f'CV_p_MLP_FV25_{SC_TILE_SIZE}'
+    SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_28"
     SC_RUN_DESCRIPTION = f"""Pretrained VIT DINO, fine 1e-6 1e-4 lr.
     Class weights: auto compute
     20% test, seed:{GeneralConfigs.RANDOM_SEED}
@@ -220,7 +220,7 @@ class SubtypeClassificationConfigs:
     SC_TILE_ENCODER = 'SSL_VIT_PRETRAINED'
     SC_KW_ARGS = {'one_hot_cohort_head': False,
                   'calc_proportions_class_w': True,
-                  'learnable_cohort_prior_type': '+', # 0.1,  # initial prior value
+                  'learnable_cohort_prior_type': '*', # 0.1,  # initial prior value
                   'FoVs_augs_amounts': (0.25, 0.25)  # tuple of % from each FoVs to add
                   }
     # MIL STUFF

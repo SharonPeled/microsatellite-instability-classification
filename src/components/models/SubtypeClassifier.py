@@ -41,8 +41,8 @@ class SubtypeClassifier(PretrainedClassifier):
                 priors = c.matmul(self.learnable_priors)
                 x += priors
             elif self.other_kwargs.get('learnable_cohort_prior_type') == '*':
-                self.learnable_priors = softmax(self.learnable_priors)
-                priors = c.matmul(self.learnable_priors)
+                cohort_priors = softmax(self.learnable_priors)
+                priors = c.matmul(cohort_priors)
                 x *= priors
             else:
                 raise NotImplementedError("learnable cohort prior type not implemented.")
