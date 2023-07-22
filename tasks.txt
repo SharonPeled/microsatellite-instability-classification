@@ -12,7 +12,15 @@ on hold:
 
 
 to do:
-3. FoVs aug - more
+wait another for 1024
+
+512, (25,25), additive X mult
+
+
+do by itself again - fair comparison
+more epochs
+
+
 Daniel's files
 
 train a simple DINO
