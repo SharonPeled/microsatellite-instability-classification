@@ -8,13 +8,13 @@ test:
 
 
 on hold:
-512, (25,25), additive X mult - running
+run additive priors, with 10% augs and a lot of resources
 do by itself again - fair comparison - waiting to be run after end 1 CV
 
 
 
 to do:
-
+add to aug resize and aug
 more epochs
 Daniel's files
 
@@ -32,6 +32,7 @@ move to mil
 
 thinking:
 look at the cleaning phases of Cell and the paper about UCEC
+bigger head (3 layered nn)
 blur slides ect.. (error analysis)
 
 
