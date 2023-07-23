@@ -205,10 +205,10 @@ class SubtypeClassificationConfigs:
     SC_NUM_DEVICES = [0, ]  # for slurm always 0
     SC_NUM_NODES = 1
     SC_DEVICE = 'gpu'
-    SC_TEST_BATCH_SIZE = 512
+    SC_TEST_BATCH_SIZE = 256
     SC_SAVE_CHECKPOINT_STEP_INTERVAL = 5000
     SC_VAL_STEP_INTERVAL = 1/2  # 2 times an epoch
-    SC_TRAINING_BATCH_SIZE = 512  # accumulating gradients in MIL only
+    SC_TRAINING_BATCH_SIZE = 256  # accumulating gradients in MIL only
     SC_NUM_WORKERS = 40
     SC_TEST_SIZE = 0.333
     SC_VALID_SIZE = 0  # not used if CV=True
