@@ -37,6 +37,8 @@ def init_task():
                          if path != Configs.SC_DF_TILE_PATHS_PATH]
         df_list = []
         for i, path in enumerate(tile_df_paths):
+            if Configs.SC_KW_ARGS.get('FoVs_augs_amounts')[i] is None or Configs.SC_KW_ARGS.get('FoVs_augs_amounts')[i] == 0:
+                continue
             df_tiles_aug = pd.read_csv(path)
             num_tiles = Configs.SC_KW_ARGS.get('FoVs_augs_amounts')[i] * len(df_labels_merged_tiles)
             num_tiles_per_slide = int(num_tiles / len(df_labels))

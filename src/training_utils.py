@@ -21,6 +21,7 @@ from src.general_utils import save_pred_outputs
 from src.general_utils import train_test_valid_split_patients_stratified
 from pytorch_lightning.plugins.environments import SLURMEnvironment
 import signal
+from PIL import Image
 from copy import deepcopy
 
 
@@ -125,6 +126,8 @@ def init_training_callbacks():
 
 def init_training_transforms():
     train_transform = transforms.Compose([
+        transforms.RandomApply([transforms.RandomResizedCrop(224, scale=(0.75, 1.0), interpolation=Image.BICUBIC), ],
+                               p=0.7),
         transforms.RandomHorizontalFlip(),  # reverse 50% of images
         transforms.RandomVerticalFlip(),  # reverse 50% of images
 
