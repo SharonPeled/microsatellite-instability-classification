@@ -159,8 +159,8 @@ class TumorRegressionConfigs:
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
     SC_EXPERIMENT_NAME = 'SC_tile_based'
-    SC_FORMULATION = f'CV_p_ALP_FV_aug_{SC_TILE_SIZE}'
-    SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_30"
+    SC_FORMULATION = f'CV_p_ALP_FV10_{SC_TILE_SIZE}'
+    SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_29"
     SC_RUN_DESCRIPTION = f"""Pretrained VIT DINO, fine 1e-6 1e-4 lr.
     Class weights: auto compute
     33% test, seed:{GeneralConfigs.RANDOM_SEED}
@@ -209,7 +209,7 @@ class SubtypeClassificationConfigs:
     SC_SAVE_CHECKPOINT_STEP_INTERVAL = 5000
     SC_VAL_STEP_INTERVAL = 1/2  # 2 times an epoch
     SC_TRAINING_BATCH_SIZE = 512  # accumulating gradients in MIL only
-    SC_NUM_WORKERS = 60
+    SC_NUM_WORKERS = 40
     SC_TEST_SIZE = 0.333
     SC_VALID_SIZE = 0  # not used if CV=True
     SC_INIT_LR = [1e-6 * (SC_TRAINING_BATCH_SIZE/256),
@@ -222,7 +222,7 @@ class SubtypeClassificationConfigs:
     SC_KW_ARGS = {'one_hot_cohort_head': False,
                   'calc_proportions_class_w': True,
                   'learnable_cohort_prior_type': '+', # '*', # 0.1,  # initial prior value
-                  'FoVs_augs_amounts': (0.05, 0.25)  # tuple of % from each FoVs to add
+                  'FoVs_augs_amounts': (0.1, 0.1)  # tuple of % from each FoVs to add
                   }
     # MIL STUFF
     SC_MIL_GROUP_SIZE = 512

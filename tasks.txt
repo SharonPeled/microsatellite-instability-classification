@@ -8,7 +8,7 @@ test:
 
 
 on hold:
-run additive priors, with 10% augs and a lot of resources
+run additive priors, with 10% augs
 do by itself again - fair comparison - waiting to be run after end 1 CV
 
 
@@ -18,8 +18,7 @@ add to aug resize and aug
 more epochs
 Daniel's files
 
-train a simple DINO
-load a ViT and fine tune a DINO
+load a ViT for both student and teacher - warmup the dino heads
 load a ViT and fine tune a DINO with my augs.
 
 try 1024 tile with FoVS (224 and 512)
