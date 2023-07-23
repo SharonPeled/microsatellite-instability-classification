@@ -127,7 +127,10 @@ def init_training_callbacks():
 def init_training_transforms():
     train_transform = transforms.Compose([
         transforms.RandomApply([transforms.RandomResizedCrop(224, scale=(0.75, 1.0), interpolation=Image.BICUBIC), ],
-                               p=0.7),
+                               p=0.1),
+
+        transforms.Resize(224), # to lower on computational costs.
+
         transforms.RandomHorizontalFlip(),  # reverse 50% of images
         transforms.RandomVerticalFlip(),  # reverse 50% of images
 

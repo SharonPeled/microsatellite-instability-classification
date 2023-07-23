@@ -9,12 +9,12 @@ test:
 
 on hold:
 run additive priors, with 10% augs
+add to aug resize and aug - randomcrop
 do by itself again - fair comparison - waiting to be run after end 1 CV
 
 
 
 to do:
-add to aug resize and aug
 more epochs
 Daniel's files
 
