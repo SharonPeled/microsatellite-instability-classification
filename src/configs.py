@@ -12,7 +12,7 @@ from collections import defaultdict
 
 @dataclass
 class GeneralConfigs:
-    RANDOM_SEED = 12345
+    RANDOM_SEED = 1234
     VERBOSE = 3  # 1 logs to LOG_FILE, 2 logs to console, 3 logs to both to file and console
     ROOT = Path(__file__).parent.parent.resolve()
     PROGRAM_LOG_FILE_ARGS = ['log.txt', 'a+']  # slide level log is in the slide dir. Use --bring-slide-logs to get all slide logs.
@@ -159,12 +159,12 @@ class TumorRegressionConfigs:
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
     SC_EXPERIMENT_NAME = 'SC_tile_based'
-    SC_FORMULATION = f'CV_p_MLP_FV25_{SC_TILE_SIZE}'
-    SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_28"
+    SC_FORMULATION = f'CV_p_ALP_FV10_{SC_TILE_SIZE}'
+    SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_29"
     SC_RUN_DESCRIPTION = f"""Pretrained VIT DINO, fine 1e-6 1e-4 lr.
     Class weights: auto compute
     20% test, seed:{GeneralConfigs.RANDOM_SEED}
-    all tiles.
+    3000 tiles.
     AUG with blur.
     Warmup 2000,
     AUG FoVs (0.25, 0.25).
@@ -202,26 +202,27 @@ class SubtypeClassificationConfigs:
     # SC_COHORT_TUNE = None # ['COAD', 'READ']
     SC_TEST_ONLY = None
     SC_NUM_EPOCHS = 1
-    SC_NUM_DEVICES = [0, ]  # for slurm always 0
-    SC_NUM_NODES = 1
+    SC_NUM_DEVICES = [0, 1]  # for slurm always 0
+    SC_NUM_NODES = 2
     SC_DEVICE = 'gpu'
-    SC_TEST_BATCH_SIZE = 256
+    SC_TEST_BATCH_SIZE = 512
     SC_SAVE_CHECKPOINT_STEP_INTERVAL = 5000
     SC_VAL_STEP_INTERVAL = 1/2  # 2 times an epoch
-    SC_TRAINING_BATCH_SIZE = 256  # accumulating gradients in MIL only
-    SC_NUM_WORKERS = 40
+    SC_TRAINING_BATCH_SIZE = 512  # accumulating gradients in MIL only
+    SC_NUM_WORKERS = 60
     SC_TEST_SIZE = 0.333
     SC_VALID_SIZE = 0  # not used if CV=True
-    SC_INIT_LR = [1e-6, 1e-4]  # per part of the network, in order of the actual nn
-    SC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count, 1e10)  # all tiles
+    SC_INIT_LR = [1e-6 * (SC_TRAINING_BATCH_SIZE/256),
+                  1e-4 * (SC_TRAINING_BATCH_SIZE/256)]  # per part of the network, in order of the actual nn
+    SC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count, 3000)  # all tiles
     SC_TILE_SAMPLE_LAMBDA_TRAIN_TUNE = None
     SC_FROZEN_BACKBONE = False
     SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 500
     SC_TILE_ENCODER = 'SSL_VIT_PRETRAINED'
     SC_KW_ARGS = {'one_hot_cohort_head': False,
                   'calc_proportions_class_w': True,
-                  'learnable_cohort_prior_type': None, # '*', # 0.1,  # initial prior value
-                  'FoVs_augs_amounts': (0.25, 0.25)  # tuple of % from each FoVs to add
+                  'learnable_cohort_prior_type': '+', # '*', # 0.1,  # initial prior value
+                  'FoVs_augs_amounts': (0.1, 0.1)  # tuple of % from each FoVs to add
                   }
     # MIL STUFF
     SC_MIL_GROUP_SIZE = 512

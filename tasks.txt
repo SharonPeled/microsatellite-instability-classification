@@ -8,19 +8,14 @@ test:
 
 
 on hold:
+512, (25,25), additive X mult - running
+do by itself again - fair comparison - waiting to be run after end 1 CV
 
 
 
 to do:
-wait another for 1024
 
-512, (25,25), additive X mult
-
-
-do by itself again - fair comparison
 more epochs
-
-
 Daniel's files
 
 train a simple DINO
