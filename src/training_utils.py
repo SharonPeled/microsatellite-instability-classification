@@ -128,8 +128,9 @@ def init_training_transforms():
         transforms.RandomHorizontalFlip(),  # reverse 50% of images
         transforms.RandomVerticalFlip(),  # reverse 50% of images
 
-        transforms.RandomApply([transforms.GaussianBlur(kernel_size=(5, 5), sigma=(0.25, 1)),
-                                transforms.RandomAdjustSharpness(sharpness_factor=2)], p=0.1),
+        transforms.RandomApply([transforms.GaussianBlur(kernel_size=(5, 5), sigma=(0.25, 1)), ], p=0.1),
+
+        transforms.RandomApply([transforms.RandomAdjustSharpness(sharpness_factor=2), ], p=0.1),
 
         transforms.RandomApply([transforms.Grayscale(num_output_channels=3), ], p=0.2),  # grayscale 20% of the images
         transforms.RandomApply([transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1)], p=0.8),
