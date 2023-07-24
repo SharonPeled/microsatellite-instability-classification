@@ -8,23 +8,26 @@ test:
 
 
 on hold:
-run additive priors, with 10% augs
-add to aug resize and aug - randomcrop
-do by itself again - fair comparison - waiting to be run after end 1 CV
+more aug - running
+more aug with more epochs - running
 
 
 
 to do:
-more epochs
-Daniel's files
+runs -
+    do by itself again - fair comparison
+    try again 1024
+other -
+    Daniel's files
+    SSL ViT
+    think of fusion between datasets
+    think/move to mil
+
+
+
 
 load a ViT for both student and teacher - warmup the dino heads
 load a ViT and fine tune a DINO with my augs.
-
-try 1024 tile with FoVS (224 and 512)
-
-fine tune SSL chosen model (looks like DINO) - try to use all of coad and other unlabeled slides!!
-move to mil
 
 
 
