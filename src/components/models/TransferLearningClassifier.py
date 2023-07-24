@@ -36,6 +36,7 @@ class TransferLearningClassifier(pl.LightningModule):
             self.model = model
         self.test_outputs = None
         self.valid_outputs = None
+        self.is_fit = False
         Logger.log(f"""TransferLearningClassifier created with loss weights: {self.class_weights}.""", log_importance=1)
 
     def init_weights(self, class_to_weight):
@@ -46,6 +47,9 @@ class TransferLearningClassifier(pl.LightningModule):
         for c_name, ind in self.class_to_ind.items():
             weights[ind] = class_to_weight[c_name] / sum_w
         return torch.Tensor([w / sum_w for w in class_to_weight.values()])
+
+    def on_train_start(self):
+        self.is_fit = True
 
     def forward(self, x):
         return self.model(x)

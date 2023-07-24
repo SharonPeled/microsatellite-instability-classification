@@ -76,6 +76,7 @@ def init_model():
                                                        cohort_to_ind=Configs.SC_COHORT_TO_IND,
                                                        cohort_weight=Configs.SC_COHORT_WEIGHT,
                                                        **Configs.SC_KW_ARGS)
+        Logger.log(f"Model successfully loaded from checkpoint!", log_importance=1)
     return model
 
 
