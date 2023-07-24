@@ -207,9 +207,14 @@ class RandStainNA(object):
         return image
 
     def __call__(self, img):
-        if np.random.rand(1) < self.p:
-            return self.to_PIL(self.augment(img))
-        else:
+        try:
+            if np.random.rand(1) < self.p:
+                return self.to_PIL(self.augment(img))
+            else:
+                return img
+        except Exception as e:
+            print('ERROR in RandStainNA!  ' + "! ! "*10)
+            print(e)
             return img
 
     def __repr__(self):
