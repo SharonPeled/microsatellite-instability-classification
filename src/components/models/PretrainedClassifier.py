@@ -37,15 +37,16 @@ class PretrainedClassifier(TransferLearningClassifier):
         self.set_training_warmup()
         if not isinstance(self.learning_rate, list):
             return super().configure_optimizers()
-
+        optimizer_dict = super().configure_optimizers()
         grouped_parameters = [
             {"params": [p for p in self.model[:-1].parameters()], 'lr': self.learning_rate[0]},
             {"params": [p for p in self.model[-1].parameters()], 'lr': self.learning_rate[1]},
         ]
 
         optimizer = torch.optim.Adam(grouped_parameters)
+        optimizer_dict['optimizer'] = optimizer
 
-        return {'optimizer': optimizer}
+        return optimizer_dict
 
     @staticmethod
     def features_to_one_hot(x, c, num_cohorts):

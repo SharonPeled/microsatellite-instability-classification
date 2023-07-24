@@ -9,6 +9,7 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 from ...general_utils import generate_confusion_matrix_figure
 from src.components.objects.Logger import Logger
 import numpy as np
+from torch.optim.lr_scheduler import StepLR
 
 
 class TransferLearningClassifier(pl.LightningModule):
@@ -74,7 +75,7 @@ class TransferLearningClassifier(pl.LightningModule):
     def configure_optimizers(self):
         self.set_training_warmup()
         optimizer = torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
-        scheduler = ReduceLROnPlateau(optimizer, factor=0.1, patience=2)
+        scheduler = StepLR(optimizer, step_size=1, gamma=0.2)
         return {'optimizer': optimizer, 'lr_scheduler': scheduler, 'monitor': 'val_loss'}
 
     def general_loop(self, batch, batch_idx):
