@@ -25,7 +25,7 @@ class SubtypeClassifier(PretrainedClassifier):
             self.head = nn.Linear(self.num_features * len(self.cohort_to_ind), self.head_out_size)
             self.model = nn.Sequential(self.backbone, self.head)
         if self.other_kwargs.get('learnable_cohort_prior_type', None):
-            self.learnable_priors = nn.Parameter(torch.full((len(self.cohort_to_ind),), 0.1)).float()  # random init val
+            self.learnable_priors = nn.Parameter(torch.full((len(self.cohort_to_ind),), 0.5)).float()  # random init val
         Logger.log(f"""TransferLearningClassifier created with cohort weights: {self.cohort_weight}.""", log_importance=1)
 
     def forward(self, x, c=None):

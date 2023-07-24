@@ -12,7 +12,7 @@ from collections import defaultdict
 
 @dataclass
 class GeneralConfigs:
-    RANDOM_SEED = 1234
+    RANDOM_SEED = 12341
     VERBOSE = 3  # 1 logs to LOG_FILE, 2 logs to console, 3 logs to both to file and console
     ROOT = Path(__file__).parent.parent.resolve()
     PROGRAM_LOG_FILE_ARGS = ['log.txt', 'a+']  # slide level log is in the slide dir. Use --bring-slide-logs to get all slide logs.
@@ -159,16 +159,17 @@ class TumorRegressionConfigs:
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
     SC_EXPERIMENT_NAME = 'SC_tile_based'
-    SC_FORMULATION = f'CV_p_ALP_FV15_{SC_TILE_SIZE}'
-    SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_31"
+    SC_FORMULATION = f'CV_p_ALP_FV20_{SC_TILE_SIZE}'
+    SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_32"
     SC_RUN_DESCRIPTION = f"""Pretrained VIT DINO, fine 1e-6 1e-4 lr.
     Class weights: auto compute
     33% test, seed:{GeneralConfigs.RANDOM_SEED}
     All tiles.
     AUG with blur/sharp separate, and soft scale 0.1
     Warmup 2000,
-    AUG FoVs (0.15, 0.15).
-    Learnable priors 0.1."""
+    AUG FoVs (0.20, 0.20).
+    Learnable priors 0.5.
+    20% random resize crop"""
     SC_LABEL_DF_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                     'manifest_labeled_dx_molecular_subtype.tsv')
     SC_DF_TILE_PATHS_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
@@ -222,7 +223,7 @@ class SubtypeClassificationConfigs:
     SC_KW_ARGS = {'one_hot_cohort_head': False,
                   'calc_proportions_class_w': True,
                   'learnable_cohort_prior_type': '+', # '*', # 0.1,  # initial prior value
-                  'FoVs_augs_amounts': (0.15, 0.15)  # tuple of % from each FoVs to add
+                  'FoVs_augs_amounts': (0.2, 0.2)  # tuple of % from each FoVs to add
                   }
     # MIL STUFF
     SC_MIL_GROUP_SIZE = 512
