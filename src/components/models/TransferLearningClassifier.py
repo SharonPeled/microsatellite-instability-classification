@@ -75,8 +75,11 @@ class TransferLearningClassifier(pl.LightningModule):
     def configure_optimizers(self):
         self.set_training_warmup()
         optimizer = torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
-        scheduler = StepLR(optimizer, step_size=1, gamma=0.1)
-        return {'optimizer': optimizer, 'lr_scheduler': scheduler, 'monitor': 'val_loss'}
+        scheduler = self.create_lr_scheduler(optimizer)
+        return {'optimizer': optimizer, 'lr_scheduler': scheduler}
+
+    def create_lr_scheduler(self, optimizer):
+        return StepLR(optimizer, step_size=1, gamma=0.1)
 
     def general_loop(self, batch, batch_idx):
         if isinstance(batch, list) and len(batch) == 1:

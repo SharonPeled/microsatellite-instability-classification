@@ -76,6 +76,7 @@ class SubtypeClassifier(PretrainedClassifier):
             lr = self.learning_rate
         new_group = {"params": self.learnable_priors, "lr": lr}
         optimizer_dict['optimizer'].add_param_group(new_group)
+        optimizer_dict['lr_scheduler'] = self.create_lr_scheduler(optimizer_dict['optimizer'])
         return optimizer_dict
 
     def loss(self, scores, y, c=None):
