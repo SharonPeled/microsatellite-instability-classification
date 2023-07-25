@@ -160,17 +160,28 @@ class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
     SC_EXPERIMENT_NAME = 'SC_tile_based'
     SC_FORMULATION = f'CV_p_ALP_FV15_{SC_TILE_SIZE}'
-    SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_31"
-    SC_RUN_DESCRIPTION = f"""Pretrained VIT DINO, fine 1e-6 1e-4 lr.
+    # SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_31"
+    SC_RUN_NAME = "single_cohort_test"
+    SC_RUN_DESCRIPTION = f"""
+    Pretrained VIT DINO, fine 1e-6 1e-4 lr.
     Class weights: auto compute
     33% test, seed:{GeneralConfigs.RANDOM_SEED}
     All tiles.
-    AUG with blur/sharp separate, and soft scale 0.1
-    Warmup 2000,
-    AUG FoVs (0.15, 0.15).
-    Learnable priors 0.1.
-    10% random resize crop
-    1 epochs, lr decay 0.1."""
+    AUG with blur/sharp separate
+    Warmup 500
+    1 epoch
+    no FoVs aug..
+    """
+    # SC_RUN_DESCRIPTION = f"""Pretrained VIT DINO, fine 1e-6 1e-4 lr.
+    # Class weights: auto compute
+    # 33% test, seed:{GeneralConfigs.RANDOM_SEED}
+    # All tiles.
+    # AUG with blur/sharp separate, and soft scale 0.1
+    # Warmup 2000,
+    # AUG FoVs (0.15, 0.15).
+    # Learnable priors 0.1.
+    # 10% random resize crop
+    # 1 epochs, lr decay 0.1."""
     SC_LABEL_DF_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                     'manifest_labeled_dx_molecular_subtype.tsv')
     SC_DF_TILE_PATHS_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
@@ -195,7 +206,7 @@ class SubtypeClassificationConfigs:
                          'LAB': os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                              f'LAB_statistics_30_512.yaml')}
     SC_CROSS_VALIDATE = True  # num folds according to test size
-    SC_CONTINUE_FROM_FOLD = 2  # 0 to 1/TEST_SIZE
+    SC_CONTINUE_FROM_FOLD = 0  # 0 to 1/TEST_SIZE
     SC_Y_TO_BE_STRATIFIED = 'y_to_be_stratified'
     SC_CLASS_TO_IND = {'GS': 0, 'CIN': 1}
     SC_CLASS_WEIGHT = None #  {'GS': 770, 'CIN': 235}
@@ -219,12 +230,12 @@ class SubtypeClassificationConfigs:
     SC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count, 1e10)  # all tiles
     SC_TILE_SAMPLE_LAMBDA_TRAIN_TUNE = None
     SC_FROZEN_BACKBONE = False
-    SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 2000
+    SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 700
     SC_TILE_ENCODER = 'SSL_VIT_PRETRAINED'
     SC_KW_ARGS = {'one_hot_cohort_head': False,
                   'calc_proportions_class_w': True,
-                  'learnable_cohort_prior_type': '+', # '*', # 0.1,  # initial prior value
-                  'FoVs_augs_amounts': (0.15, 0.15)  # tuple of % from each FoVs to add
+                  'learnable_cohort_prior_type': None,#'+', # '*', # 0.1,  # initial prior value
+                  'FoVs_augs_amounts': None,#(0.15, 0.15)  # tuple of % from each FoVs to add
                   }
     # MIL STUFF
     SC_MIL_GROUP_SIZE = 512
