@@ -66,6 +66,7 @@ def init_model():
                                   num_iters_warmup_wo_backbone=Configs.SC_ITER_TRAINING_WARMUP_WO_BACKBONE,
                                   cohort_to_ind=Configs.SC_COHORT_TO_IND, cohort_weight=Configs.SC_COHORT_WEIGHT,
                                   **Configs.SC_KW_ARGS)
+        Logger.log(f"New Model successfully created!", log_importance=1)
     else:
         model = SubtypeClassifier.load_from_checkpoint(Configs.SC_TEST_ONLY, tile_encoder_name=Configs.SC_TILE_ENCODER,
                                                        class_to_ind=Configs.SC_CLASS_TO_IND,

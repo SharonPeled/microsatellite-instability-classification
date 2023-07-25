@@ -18,6 +18,7 @@ import seaborn as sns
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import StratifiedGroupKFold
 from torch import nn
+import pytorch_lightning as pl
 
 
 def set_global_configs(verbose, log_file_args, log_importance, log_format, random_seed, tile_progress_log_freq):
@@ -76,6 +77,7 @@ def set_random_seed(seed):
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
+    pl.seed_everything(seed)
 
 
 def center_crop_from_tile_size(height, width, tile_size):

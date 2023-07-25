@@ -12,7 +12,7 @@ from collections import defaultdict
 
 @dataclass
 class GeneralConfigs:
-    RANDOM_SEED = 12341
+    RANDOM_SEED = 1234
     VERBOSE = 3  # 1 logs to LOG_FILE, 2 logs to console, 3 logs to both to file and console
     ROOT = Path(__file__).parent.parent.resolve()
     PROGRAM_LOG_FILE_ARGS = ['log.txt', 'a+']  # slide level log is in the slide dir. Use --bring-slide-logs to get all slide logs.
