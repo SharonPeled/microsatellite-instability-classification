@@ -10,7 +10,7 @@ if __name__ == '__main__':
 #SBATCH --job-name={Configs.SC_RUN_NAME}
 #SBATCH --output=out_%j_%x.out
 #SBATCH --error=err_%j_%x.err
-#SBATCH --mem=25GB
+#SBATCH --mem=0
 #SBATCH --gres=gpu:{len(Configs.SC_NUM_DEVICES)}
 #SBATCH --nodes={Configs.SC_NUM_NODES}   # This needs to match Trainer(num_nodes=...)
 #SBATCH --ntasks-per-node={len(Configs.SC_NUM_DEVICES)}   # This needs to match Trainer(devices=...)
