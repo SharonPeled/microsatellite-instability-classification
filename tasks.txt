@@ -8,8 +8,8 @@ test:
 
 
 on hold:
-more aug - running
-more aug with more epochs - running
+    good run, final fold - running
+    do by itself again - fair comparison
 
 
 
@@ -17,7 +17,6 @@ to do:
 send email with results and insight and Danie conv
 
 runs -
-    do by itself again - fair comparison
     try again 1024
 other -
     check - 1024 vs 512
