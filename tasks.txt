@@ -14,13 +14,14 @@ more aug with more epochs - running
 
 
 to do:
-order in experiments
-add avg results to mlflow
 send email with results and insight and Danie conv
+
 runs -
     do by itself again - fair comparison
     try again 1024
 other -
+    check - 1024 vs 512
+
     Daniel's files
     SSL ViT
     think of fusion between datasets
