@@ -8,18 +8,17 @@ test:
 
 
 on hold:
-    good run, final fold - running
-    do by itself again - fair comparison
+
 
 
 
 to do:
 send email with results and insight and Danie conv
-
+check corr to blur
 runs -
-    try again 1024
+    do by itself again - fair comparison - only stad
+    1024 regular with CV
 other -
-    check - 1024 vs 512
 
     Daniel's files
     SSL ViT
@@ -36,6 +35,7 @@ load a ViT and fine tune a DINO with my augs.
 
 
 thinking:
+balanced batches
 look at the cleaning phases of Cell and the paper about UCEC
 bigger head (3 layered nn)
 blur slides ect.. (error analysis)

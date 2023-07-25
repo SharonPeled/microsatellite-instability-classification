@@ -157,9 +157,9 @@ class TumorRegressionConfigs:
 
 
 class SubtypeClassificationConfigs:
-    SC_TILE_SIZE = 1024
+    SC_TILE_SIZE = 512
     SC_EXPERIMENT_NAME = 'SC_tile_based'
-    SC_FORMULATION = f'CV_p_ALP_FV15_{SC_TILE_SIZE}'
+    SC_FORMULATION = f'single_cohort{SC_TILE_SIZE}'
     SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_34"
     SC_RUN_DESCRIPTION = f"""Pretrained VIT DINO, fine 1e-6 1e-4 lr.
     Class weights: auto compute
@@ -219,12 +219,12 @@ class SubtypeClassificationConfigs:
     SC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count, 1e10)  # all tiles
     SC_TILE_SAMPLE_LAMBDA_TRAIN_TUNE = None
     SC_FROZEN_BACKBONE = False
-    SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 2000
+    SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 700
     SC_TILE_ENCODER = 'SSL_VIT_PRETRAINED'
     SC_KW_ARGS = {'one_hot_cohort_head': False,
                   'calc_proportions_class_w': True,
-                  'learnable_cohort_prior_type': '+', # '*', # 0.1,  # initial prior value
-                  'FoVs_augs_amounts': (0.15, 0.15)  # tuple of % from each FoVs to add
+                  'learnable_cohort_prior_type': None,#'+', # '*', # 0.1,  # initial prior value
+                  'FoVs_augs_amounts': None #(0.15, 0.15)  # tuple of % from each FoVs to add
                   }
     # MIL STUFF
     SC_MIL_GROUP_SIZE = 512
