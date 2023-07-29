@@ -9,7 +9,7 @@ from src.general_utils import MultiInputSequential
 
 class CohortAwareVisionTransformer(VisionTransformer):
     
-    def __init__(self, cohort_aware_dict, exclude_cohorts=(),
+    def __init__(self, cohort_aware_dict,
                  **vit_kwargs):
         vit_kwargs['block_fn'] = cohort_aware_block_fn(cohort_aware_dict)
         super(CohortAwareVisionTransformer, self).__init__(**vit_kwargs)
@@ -172,6 +172,7 @@ class CohortAwareAttention(nn.Module):
                                   dim=1).unsqueeze(-1).unsqueeze(-1)
             q = q * head_mask
         elif self.cohort_aware_dict['awareness_strategy'] == 'separate_query':
+            q = q.clone()
             for head_ind, c_ind in enumerate(self.include_cohorts):
                 q[c != c_ind , self.num_shared_heads + head_ind, :, :] = q[c != c_ind , self.num_shared_heads + head_ind,
                                                                       :, :].detach()
