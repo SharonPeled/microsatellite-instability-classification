@@ -3,6 +3,7 @@ import torch.nn as nn
 from src.components.models.TransferLearningClassifier import TransferLearningClassifier
 from src.components.objects.Logger import Logger
 from src.training_utils import load_headless_tile_encoder
+from src.general_utils import MultiInputSequential
 
 
 class PretrainedClassifier(TransferLearningClassifier):
@@ -30,7 +31,7 @@ class PretrainedClassifier(TransferLearningClassifier):
             self.head = nn.Linear(self.num_features, self.head_out_size)
         else:
             self.head = nn.Linear(self.num_features, self.nn_output_size)
-        self.model = nn.Sequential(self.backbone, self.head)
+        self.model = MultiInputSequential(self.backbone, self.head)
         Logger.log(f"""TransferLearningClassifier created with encoder name: {tile_encoder_name}.""", log_importance=1)
 
     def configure_optimizers(self):

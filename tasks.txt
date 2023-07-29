@@ -13,11 +13,10 @@ on hold:
 
 
 to do:
-send email with results and insight and Danie conv
-check corr to blur
+cls_w
+
 runs -
-    do by itself again - fair comparison - only stad
-    1024 regular with CV
+
 other -
 
     Daniel's files

@@ -21,6 +21,16 @@ from torch import nn
 import pytorch_lightning as pl
 
 
+class MultiInputSequential(nn.Sequential):
+    def forward(self, *inputs):
+        for module in self._modules.values():
+            if type(inputs) == tuple:
+                inputs = module(*inputs)
+            else:
+                inputs = module(inputs)
+        return inputs
+
+
 def set_global_configs(verbose, log_file_args, log_importance, log_format, random_seed, tile_progress_log_freq):
     Logger.set_default_logger(verbose, log_file_args, log_importance, log_format, tile_progress_log_freq)
     set_random_seed(random_seed)

@@ -23,6 +23,7 @@ from pytorch_lightning.plugins.environments import SLURMEnvironment
 import signal
 from PIL import Image
 from copy import deepcopy
+from src.components.models.FusionClassifier import CohortAwareVisionTransformer
 
 
 def train(df, train_transform, test_transform, logger, callbacks, model):
@@ -232,6 +233,18 @@ def SLL_vit_small(pretrained, progress, key, **kwargs):
     return model
 
 
+def SLL_vit_small_cohort_aware(pretrained, progress, key, **kwargs):
+    patch_size = kwargs.get("patch_size", 16)
+    model = CohortAwareVisionTransformer(
+        num_cohorts=4, num_heads_per_cohort=1, exclude_cohorts = [2, ],
+        img_size=224, patch_size=patch_size, embed_dim=384, num_heads=6, num_classes=0
+    )
+    if pretrained:
+        pretrained_url = get_pretrained_url(key)
+        model.load_pretrained_model(torch.hub.load_state_dict_from_url(pretrained_url, progress=progress))
+    return model
+
+
 class ResNetTrunk(ResNet):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -288,5 +301,9 @@ def load_headless_tile_encoder(tile_encoder_name, path=None):
     elif tile_encoder_name == 'SSL_RESNET_PRETRAINED':
         model = SSL_resnet50(pretrained=True, progress=False, key="MoCoV2")
         return model, model.num_features
+    elif tile_encoder_name == 'SSL_VIT_PRETRAINED_COHORT_AWARE':
+        model = SLL_vit_small_cohort_aware(pretrained=True, progress=False, key="DINO_p16", patch_size=16)
+        return model, model.num_features
+
 
 
