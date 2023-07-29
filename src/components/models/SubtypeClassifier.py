@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 from src.components.models.PretrainedClassifier import PretrainedClassifier
 from src.components.objects.Logger import Logger
-from src.training_utils import load_headless_tile_encoder
 import torch.nn.functional as F
 from torch.nn.functional import softmax
 import pandas as pd
@@ -30,12 +29,21 @@ class SubtypeClassifier(PretrainedClassifier):
         Logger.log(f"""TransferLearningClassifier created with cohort weights: {self.cohort_weight}.""", log_importance=1)
 
     def forward(self, x, c=None):
-        if self.other_kwargs.get('one_hot_cohort_head', None):
-            x = self.backbone(x)
-            x = self.features_to_one_hot(x, c, num_cohorts=len(self.cohort_to_ind))
-            x = self.head(x)
-        elif self.other_kwargs.get('learnable_cohort_prior_type', None):
-            x = self.model(x).squeeze()
+        if self.other_kwargs.get('tile_encoder', None) == 'SSL_VIT_PRETRAINED_COHORT_AWARE':
+            if self.other_kwargs.get('one_hot_cohort_head', None):
+                x = self.backbone(x, c).squeeze()
+                x = self.features_to_one_hot(x, c, num_cohorts=len(self.cohort_to_ind))
+                x = self.head(x)
+            else:
+                x = self.model(x, c).squeeze()
+        else:
+            if self.other_kwargs.get('one_hot_cohort_head', None):
+                x = self.backbone(x).squeeze()
+                x = self.features_to_one_hot(x, c, num_cohorts=len(self.cohort_to_ind))
+                x = self.head(x)
+            else:
+                x = self.model(x).squeeze()
+        if self.other_kwargs.get('learnable_cohort_prior_type', None):
             c = torch.eye((len(self.cohort_to_ind)), dtype=x.dtype, device=x.device)[c]
             if self.other_kwargs.get('learnable_cohort_prior_type') == '+':
                 priors = c.matmul(self.learnable_priors)
@@ -46,10 +54,6 @@ class SubtypeClassifier(PretrainedClassifier):
                 x *= priors
             else:
                 raise NotImplementedError("learnable cohort prior type not implemented.")
-        elif self.other_kwargs.get('tile_encoder', None) == 'SSL_VIT_PRETRAINED_COHORT_AWARE':
-            x = self.model(x, c).squeeze()
-        else:
-            x = self.model(x).squeeze()
         return x
 
     def general_loop(self, batch, batch_idx):

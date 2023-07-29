@@ -13,7 +13,7 @@ class PretrainedClassifier(TransferLearningClassifier):
                                                    class_to_weight=class_to_weight,
                                                    num_iters_warmup_wo_backbone=num_iters_warmup_wo_backbone,
                                                    **other_kwargs)
-        self.backbone, self.num_features = load_headless_tile_encoder(tile_encoder_name)
+        self.backbone, self.num_features = load_headless_tile_encoder(tile_encoder_name, **other_kwargs)
         if len(self.class_to_ind) == 2:
             self.head_out_size = 1
         else:

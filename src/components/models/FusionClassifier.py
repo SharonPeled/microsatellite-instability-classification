@@ -9,9 +9,9 @@ from src.general_utils import MultiInputSequential
 
 class CohortAwareVisionTransformer(VisionTransformer):
     
-    def __init__(self, num_cohorts, num_heads_per_cohort, exclude_cohorts=(),
+    def __init__(self, cohort_aware_dict, exclude_cohorts=(),
                  **vit_kwargs):
-        vit_kwargs['block_fn'] = cohort_aware_block_fn(num_cohorts, num_heads_per_cohort, exclude_cohorts)
+        vit_kwargs['block_fn'] = cohort_aware_block_fn(cohort_aware_dict)
         super(CohortAwareVisionTransformer, self).__init__(**vit_kwargs)
         self.blocks = MultiInputSequential(*[block for block in self.blocks])  # to allow to multi input through blocks sequential
 
@@ -29,7 +29,7 @@ class CohortAwareVisionTransformer(VisionTransformer):
         x = self.forward_head(x)
         return x
 
-    def load_pretrained_model(self, state_dict_to_load, strict=True, strategy='copy_first'):
+    def load_pretrained_model(self, state_dict_to_load, strict=True, strategy=None):
         state_dict_to_load = deepcopy(state_dict_to_load)
         curr_state_dict = self.state_dict()
         if state_dict_to_load.keys() == curr_state_dict.keys():
@@ -43,9 +43,11 @@ class CohortAwareVisionTransformer(VisionTransformer):
             key_parts = key.split('.')
             new_key_format = '.'.join(key_parts[:-1]) + f'_{key_parts[-1][0]}'
 
-            state_dict_to_load[new_key_format] = CohortAwareVisionTransformer.adjust_weight(state_dict_to_load[key],
-                                                                                            curr_state_dict[new_key_format],
-                                                                                            strategy=strategy)
+            state_dict_to_load[new_key_format] = state_dict_to_load[key]
+            # state_dict_to_load[new_key_format] = CohortAwareVisionTransformer.adjust_weight(state_dict_to_load[key],
+            #                                                                                 curr_state_dict[new_key_format],
+            #                                                                                 strategy=strategy)
+
             del state_dict_to_load[key]
         self.load_state_dict(state_dict_to_load)
 
@@ -60,9 +62,9 @@ class CohortAwareVisionTransformer(VisionTransformer):
             return adj_tensor
 
 
-def cohort_aware_block_fn(num_cohorts, num_heads_per_cohort, exclude_cohorts):
+def cohort_aware_block_fn(cohort_aware_dict):
     def block_fn(**block_kwargs):
-        return CohortAwareBlock(num_cohorts, num_heads_per_cohort, exclude_cohorts, **block_kwargs)
+        return CohortAwareBlock(cohort_aware_dict, **block_kwargs)
     return block_fn
 
 
@@ -70,9 +72,7 @@ class CohortAwareBlock(nn.Module):
 
     def __init__(
             self,
-            num_cohorts,
-            num_heads_per_cohort,
-            exclude_cohorts,
+            cohort_aware_dict,
             dim,
             num_heads,
             mlp_ratio=4.,
@@ -89,16 +89,14 @@ class CohortAwareBlock(nn.Module):
         super().__init__()
         self.norm1 = norm_layer(dim)
         self.attn = CohortAwareAttention(
-            dim,
+            cohort_aware_dict=cohort_aware_dict,
+            dim=dim,
             num_heads=num_heads,
             qkv_bias=qkv_bias,
             qk_norm=qk_norm,
             attn_drop=attn_drop,
             proj_drop=proj_drop,
-            norm_layer=norm_layer,
-            num_cohorts=num_cohorts,
-            num_heads_per_cohort=num_heads_per_cohort,
-            exclude_cohorts=exclude_cohorts
+            norm_layer=norm_layer
         )
         self.ls1 = LayerScale(dim, init_values=init_values) if init_values else nn.Identity()
         self.drop_path1 = DropPath(drop_path) if drop_path > 0. else nn.Identity()
@@ -123,6 +121,7 @@ class CohortAwareAttention(nn.Module):
 
     def __init__(
             self,
+            cohort_aware_dict,
             dim,
             num_heads=8,
             qkv_bias=False,
@@ -130,17 +129,15 @@ class CohortAwareAttention(nn.Module):
             attn_drop=0.,
             proj_drop=0.,
             norm_layer=nn.LayerNorm,
-            num_cohorts=3,
-            num_heads_per_cohort=2,
-            exclude_cohorts=()
     ):
         super().__init__()
+        self.cohort_aware_dict = cohort_aware_dict
         self.num_heads = num_heads
-        self.exclude_cohorts = exclude_cohorts
-        self.include_cohorts = [c for c in range(num_cohorts) if c not in exclude_cohorts]
-        self.num_cohorts = num_cohorts
-        self.num_shared_heads = num_heads - len(self.include_cohorts)*num_heads_per_cohort
-        self.num_heads_per_cohort = num_heads_per_cohort
+        self.exclude_cohorts = cohort_aware_dict['exclude_cohorts']
+        self.num_cohorts = cohort_aware_dict['num_cohorts']
+        self.num_heads_per_cohort = cohort_aware_dict['num_heads_per_cohort']
+        self.include_cohorts = [c for c in range(self.num_cohorts) if c not in self.exclude_cohorts]
+        self.num_shared_heads = num_heads - len(self.include_cohorts)*self.num_heads_per_cohort
         assert dim % self.num_heads == 0, 'dim should be divisible by total number of num_heads.'
 
         self.head_dim = dim // self.num_heads
@@ -165,14 +162,21 @@ class CohortAwareAttention(nn.Module):
         qkv = qkv.reshape(B, N, 3, self.num_heads, self.head_dim).permute(2, 0, 3, 1, 4)
         q, k, v = qkv.unbind(0)
 
-        head_mask = torch.ones((B, self.num_shared_heads), device=c.device)
-        c_one_hot = torch.zeros((B, self.num_cohorts), device=c.device)
-        c_one_hot.scatter_(1, c.unsqueeze(-1), 1)
-        c_one_hot = c_one_hot[:, self.include_cohorts]
-        c_one_hot = c_one_hot.repeat(1, self.num_heads_per_cohort)
-        head_mask = torch.cat((head_mask, c_one_hot),
-                              dim=1).unsqueeze(-1).unsqueeze(-1)
-        q = q * head_mask
+        if self.cohort_aware_dict['awareness_strategy'] == 'separate_head':
+            head_mask = torch.ones((B, self.num_shared_heads), device=c.device)
+            c_one_hot = torch.zeros((B, self.num_cohorts), device=c.device)
+            c_one_hot.scatter_(1, c.unsqueeze(-1), 1)
+            c_one_hot = c_one_hot[:, self.include_cohorts]
+            c_one_hot = c_one_hot.repeat(1, self.num_heads_per_cohort)
+            head_mask = torch.cat((head_mask, c_one_hot),
+                                  dim=1).unsqueeze(-1).unsqueeze(-1)
+            q = q * head_mask
+        elif self.cohort_aware_dict['awareness_strategy'] == 'separate_query':
+            for head_ind, c_ind in enumerate(self.include_cohorts):
+                q[c != c_ind , self.num_shared_heads + head_ind, :, :] = q[c != c_ind , self.num_shared_heads + head_ind,
+                                                                      :, :].detach()
+        else:
+            raise NotImplementedError
 
         q, k = self.q_norm(q), self.k_norm(k)
 
