@@ -159,8 +159,8 @@ class TumorRegressionConfigs:
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
     SC_EXPERIMENT_NAME = 'SC_tile_based'
-    SC_FORMULATION = f'cls_w_FV_Q_{SC_TILE_SIZE}'
-    SC_RUN_NAME = f"SSL_CA31_VIT_{SC_FORMULATION}_38"
+    SC_FORMULATION = f'cls_w_LP_FV_SQ2_{SC_TILE_SIZE}'
+    SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_39"
     SC_RUN_DESCRIPTION = f"""Pretrained VIT DINO, fine 1e-6 1e-4 lr.
     Class weights: auto compute
     33% test, seed:{GeneralConfigs.RANDOM_SEED}
@@ -222,9 +222,9 @@ class SubtypeClassificationConfigs:
     SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 2000
     SC_TILE_ENCODER = 'SSL_VIT_PRETRAINED_COHORT_AWARE'
     COHORT_AWARE_DICT = {'num_cohorts': 4,
-                         'num_heads_per_cohort': 1,
+                         'num_heads_per_cohort': 2,
                          'exclude_cohorts': [2, ],
-                         'awareness_strategy': 'separate_query'  # 'separate_head',
+                         'awareness_strategy': 'separate_query'  # 'one_hot_head', 'shared_query_separate_training'
                          }
     # separate_head - each cohort allocated a head, head of other cohorts are zeroed
     # separate_query - each cohort allocated a query, query of other cohorts are used but not updates (no gradients)

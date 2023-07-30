@@ -5,6 +5,7 @@ from timm.layers import PatchEmbed, Mlp, DropPath
 from timm.models.vision_transformer import LayerScale, VisionTransformer
 from copy import deepcopy
 from src.general_utils import MultiInputSequential
+import pandas as pd
 
 
 class CohortAwareVisionTransformer(VisionTransformer):
@@ -12,6 +13,11 @@ class CohortAwareVisionTransformer(VisionTransformer):
     def __init__(self, cohort_aware_dict,
                  **vit_kwargs):
         vit_kwargs['block_fn'] = cohort_aware_block_fn(cohort_aware_dict)
+        self.cohort_aware_dict = cohort_aware_dict
+        self.num_heads = vit_kwargs['num_heads']
+        self.num_cohorts = cohort_aware_dict['num_cohorts']
+        self.num_heads_per_cohort = cohort_aware_dict['num_heads_per_cohort']
+        self.head_dim = vit_kwargs['embed_dim'] // self.num_heads
         super(CohortAwareVisionTransformer, self).__init__(**vit_kwargs)
         self.blocks = MultiInputSequential(*[block for block in self.blocks])  # to allow to multi input through blocks sequential
 
@@ -41,13 +47,21 @@ class CohortAwareVisionTransformer(VisionTransformer):
             raise ValueError("state_dict_to_load is not in format of either VisionTransformer or CohortAwareVisionTransformer.")
         for key in keys_to_adjust:
             key_parts = key.split('.')
-            new_key_format = '.'.join(key_parts[:-1]) + f'_{key_parts[-1][0]}'
-
-            state_dict_to_load[new_key_format] = state_dict_to_load[key]
-            # state_dict_to_load[new_key_format] = CohortAwareVisionTransformer.adjust_weight(state_dict_to_load[key],
-            #                                                                                 curr_state_dict[new_key_format],
-            #                                                                                 strategy=strategy)
-
+            if self.cohort_aware_dict['awareness_strategy'] in ['one_hot_head', 'shared_query_separate_training']:
+                new_key_format = '.'.join(key_parts[:-1]) + f'_{key_parts[-1][0]}'
+                state_dict_to_load[new_key_format] = state_dict_to_load[key]
+            elif self.cohort_aware_dict['awareness_strategy'] == 'separate_query':
+                kv_new_key_format = '.'.join(key_parts[:3]) + f'.kv_{key_parts[-1][0]}'
+                q_shift = state_dict_to_load[key].shape[0] // 3
+                state_dict_to_load[kv_new_key_format] = state_dict_to_load[key][q_shift:]
+                shared_q_new_key_format = '.'.join(key_parts[:3]) + f'.shared_q_{key_parts[-1][0]}'
+                state_dict_to_load[shared_q_new_key_format] = state_dict_to_load[key][:q_shift][:curr_state_dict[shared_q_new_key_format].shape[0]]
+                cohort_q_new_key_format = '.'.join(key_parts[:3]) + f'.cohort_q_{key_parts[-1][0]}'
+                target_shape = curr_state_dict[cohort_q_new_key_format].shape
+                rest_q = state_dict_to_load[key][:q_shift][-target_shape[1]:]
+                state_dict_to_load[cohort_q_new_key_format] = rest_q.repeat(target_shape[0], 1).reshape(target_shape)
+            else:
+                raise NotImplementedError
             del state_dict_to_load[key]
         self.load_state_dict(state_dict_to_load)
 
@@ -137,15 +151,13 @@ class CohortAwareAttention(nn.Module):
         self.num_cohorts = cohort_aware_dict['num_cohorts']
         self.num_heads_per_cohort = cohort_aware_dict['num_heads_per_cohort']
         self.include_cohorts = [c for c in range(self.num_cohorts) if c not in self.exclude_cohorts]
-        self.num_shared_heads = num_heads - len(self.include_cohorts)*self.num_heads_per_cohort
         assert dim % self.num_heads == 0, 'dim should be divisible by total number of num_heads.'
 
         self.head_dim = dim // self.num_heads
         self.scale = self.head_dim ** -0.5
 
         self.dim = dim
-        self.qkv_w = nn.Parameter(torch.randn(self.dim * 3, self.dim))
-        self.qkv_b = nn.Parameter(torch.randn(self.dim * 3))
+        self.init_qkv()
 
         self.q_norm = norm_layer(self.head_dim) if qk_norm else nn.Identity()
         self.k_norm = norm_layer(self.head_dim) if qk_norm else nn.Identity()
@@ -154,30 +166,92 @@ class CohortAwareAttention(nn.Module):
         self.proj_drop = nn.Dropout(proj_drop)
         self.qkv_bias = qkv_bias
 
-    def forward(self, x, c):
-        B, N, C = x.shape
-        qkv = torch.matmul(x, self.qkv_w.t())
-        if self.qkv_bias:
-            qkv += self.qkv_b
-        qkv = qkv.reshape(B, N, 3, self.num_heads, self.head_dim).permute(2, 0, 3, 1, 4)
-        q, k, v = qkv.unbind(0)
-
-        if self.cohort_aware_dict['awareness_strategy'] == 'separate_head':
-            head_mask = torch.ones((B, self.num_shared_heads), device=c.device)
-            c_one_hot = torch.zeros((B, self.num_cohorts), device=c.device)
-            c_one_hot.scatter_(1, c.unsqueeze(-1), 1)
-            c_one_hot = c_one_hot[:, self.include_cohorts]
-            c_one_hot = c_one_hot.repeat(1, self.num_heads_per_cohort)
-            head_mask = torch.cat((head_mask, c_one_hot),
-                                  dim=1).unsqueeze(-1).unsqueeze(-1)
-            q = q * head_mask
+    def init_qkv(self):
+        if self.cohort_aware_dict['awareness_strategy'] in ['one_hot_head', 'shared_query_separate_training',
+                                                            None]:
+            self.num_shared_heads = self.num_heads - len(self.include_cohorts) * self.num_heads_per_cohort
+            self.qkv_w = nn.Parameter(torch.randn(self.dim * 3, self.dim))
+            self.qkv_b = nn.Parameter(torch.randn(self.dim * 3))
         elif self.cohort_aware_dict['awareness_strategy'] == 'separate_query':
-            q = q.clone()
-            for head_ind, c_ind in enumerate(self.include_cohorts):
-                q[c != c_ind , self.num_shared_heads + head_ind, :, :] = q[c != c_ind , self.num_shared_heads + head_ind,
-                                                                      :, :].detach()
+            self.num_shared_heads = self.num_heads - self.num_heads_per_cohort
+            self.kv_w = nn.Parameter(torch.randn(self.dim * 2, self.dim))
+            self.kv_b = nn.Parameter(torch.randn(self.dim * 2))
+            self.shared_q_w =  nn.Parameter(torch.randn(self.head_dim*self.num_shared_heads,
+                                                        self.dim))
+            self.shared_q_b = nn.Parameter(torch.randn(self.head_dim*self.num_shared_heads))
+            self.cohort_q_w = nn.Parameter(torch.randn(len(self.include_cohorts), self.head_dim*self.num_heads_per_cohort,
+                                                       self.dim))
+            self.cohort_q_b = nn.Parameter(torch.randn(len(self.include_cohorts), self.head_dim*self.num_heads_per_cohort))
         else:
             raise NotImplementedError
+
+    def get_qkv_matrices(self, x, c):
+        B, N, C = x.shape
+        if self.cohort_aware_dict['awareness_strategy'] in ['one_hot_head', 'shared_query_separate_training', None]:
+            qkv = torch.matmul(x, self.qkv_w.t())
+            if self.qkv_bias:
+                qkv += self.qkv_b
+            qkv = qkv.reshape(B, N, 3, self.num_heads, self.head_dim).permute(2, 0, 3, 1, 4)
+            q, k, v = qkv.unbind(0)
+
+            if self.cohort_aware_dict['awareness_strategy'] == 'one_hot_head':
+                head_mask = torch.ones((B, self.num_shared_heads), device=c.device)
+                c_one_hot = torch.zeros((B, self.num_cohorts), device=c.device)
+                c_one_hot.scatter_(1, c.unsqueeze(-1), 1)
+                c_one_hot = c_one_hot[:, self.include_cohorts]
+                c_one_hot = c_one_hot.repeat(1, self.num_heads_per_cohort)
+                head_mask = torch.cat((head_mask, c_one_hot),
+                                      dim=1).unsqueeze(-1).unsqueeze(-1)
+                q = q * head_mask
+
+            elif self.cohort_aware_dict['awareness_strategy'] == 'shared_query_separate_training':
+                q = q.clone()
+                for head_ind, c_ind in enumerate(self.include_cohorts):
+                    q[c != c_ind, self.num_shared_heads + head_ind, :, :] = q[c != c_ind, self.num_shared_heads + head_ind,
+                                                                            :, :].detach()
+
+        elif self.cohort_aware_dict['awareness_strategy'] == 'separate_query':
+            # key, value only
+            kv = torch.matmul(x, self.kv_w.t())
+            if self.qkv_bias:
+                kv += self.kv_b
+            kv = kv.reshape(B, N, 2, self.num_heads, self.head_dim).permute(2, 0, 3, 1, 4)
+            k, v = kv.unbind(0)
+            # shared q
+            shared_q = torch.matmul(x, self.shared_q_w.t())
+            if self.qkv_bias:
+                shared_q += self.shared_q_b
+            # separate q
+            c_cpu = c.cpu()
+            indices = torch.arange(B)
+            sep_q_list = []
+            sep_inds_list = []
+            for head_ind, c_ind in enumerate(self.include_cohorts):
+                x_c = x[c == c_ind]
+                sep_q_list.append(torch.matmul(x_c, self.cohort_q_w[head_ind].t()))
+                if self.qkv_bias:
+                    sep_q_list[-1] += self.cohort_q_b[head_ind]
+                sep_inds_list.append(indices[c_cpu == c_ind])
+            for c_ind in self.exclude_cohorts:
+                x_c = x[c == c_ind]
+                sep_q_list.append(torch.zeros((x_c.shape[0], x_c.shape[1],
+                                               self.head_dim*self.num_heads_per_cohort), device=x.device))
+                sep_inds_list.append(indices[c_cpu == c_ind])
+
+            sep_q = torch.cat(sep_q_list, dim=0)
+            sep_inds = torch.tensor(pd.Series(index=torch.cat(sep_inds_list).numpy(), data=indices).loc[indices].values,
+                                    device=sep_q.device)
+            sep_q = torch.index_select(sep_q, 0, sep_inds)
+            q = torch.cat([shared_q, sep_q], dim=-1)
+            q = q.reshape(B, N, self.num_heads, self.head_dim).permute(0, 2, 1, 3)
+        else:
+            raise NotImplementedError
+        return q, k, v
+
+
+    def forward(self, x, c):
+        B, N, C = x.shape
+        q, k, v = self.get_qkv_matrices(x, c)
 
         q, k = self.q_norm(q), self.k_norm(k)
 
