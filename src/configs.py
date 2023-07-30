@@ -203,7 +203,7 @@ class SubtypeClassificationConfigs:
     SC_COHORT_WEIGHT = None # {('COAD', 'CIN'): 0.75, ('COAD', 'GS'): 2.25, ('ESCA', 'CIN'): 0.25, ('ESCA', 'GS'): 0.75, ('READ', 'CIN'): 0.75, ('READ', 'GS'): 2.25, ('STAD', 'CIN'): 0.25, ('STAD', 'GS'): 0.75, ('UCEC', 'CIN'): 0.25, ('UCEC', 'GS'): 0.75}
     # SC_COHORT_TUNE = None # ['COAD', 'READ']
     SC_TEST_ONLY = None
-    SC_NUM_EPOCHS = 1
+    SC_NUM_EPOCHS = 2
     SC_NUM_DEVICES = [0, ]  # for slurm always 0
     SC_NUM_NODES = 1
     SC_DEVICE = 'gpu'
