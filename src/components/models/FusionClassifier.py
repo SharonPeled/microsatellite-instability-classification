@@ -50,7 +50,8 @@ class CohortAwareVisionTransformer(VisionTransformer):
             if self.cohort_aware_dict['awareness_strategy'] in ['one_hot_head', 'shared_query_separate_training']:
                 new_key_format = '.'.join(key_parts[:-1]) + f'_{key_parts[-1][0]}'
                 state_dict_to_load[new_key_format] = state_dict_to_load[key]
-            elif self.cohort_aware_dict['awareness_strategy'] == 'separate_query':
+            elif self.cohort_aware_dict['awareness_strategy'] == 'separate_query' or \
+                    self.cohort_aware_dict['awareness_strategy'] == 'separate_noisy_query':
                 kv_new_key_format = '.'.join(key_parts[:3]) + f'.kv_{key_parts[-1][0]}'
                 q_shift = state_dict_to_load[key].shape[0] // 3
                 state_dict_to_load[kv_new_key_format] = state_dict_to_load[key][q_shift:]
@@ -60,6 +61,10 @@ class CohortAwareVisionTransformer(VisionTransformer):
                 target_shape = curr_state_dict[cohort_q_new_key_format].shape
                 rest_q = state_dict_to_load[key][:q_shift][-target_shape[1]:]
                 state_dict_to_load[cohort_q_new_key_format] = rest_q.repeat(target_shape[0], 1).reshape(target_shape)
+                if self.cohort_aware_dict['awareness_strategy'] == 'separate_noisy_query':
+                    std = state_dict_to_load[cohort_q_new_key_format].std()*0.2
+                    noise = torch.normal(mean=0.0, std=std, size=state_dict_to_load[cohort_q_new_key_format].size())
+                    state_dict_to_load[cohort_q_new_key_format] += noise
             else:
                 raise NotImplementedError
             del state_dict_to_load[key]
@@ -172,7 +177,8 @@ class CohortAwareAttention(nn.Module):
             self.num_shared_heads = self.num_heads - len(self.include_cohorts) * self.num_heads_per_cohort
             self.qkv_w = nn.Parameter(torch.randn(self.dim * 3, self.dim))
             self.qkv_b = nn.Parameter(torch.randn(self.dim * 3))
-        elif self.cohort_aware_dict['awareness_strategy'] == 'separate_query':
+        elif self.cohort_aware_dict['awareness_strategy'] == 'separate_query' or \
+                self.cohort_aware_dict['awareness_strategy'] == 'separate_noisy_query':
             self.num_shared_heads = self.num_heads - self.num_heads_per_cohort
             self.kv_w = nn.Parameter(torch.randn(self.dim * 2, self.dim))
             self.kv_b = nn.Parameter(torch.randn(self.dim * 2))
@@ -210,7 +216,8 @@ class CohortAwareAttention(nn.Module):
                     q[c != c_ind, self.num_shared_heads + head_ind, :, :] = q[c != c_ind, self.num_shared_heads + head_ind,
                                                                             :, :].detach()
 
-        elif self.cohort_aware_dict['awareness_strategy'] == 'separate_query':
+        elif self.cohort_aware_dict['awareness_strategy'] == 'separate_query'or \
+                self.cohort_aware_dict['awareness_strategy'] == 'separate_noisy_query':
             # key, value only
             kv = torch.matmul(x, self.kv_w.t())
             if self.qkv_bias:

@@ -159,8 +159,8 @@ class TumorRegressionConfigs:
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
     SC_EXPERIMENT_NAME = 'SC_tile_based'
-    SC_FORMULATION = f'cls_w_LP_FV_SQ2_{SC_TILE_SIZE}'
-    SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_39"
+    SC_FORMULATION = f'cls_w_LP_FV_SQ2N2_{SC_TILE_SIZE}'
+    SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_40"
     SC_RUN_DESCRIPTION = f"""Pretrained VIT DINO, fine 1e-6 1e-4 lr.
     Class weights: auto compute
     33% test, seed:{GeneralConfigs.RANDOM_SEED}
@@ -195,7 +195,7 @@ class SubtypeClassificationConfigs:
                          'LAB': os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                              f'LAB_statistics_30_512.yaml')}
     SC_CROSS_VALIDATE = True  # num folds according to test size
-    SC_CONTINUE_FROM_FOLD = 1  # 0 to 1/TEST_SIZE
+    SC_CONTINUE_FROM_FOLD = 0  # 0 to 1/TEST_SIZE
     SC_Y_TO_BE_STRATIFIED = 'y_to_be_stratified'
     SC_CLASS_TO_IND = {'GS': 0, 'CIN': 1}
     SC_CLASS_WEIGHT = None #  {'GS': 770, 'CIN': 235}
@@ -211,7 +211,7 @@ class SubtypeClassificationConfigs:
     SC_SAVE_CHECKPOINT_STEP_INTERVAL = 5000
     SC_VAL_STEP_INTERVAL = 1/2  # 2 times an epoch
     SC_TRAINING_BATCH_SIZE = 256  # accumulating gradients in MIL only
-    SC_NUM_WORKERS = 10
+    SC_NUM_WORKERS = 30
     SC_TEST_SIZE = 0.333
     SC_VALID_SIZE = 0  # not used if CV=True
     SC_INIT_LR = [1e-6 * (SC_TRAINING_BATCH_SIZE/256),
@@ -219,12 +219,12 @@ class SubtypeClassificationConfigs:
     SC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count, 1e10)  # all tiles
     SC_TILE_SAMPLE_LAMBDA_TRAIN_TUNE = None
     SC_FROZEN_BACKBONE = False
-    SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 2000
+    SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 500
     SC_TILE_ENCODER = 'SSL_VIT_PRETRAINED_COHORT_AWARE'
     COHORT_AWARE_DICT = {'num_cohorts': 4,
                          'num_heads_per_cohort': 2,
                          'exclude_cohorts': [2, ],
-                         'awareness_strategy': 'separate_query'  # 'one_hot_head', 'shared_query_separate_training'
+                         'awareness_strategy': 'separate_noisy_query'  # 'one_hot_head', 'shared_query_separate_training'
                          }
     # separate_head - each cohort allocated a head, head of other cohorts are zeroed
     # separate_query - each cohort allocated a query, query of other cohorts are used but not updates (no gradients)
