@@ -159,8 +159,8 @@ class TumorRegressionConfigs:
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
     SC_EXPERIMENT_NAME = 'SC_tile_based'
-    SC_FORMULATION = f'cls_w_LP_FV_SQ2N2_{SC_TILE_SIZE}'
-    SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_40"
+    SC_FORMULATION = f'cls_w_LP_FV_SQ6B4_1H_{SC_TILE_SIZE}'
+    SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_41"
     SC_RUN_DESCRIPTION = f"""Pretrained VIT DINO, fine 1e-6 1e-4 lr.
     Class weights: auto compute
     33% test, seed:{GeneralConfigs.RANDOM_SEED}
@@ -200,6 +200,7 @@ class SubtypeClassificationConfigs:
     SC_CLASS_TO_IND = {'GS': 0, 'CIN': 1}
     SC_CLASS_WEIGHT = None #  {'GS': 770, 'CIN': 235}
     SC_COHORT_TO_IND = {'CRC': 0, 'STAD': 1, 'ESCA': 2, 'UCEC': 3}
+    SC_EXCLUDE_COHORT_AWARENESS = {'ESCA': 2}
     SC_COHORT_WEIGHT = None # {('COAD', 'CIN'): 0.75, ('COAD', 'GS'): 2.25, ('ESCA', 'CIN'): 0.25, ('ESCA', 'GS'): 0.75, ('READ', 'CIN'): 0.75, ('READ', 'GS'): 2.25, ('STAD', 'CIN'): 0.25, ('STAD', 'GS'): 0.75, ('UCEC', 'CIN'): 0.25, ('UCEC', 'GS'): 0.75}
     # SC_COHORT_TUNE = None # ['COAD', 'READ']
     SC_TEST_ONLY = None
@@ -219,17 +220,20 @@ class SubtypeClassificationConfigs:
     SC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count, 1e10)  # all tiles
     SC_TILE_SAMPLE_LAMBDA_TRAIN_TUNE = None
     SC_FROZEN_BACKBONE = False
-    SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 500
+    SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 2000
     SC_TILE_ENCODER = 'SSL_VIT_PRETRAINED_COHORT_AWARE'
     COHORT_AWARE_DICT = {'num_cohorts': 4,
-                         'num_heads_per_cohort': 2,
-                         'exclude_cohorts': [2, ],
-                         'awareness_strategy': 'separate_noisy_query'  # 'one_hot_head', 'shared_query_separate_training'
+                         'num_heads_per_cohort': 6,
+                         'num_blocks_per_cohort': 4,  # default is last blocks
+                         'exclude_cohorts': list(SC_EXCLUDE_COHORT_AWARENESS.values()),
+                         # separate_noisy_query, separate_query, 'one_hot_head', 'shared_query_separate_training'
+                         'awareness_strategy': 'separate_query_per_block'
                          }
     # separate_head - each cohort allocated a head, head of other cohorts are zeroed
     # separate_query - each cohort allocated a query, query of other cohorts are used but not updates (no gradients)
-    SC_KW_ARGS = {'one_hot_cohort_head': False,
+    SC_KW_ARGS = {'one_hot_cohort_head': True,
                   'calc_proportions_class_w': True,
+                  'calc_proportions_cohort_class_w': False,
                   'learnable_cohort_prior_type': None, #'+', # '*', # 0.1,  # initial prior value
                   'FoVs_augs_amounts': (0.15, 0.15),  # tuple of % from each FoVs to add
                   'tile_encoder': SC_TILE_ENCODER,

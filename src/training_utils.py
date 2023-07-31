@@ -237,7 +237,7 @@ def SLL_vit_small_cohort_aware(pretrained, progress, key, **kwargs):
     patch_size = kwargs.get("patch_size", 16)
     model = CohortAwareVisionTransformer(
         cohort_aware_dict=kwargs['cohort_aware_dict'],
-        img_size=224, patch_size=patch_size, embed_dim=384, num_heads=6, num_classes=0
+        img_size=224, patch_size=patch_size, embed_dim=384, num_heads=6, num_classes=0, depth=12
     )
     if pretrained:
         pretrained_url = get_pretrained_url(key)

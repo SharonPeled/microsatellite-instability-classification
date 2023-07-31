@@ -10,10 +10,10 @@ import pandas as pd
 
 class CohortAwareVisionTransformer(VisionTransformer):
     
-    def __init__(self, cohort_aware_dict,
-                 **vit_kwargs):
+    def __init__(self, cohort_aware_dict, depth, **vit_kwargs):
         vit_kwargs['block_fn'] = cohort_aware_block_fn(cohort_aware_dict)
         self.cohort_aware_dict = cohort_aware_dict
+        self.cohort_aware_dict['depth'] = depth
         self.num_heads = vit_kwargs['num_heads']
         self.num_cohorts = cohort_aware_dict['num_cohorts']
         self.num_heads_per_cohort = cohort_aware_dict['num_heads_per_cohort']
@@ -47,11 +47,14 @@ class CohortAwareVisionTransformer(VisionTransformer):
             raise ValueError("state_dict_to_load is not in format of either VisionTransformer or CohortAwareVisionTransformer.")
         for key in keys_to_adjust:
             key_parts = key.split('.')
-            if self.cohort_aware_dict['awareness_strategy'] in ['one_hot_head', 'shared_query_separate_training']:
+            block_number = int(key_parts[1]) + 1
+            if self.cohort_aware_dict['awareness_strategy'] in ['one_hot_head', 'shared_query_separate_training'] or \
+                    (self.cohort_aware_dict['awareness_strategy'] == 'separate_query_per_block' and
+                     (block_number <= self.cohort_aware_dict['depth'] - self.cohort_aware_dict['num_blocks_per_cohort'])):
                 new_key_format = '.'.join(key_parts[:-1]) + f'_{key_parts[-1][0]}'
                 state_dict_to_load[new_key_format] = state_dict_to_load[key]
-            elif self.cohort_aware_dict['awareness_strategy'] == 'separate_query' or \
-                    self.cohort_aware_dict['awareness_strategy'] == 'separate_noisy_query':
+            elif self.cohort_aware_dict['awareness_strategy'] in ['separate_query', 'separate_noisy_query',
+                                                                  'separate_query_per_block']:
                 kv_new_key_format = '.'.join(key_parts[:3]) + f'.kv_{key_parts[-1][0]}'
                 q_shift = state_dict_to_load[key].shape[0] // 3
                 state_dict_to_load[kv_new_key_format] = state_dict_to_load[key][q_shift:]
@@ -82,7 +85,9 @@ class CohortAwareVisionTransformer(VisionTransformer):
 
 
 def cohort_aware_block_fn(cohort_aware_dict):
+    cohort_aware_dict['block_num'] = 0
     def block_fn(**block_kwargs):
+        cohort_aware_dict['block_num'] += 1
         return CohortAwareBlock(cohort_aware_dict, **block_kwargs)
     return block_fn
 
@@ -106,9 +111,14 @@ class CohortAwareBlock(nn.Module):
             mlp_layer=Mlp
     ):
         super().__init__()
+        if cohort_aware_dict['block_num'] <= cohort_aware_dict['depth'] - cohort_aware_dict['num_blocks_per_cohort']:
+            apply_awareness = False
+        else:
+            apply_awareness = True
         self.norm1 = norm_layer(dim)
         self.attn = CohortAwareAttention(
             cohort_aware_dict=cohort_aware_dict,
+            apply_awareness=apply_awareness,
             dim=dim,
             num_heads=num_heads,
             qkv_bias=qkv_bias,
@@ -141,6 +151,7 @@ class CohortAwareAttention(nn.Module):
     def __init__(
             self,
             cohort_aware_dict,
+            apply_awareness,
             dim,
             num_heads=8,
             qkv_bias=False,
@@ -150,6 +161,7 @@ class CohortAwareAttention(nn.Module):
             norm_layer=nn.LayerNorm,
     ):
         super().__init__()
+        self.apply_awareness = apply_awareness
         self.cohort_aware_dict = cohort_aware_dict
         self.num_heads = num_heads
         self.exclude_cohorts = cohort_aware_dict['exclude_cohorts']
@@ -173,12 +185,12 @@ class CohortAwareAttention(nn.Module):
 
     def init_qkv(self):
         if self.cohort_aware_dict['awareness_strategy'] in ['one_hot_head', 'shared_query_separate_training',
-                                                            None]:
+                                                            None] or not self.apply_awareness:
             self.num_shared_heads = self.num_heads - len(self.include_cohorts) * self.num_heads_per_cohort
             self.qkv_w = nn.Parameter(torch.randn(self.dim * 3, self.dim))
             self.qkv_b = nn.Parameter(torch.randn(self.dim * 3))
-        elif self.cohort_aware_dict['awareness_strategy'] == 'separate_query' or \
-                self.cohort_aware_dict['awareness_strategy'] == 'separate_noisy_query':
+        elif self.cohort_aware_dict['awareness_strategy'] in ['separate_query', 'separate_noisy_query',
+                                                                  'separate_query_per_block']:
             self.num_shared_heads = self.num_heads - self.num_heads_per_cohort
             self.kv_w = nn.Parameter(torch.randn(self.dim * 2, self.dim))
             self.kv_b = nn.Parameter(torch.randn(self.dim * 2))
@@ -193,14 +205,15 @@ class CohortAwareAttention(nn.Module):
 
     def get_qkv_matrices(self, x, c):
         B, N, C = x.shape
-        if self.cohort_aware_dict['awareness_strategy'] in ['one_hot_head', 'shared_query_separate_training', None]:
+        if self.cohort_aware_dict['awareness_strategy'] in ['one_hot_head', 'shared_query_separate_training', None] \
+                or not self.apply_awareness:
             qkv = torch.matmul(x, self.qkv_w.t())
             if self.qkv_bias:
                 qkv += self.qkv_b
             qkv = qkv.reshape(B, N, 3, self.num_heads, self.head_dim).permute(2, 0, 3, 1, 4)
             q, k, v = qkv.unbind(0)
 
-            if self.cohort_aware_dict['awareness_strategy'] == 'one_hot_head':
+            if self.cohort_aware_dict['awareness_strategy'] == 'one_hot_head' and self.apply_awareness:
                 head_mask = torch.ones((B, self.num_shared_heads), device=c.device)
                 c_one_hot = torch.zeros((B, self.num_cohorts), device=c.device)
                 c_one_hot.scatter_(1, c.unsqueeze(-1), 1)
@@ -210,14 +223,14 @@ class CohortAwareAttention(nn.Module):
                                       dim=1).unsqueeze(-1).unsqueeze(-1)
                 q = q * head_mask
 
-            elif self.cohort_aware_dict['awareness_strategy'] == 'shared_query_separate_training':
+            elif self.cohort_aware_dict['awareness_strategy'] == 'shared_query_separate_training' and self.apply_awareness:
                 q = q.clone()
                 for head_ind, c_ind in enumerate(self.include_cohorts):
                     q[c != c_ind, self.num_shared_heads + head_ind, :, :] = q[c != c_ind, self.num_shared_heads + head_ind,
                                                                             :, :].detach()
 
-        elif self.cohort_aware_dict['awareness_strategy'] == 'separate_query'or \
-                self.cohort_aware_dict['awareness_strategy'] == 'separate_noisy_query':
+        elif self.cohort_aware_dict['awareness_strategy'] in ['separate_query', 'separate_noisy_query',
+                                                                  'separate_query_per_block']:
             # key, value only
             kv = torch.matmul(x, self.kv_w.t())
             if self.qkv_bias:

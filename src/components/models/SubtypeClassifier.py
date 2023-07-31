@@ -33,7 +33,7 @@ class SubtypeClassifier(PretrainedClassifier):
             if self.other_kwargs.get('one_hot_cohort_head', None):
                 x = self.backbone(x, c).squeeze()
                 x = self.features_to_one_hot(x, c, num_cohorts=len(self.cohort_to_ind))
-                x = self.head(x)
+                x = self.head(x).squeeze()
             else:
                 x = self.model(x, c).squeeze()
         else:
