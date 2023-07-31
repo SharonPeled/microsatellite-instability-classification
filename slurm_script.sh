@@ -3,7 +3,7 @@
 #SBATCH --job-name=LP_test
 #SBATCH --output=%x.%j.out
 #SBATCH --error=%x.%j.err
-#SBATCH --mem=25GB
+#SBATCH --mem=0
 #SBATCH --gres=gpu:1
 #SBATCH --nodes=1            # This needs to match Trainer(num_nodes=...)
 #SBATCH --ntasks-per-node=1   # This needs to match Trainer(devices=...)
