@@ -159,8 +159,8 @@ class TumorRegressionConfigs:
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
     SC_EXPERIMENT_NAME = 'SC_tile_based'
-    SC_FORMULATION = f'cls_w_LP_FV_SQ2B4_{SC_TILE_SIZE}'
-    SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_42"
+    SC_FORMULATION = f'cls_w_LP_FV_SQ4B2_1H{SC_TILE_SIZE}'
+    SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_43"
     SC_RUN_DESCRIPTION = f"""Pretrained VIT DINO, fine 1e-6 1e-4 lr.
     Class weights: auto compute
     33% test, seed:{GeneralConfigs.RANDOM_SEED}
@@ -223,15 +223,15 @@ class SubtypeClassificationConfigs:
     SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 2500
     SC_TILE_ENCODER = 'SSL_VIT_PRETRAINED_COHORT_AWARE'
     COHORT_AWARE_DICT = {'num_cohorts': 4,
-                         'num_heads_per_cohort': 2,
-                         'num_blocks_per_cohort': 4,  # default is last blocks
+                         'num_heads_per_cohort': 4,
+                         'num_blocks_per_cohort': 2,  # default is last blocks
                          'exclude_cohorts': list(SC_EXCLUDE_COHORT_AWARENESS.values()),
                          # separate_noisy_query, separate_query, 'one_hot_head', 'shared_query_separate_training'
                          'awareness_strategy': 'separate_query_per_block'
                          }
     # separate_head - each cohort allocated a head, head of other cohorts are zeroed
     # separate_query - each cohort allocated a query, query of other cohorts are used but not updates (no gradients)
-    SC_KW_ARGS = {'one_hot_cohort_head': False,
+    SC_KW_ARGS = {'one_hot_cohort_head': True,
                   'calc_proportions_class_w': True,
                   'calc_proportions_cohort_class_w': False,
                   'learnable_cohort_prior_type': '+', # '*', # 0.1,  # initial prior value

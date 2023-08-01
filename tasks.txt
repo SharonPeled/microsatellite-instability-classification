@@ -18,10 +18,15 @@ cls_w
 runs -
     check separate_query_per_block code
     according to brain storm - weights according to num tiles?
-    cls_w
+
     check whether the low aUC on CRC is due to LP
     check agg methods
 other -
+    summarize (google sheets) of papers from CVPR and ICCV related to WSI - understand the innovation and what their are looking for.
+    train and test on another cohort.
+    quantify the long tail and the histograms of the SNPs
+
+
 
     Daniel's files
     SSL ViT
