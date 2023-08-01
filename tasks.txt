@@ -16,8 +16,11 @@ to do:
 cls_w
 
 runs -
-    according to brain storm
+    check separate_query_per_block code
+    according to brain storm - weights according to num tiles?
+    cls_w
     check whether the low aUC on CRC is due to LP
+    check agg methods
 other -
 
     Daniel's files
