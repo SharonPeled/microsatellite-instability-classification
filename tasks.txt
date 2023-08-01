@@ -16,7 +16,8 @@ to do:
 cls_w
 
 runs -
-    only sep q
+    according to brain storm
+    check whether the low aUC on CRC is due to LP
 other -
 
     Daniel's files
