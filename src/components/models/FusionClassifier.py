@@ -283,7 +283,7 @@ class CohortAwareAttention(nn.Module):
 
     def get_cb_matrix(self, x, c):
         B, N, C = x.shape
-        if not self.cohort_aware_dict['bias_matrices'] == 'learnable_bias_matrices':
+        if not self.cohort_aware_dict['awareness_strategy'] == 'learnable_bias_matrices':
             return None
         c_cpu = c.cpu()
         indices = torch.arange(B)
@@ -323,7 +323,7 @@ class CohortAwareAttention(nn.Module):
         cb = self.get_cb_matrix(x, c)
 
         if self.cohort_aware_dict['bias_matrices'] in ['q_without_x']:
-            q = q + (0.1*cb)
+            q = q + (cb*0.1)
 
         q, k = self.q_norm(q), self.k_norm(k)
 
