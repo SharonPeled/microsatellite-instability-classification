@@ -16,6 +16,7 @@ to do:
 
 runs -
     run bias injection in each MHA - lr, one hot, exclude cohort, cb hyperparam
+    shared and sep loss
     according to brain storm - weights according to num tiles? per cohort?
 
     check whether the low aUC on CRC is due to LP
