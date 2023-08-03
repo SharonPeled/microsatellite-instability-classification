@@ -240,7 +240,7 @@ class SubtypeClassificationConfigs:
                   'calc_proportions_class_w': True,
                   'calc_proportions_cohort_class_w': False,
                   'learnable_cohort_prior_type': '+', # '*', # 0.1,  # initial prior value
-                  'FoVs_augs_amounts': None, #(0.15, 0.15),  # tuple of % from each FoVs to add
+                  'FoVs_augs_amounts': (0.15, 0.15),  # tuple of % from each FoVs to add
                   'tile_encoder': SC_TILE_ENCODER,
                   'cohort_aware_dict': COHORT_AWARE_DICT
                   }
