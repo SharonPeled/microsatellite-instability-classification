@@ -186,9 +186,13 @@ class CohortAwareAttention(nn.Module):
         self.qkv_bias = qkv_bias
 
     def init_cb(self):
-        if self.cohort_aware_dict['awareness_strategy'] == 'learnable_bias_matrices':
+        if not self.cohort_aware_dict['awareness_strategy'] == 'learnable_bias_matrices':
+            return
+        if self.cohort_aware_dict['bias_matrices'] == 'z_before_fc':
             self.cb_w = nn.Parameter(torch.randn(len(self.include_cohorts), self.dim, self.dim)*0.1)
             self.cb_b = nn.Parameter(torch.randn(len(self.include_cohorts), self.dim)*0.1)
+        elif self.cohort_aware_dict['bias_matrices'] == 'z_before_fc_without_x':
+            self.cb_b = nn.Parameter(torch.randn(len(self.include_cohorts), self.dim) * 0.1)
 
     def init_qkv(self):
         if self.cohort_aware_dict['awareness_strategy'] in ['one_hot_head', 'shared_query_separate_training',
@@ -279,29 +283,39 @@ class CohortAwareAttention(nn.Module):
 
     def get_cb_matrix(self, x, c):
         B, N, C = x.shape
-        if self.cohort_aware_dict['bias_matrices'] in ['z_before_fc', ]:
-            c_cpu = c.cpu()
-            indices = torch.arange(B)
-            cb_list = []
-            cb_inds_list = []
-            for cb_ind, c_ind in enumerate(self.include_cohorts):
-                x_c = x[c == c_ind]
-                cb_list.append(torch.matmul(x_c, self.cb_w[cb_ind].t()) + self.cb_b[cb_ind])
-                cb_inds_list.append(indices[c_cpu == c_ind])
-            for cb_ind, c_ind in enumerate(self.exclude_cohorts):
-                x_c = x[c == c_ind]
-                cb_list.append(torch.zeros(x_c.shape, device=x_c.device))
-                cb_inds_list.append(indices[c_cpu == c_ind])
+        if not self.cohort_aware_dict['bias_matrices'] == 'learnable_bias_matrices':
+            return None
+        c_cpu = c.cpu()
+        indices = torch.arange(B)
+        cb_list = []
+        cb_inds_list = []
+        for cb_ind, c_ind in enumerate(self.include_cohorts):
+            x_c = x[c == c_ind]
+            cb_list.append(self.get_cb_operation(x_c, cb_ind, include_cohort=True))
+            cb_inds_list.append(indices[c_cpu == c_ind])
+        for cb_ind, c_ind in enumerate(self.exclude_cohorts):
+            x_c = x[c == c_ind]
+            cb_list.append(self.get_cb_operation(x_c, cb_ind, include_cohort=False))
+            cb_inds_list.append(indices[c_cpu == c_ind])
 
-            cb = torch.cat(cb_list, dim=0)
-            cb_inds = torch.tensor(
-                pd.Series(index=torch.cat(cb_inds_list).numpy(), data=indices).loc[indices].values,
-                device=cb.device)
-            cb = torch.index_select(cb, 0, cb_inds)
-            return cb
-        else:
-            cb = torch.zeros(B, self.num_heads, N, self.head_dim)
+        cb = torch.cat(cb_list, dim=0)
+        cb_inds = torch.tensor(
+            pd.Series(index=torch.cat(cb_inds_list).numpy(), data=indices).loc[indices].values,
+            device=cb.device)
+        cb = torch.index_select(cb, 0, cb_inds)
         return cb
+
+    def get_cb_operation(self, x_c, cb_ind, include_cohort):
+        if self.cohort_aware_dict['bias_matrices'] in ['z_before_fc', ]:
+            if include_cohort:
+                return torch.matmul(x_c, self.cb_w[cb_ind].t()) + self.cb_b[cb_ind]
+            else:
+                return torch.zeros(x_c.shape, device=x_c.device)
+        elif self.cohort_aware_dict['bias_matrices'] in ['z_before_fc_without_x', ]:
+            if include_cohort:
+                return self.cb_b.repeat(*x_c.shape[:2],1)
+            else:
+                return torch.zeros(x_c.shape, device=x_c.device)
 
     def forward(self, x, c):
         B, N, C = x.shape
