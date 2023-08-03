@@ -191,8 +191,10 @@ class CohortAwareAttention(nn.Module):
         if self.cohort_aware_dict['bias_matrices'] == 'z_before_fc':
             self.cb_w = nn.Parameter(torch.randn(len(self.include_cohorts), self.dim, self.dim)*0.1)
             self.cb_b = nn.Parameter(torch.randn(len(self.include_cohorts), self.dim)*0.1)
-        elif self.cohort_aware_dict['bias_matrices'] in ['z_before_fc_without_x', 'q_without_x']:
+        elif self.cohort_aware_dict['bias_matrices'] in ['z_before_fc_without_x', ]:
             self.cb_b = nn.Parameter(torch.randn(len(self.include_cohorts), self.dim) * 0.1)
+        elif self.cohort_aware_dict['bias_matrices'] in ['q_without_x', ]:
+            self.cb_b = nn.Parameter(torch.randn(len(self.include_cohorts), self.head_dim) * 0.1)
 
     def init_qkv(self):
         if self.cohort_aware_dict['awareness_strategy'] in ['one_hot_head', 'shared_query_separate_training',
@@ -311,11 +313,17 @@ class CohortAwareAttention(nn.Module):
                 return torch.matmul(x_c, self.cb_w[cb_ind].t()) + self.cb_b[cb_ind]
             else:
                 return torch.zeros(x_c.shape, device=x_c.device)
-        elif self.cohort_aware_dict['bias_matrices'] in ['z_before_fc_without_x', 'q_without_x']:
+        elif self.cohort_aware_dict['bias_matrices'] in ['z_before_fc_without_x', ]:
             if include_cohort:
                 return self.cb_b.repeat(*x_c.shape[:2], 1)
             else:
                 return torch.zeros(x_c.shape, device=x_c.device)
+        elif self.cohort_aware_dict['bias_matrices'] in ['q_without_x', ]:
+            B_c, N, C = x_c.shape
+            if include_cohort:
+                return self.cb_b[cb_ind].repeat(B_c, self.num_heads, N, 1)
+            else:
+                return torch.zeros((B_c, self.num_heads, N, self.head_dim), device=x_c.device)
 
     def forward(self, x, c):
         B, N, C = x.shape
