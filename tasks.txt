@@ -16,9 +16,8 @@ to do:
 cls_w
 
 runs -
-    run bias injection in each MHA
-    check separate_query_per_block code
-    according to brain storm - weights according to num tiles?
+    run bias injection in each MHA - lr, one hot, exclude cohort, cb hyperparam
+    according to brain storm - weights according to num tiles? per cohort?
 
     check whether the low aUC on CRC is due to LP
     check agg methods
