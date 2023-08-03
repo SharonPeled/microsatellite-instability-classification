@@ -48,7 +48,8 @@ class CohortAwareVisionTransformer(VisionTransformer):
         for key in keys_to_adjust:
             key_parts = key.split('.')
             block_number = int(key_parts[1]) + 1
-            if self.cohort_aware_dict['awareness_strategy'] in ['one_hot_head', 'shared_query_separate_training'] or \
+            if self.cohort_aware_dict['awareness_strategy'] in ['one_hot_head', 'shared_query_separate_training',
+                                                                'learnable_bias_matrices'] or \
                     (self.cohort_aware_dict['awareness_strategy'] == 'separate_query_per_block' and
                      (block_number <= self.cohort_aware_dict['depth'] - self.cohort_aware_dict['num_blocks_per_cohort'])):
                 new_key_format = '.'.join(key_parts[:-1]) + f'_{key_parts[-1][0]}'
@@ -71,7 +72,7 @@ class CohortAwareVisionTransformer(VisionTransformer):
             else:
                 raise NotImplementedError
             del state_dict_to_load[key]
-        self.load_state_dict(state_dict_to_load)
+        self.load_state_dict(state_dict_to_load, strict=False)
 
     @staticmethod
     def adjust_weight(original_tensor, target_tensor, strategy):
@@ -175,6 +176,7 @@ class CohortAwareAttention(nn.Module):
 
         self.dim = dim
         self.init_qkv()
+        self.init_cb()
 
         self.q_norm = norm_layer(self.head_dim) if qk_norm else nn.Identity()
         self.k_norm = norm_layer(self.head_dim) if qk_norm else nn.Identity()
@@ -183,9 +185,15 @@ class CohortAwareAttention(nn.Module):
         self.proj_drop = nn.Dropout(proj_drop)
         self.qkv_bias = qkv_bias
 
+    def init_cb(self):
+        if self.cohort_aware_dict['awareness_strategy'] == 'learnable_bias_matrices':
+            self.cb_w = nn.Parameter(torch.randn(self.dim, self.dim)*0.1)
+            self.cb_b = nn.Parameter(torch.randn(self.dim)*0.1)
+
     def init_qkv(self):
         if self.cohort_aware_dict['awareness_strategy'] in ['one_hot_head', 'shared_query_separate_training',
-                                                            None] or not self.apply_awareness:
+                                                            'learnable_bias_matrices', None] or\
+                not self.apply_awareness:
             self.num_shared_heads = self.num_heads - len(self.include_cohorts) * self.num_heads_per_cohort
             self.qkv_w = nn.Parameter(torch.randn(self.dim * 3, self.dim))
             self.qkv_b = nn.Parameter(torch.randn(self.dim * 3))
@@ -205,7 +213,8 @@ class CohortAwareAttention(nn.Module):
 
     def get_qkv_matrices(self, x, c):
         B, N, C = x.shape
-        if self.cohort_aware_dict['awareness_strategy'] in ['one_hot_head', 'shared_query_separate_training', None] \
+        if self.cohort_aware_dict['awareness_strategy'] in ['one_hot_head', 'shared_query_separate_training',
+                                                            'learnable_bias_matrices', None] \
                 or not self.apply_awareness:
             qkv = torch.matmul(x, self.qkv_w.t())
             if self.qkv_bias:
@@ -230,7 +239,7 @@ class CohortAwareAttention(nn.Module):
                                                                             :, :].detach()
 
         elif self.cohort_aware_dict['awareness_strategy'] in ['separate_query', 'separate_noisy_query',
-                                                                  'separate_query_per_block']:
+                                                              'separate_query_per_block']:
             # key, value only
             kv = torch.matmul(x, self.kv_w.t())
             if self.qkv_bias:
@@ -268,10 +277,32 @@ class CohortAwareAttention(nn.Module):
             raise NotImplementedError
         return q, k, v
 
+    def get_cb_matrix(self, x, c):
+        B, N, C = x.shape
+        if self.cohort_aware_dict['bias_matrices'] in ['z_before_fc', ]:
+            c_cpu = c.cpu()
+            indices = torch.arange(B)
+            cb_list = []
+            cb_inds_list = []
+            for head_ind, c_ind in enumerate(range(self.num_cohorts)):
+                x_c = x[c == c_ind]
+                cb_list.append(torch.matmul(x_c, self.cb_w.t()) + self.cb_b)
+                cb_inds_list.append(indices[c_cpu == c_ind])
+
+            cb = torch.cat(cb_list, dim=0)
+            cb_inds = torch.tensor(
+                pd.Series(index=torch.cat(cb_inds_list).numpy(), data=indices).loc[indices].values,
+                device=cb.device)
+            cb = torch.index_select(cb, 0, cb_inds)
+            return cb
+        else:
+            cb = torch.zeros(B, self.num_heads, N, self.head_dim)
+        return cb
 
     def forward(self, x, c):
         B, N, C = x.shape
         q, k, v = self.get_qkv_matrices(x, c)
+        cb = self.get_cb_matrix(x, c)
 
         q, k = self.q_norm(q), self.k_norm(k)
 
@@ -283,5 +314,9 @@ class CohortAwareAttention(nn.Module):
 
         x = x.transpose(1, 2).reshape(B, N, C)
         x = self.proj(x)
+
+        if self.cohort_aware_dict['bias_matrices'] in ['z_before_fc', ]:
+            x = x + cb
+
         x = self.proj_drop(x)
         return x

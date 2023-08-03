@@ -158,9 +158,9 @@ class TumorRegressionConfigs:
 
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
-    SC_EXPERIMENT_NAME = 'SC_tile_based'
-    SC_FORMULATION = f'cls_w_LP_FV_SQ4B2_1H{SC_TILE_SIZE}'
-    SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_43"
+    SC_EXPERIMENT_NAME = 'SC_tile_based_cohort_bias_fusion'
+    SC_FORMULATION = f'cls_w_LP_FV_CBbz_{SC_TILE_SIZE}'
+    SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_44"
     SC_RUN_DESCRIPTION = f"""Pretrained VIT DINO, fine 1e-6 1e-4 lr.
     Class weights: auto compute
     33% test, seed:{GeneralConfigs.RANDOM_SEED}
@@ -170,7 +170,10 @@ class SubtypeClassificationConfigs:
     AUG FoVs (0.15, 0.15).
     Learnable priors 0.1.
     10% random resize crop
-    1 epochs, lr decay 0.1."""
+    1 epochs, lr decay 0.1.
+    Cohort bias init rand*0.1. To all 4 cohorts.
+    Cohort bias is added to z, before proj.
+    """
     SC_LABEL_DF_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                     'manifest_labeled_dx_molecular_subtype.tsv')
     SC_DF_TILE_PATHS_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
@@ -212,7 +215,7 @@ class SubtypeClassificationConfigs:
     SC_SAVE_CHECKPOINT_STEP_INTERVAL = 5000
     SC_VAL_STEP_INTERVAL = 1/2  # 2 times an epoch
     SC_TRAINING_BATCH_SIZE = 256  # accumulating gradients in MIL only
-    SC_NUM_WORKERS = 30
+    SC_NUM_WORKERS = 1
     SC_TEST_SIZE = 0.333
     SC_VALID_SIZE = 0  # not used if CV=True
     SC_INIT_LR = [1e-6 * (SC_TRAINING_BATCH_SIZE/256),
@@ -220,18 +223,20 @@ class SubtypeClassificationConfigs:
     SC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count, 1e10)  # all tiles
     SC_TILE_SAMPLE_LAMBDA_TRAIN_TUNE = None
     SC_FROZEN_BACKBONE = False
-    SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 2500
+    SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 2000
     SC_TILE_ENCODER = 'SSL_VIT_PRETRAINED_COHORT_AWARE'
     COHORT_AWARE_DICT = {'num_cohorts': 4,
-                         'num_heads_per_cohort': 4,
-                         'num_blocks_per_cohort': 2,  # default is last blocks
+                         'num_heads_per_cohort': 0,
+                         'num_blocks_per_cohort': 0,  # default is last blocks
                          'exclude_cohorts': list(SC_EXCLUDE_COHORT_AWARENESS.values()),
-                         # separate_noisy_query, separate_query, 'one_hot_head', 'shared_query_separate_training'
-                         'awareness_strategy': 'separate_query_per_block'
+                         # separate_query_per_block, separate_noisy_query, separate_query, 'one_hot_head',
+                         # 'shared_query_separate_training'
+                         'awareness_strategy': 'learnable_bias_matrices',
+                         'bias_matrices': 'z_before_fc'
                          }
     # separate_head - each cohort allocated a head, head of other cohorts are zeroed
     # separate_query - each cohort allocated a query, query of other cohorts are used but not updates (no gradients)
-    SC_KW_ARGS = {'one_hot_cohort_head': True,
+    SC_KW_ARGS = {'one_hot_cohort_head': False,
                   'calc_proportions_class_w': True,
                   'calc_proportions_cohort_class_w': False,
                   'learnable_cohort_prior_type': '+', # '*', # 0.1,  # initial prior value
