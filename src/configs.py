@@ -159,7 +159,7 @@ class TumorRegressionConfigs:
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
     SC_EXPERIMENT_NAME = 'SC_tile_based_cohort_bias_fusion'
-    SC_FORMULATION = f'cls_w_LP_FV_CBbz_no_x_{SC_TILE_SIZE}'
+    SC_FORMULATION = f'cls_w_LP_FV_q_no_x_{SC_TILE_SIZE}'
     SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_2"
     SC_RUN_DESCRIPTION = f"""Pretrained VIT DINO, fine 1e-6 1e-4 lr.
     Class weights: auto compute
@@ -232,7 +232,7 @@ class SubtypeClassificationConfigs:
                          # separate_query_per_block, separate_noisy_query, separate_query, 'one_hot_head',
                          # 'shared_query_separate_training'
                          'awareness_strategy': 'learnable_bias_matrices',
-                         'bias_matrices': 'z_before_fc_without_x'
+                         'bias_matrices': 'q_without_x'
                          }
     # separate_head - each cohort allocated a head, head of other cohorts are zeroed
     # separate_query - each cohort allocated a query, query of other cohorts are used but not updates (no gradients)
