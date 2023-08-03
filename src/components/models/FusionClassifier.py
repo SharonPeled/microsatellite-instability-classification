@@ -187,8 +187,8 @@ class CohortAwareAttention(nn.Module):
 
     def init_cb(self):
         if self.cohort_aware_dict['awareness_strategy'] == 'learnable_bias_matrices':
-            self.cb_w = nn.Parameter(torch.randn(self.dim, self.dim)*0.1)
-            self.cb_b = nn.Parameter(torch.randn(self.dim)*0.1)
+            self.cb_w = nn.Parameter(torch.randn(self.num_cohorts, self.dim, self.dim)*0.1)
+            self.cb_b = nn.Parameter(torch.randn(self.num_cohorts, self.dim)*0.1)
 
     def init_qkv(self):
         if self.cohort_aware_dict['awareness_strategy'] in ['one_hot_head', 'shared_query_separate_training',
@@ -284,9 +284,9 @@ class CohortAwareAttention(nn.Module):
             indices = torch.arange(B)
             cb_list = []
             cb_inds_list = []
-            for head_ind, c_ind in enumerate(range(self.num_cohorts)):
+            for cb_ind, c_ind in enumerate(range(self.num_cohorts)):
                 x_c = x[c == c_ind]
-                cb_list.append(torch.matmul(x_c, self.cb_w.t()) + self.cb_b)
+                cb_list.append(torch.matmul(x_c, self.cb_w[cb_ind].t()) + self.cb_b[cb_ind])
                 cb_inds_list.append(indices[c_cpu == c_ind])
 
             cb = torch.cat(cb_list, dim=0)
