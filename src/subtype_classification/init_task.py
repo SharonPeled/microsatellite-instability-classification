@@ -27,18 +27,7 @@ def init_task():
     df_tiles = pd.read_csv(Configs.SC_DF_TILE_PATHS_PATH)
     df_labels_merged_tiles = df_labels.merge(df_tiles, how='inner', on='slide_uuid')
 
-    if Configs.SC_KW_ARGS.get('calc_proportions_cohort_class_w', None):
-        slides_per_cohort_subtype = df_labels.groupby([Configs.SC_LABEL_COL, 'cohort'],
-                                                      as_index=False).slide_uuid.nunique()
-        slides_per_cohort = slides_per_cohort_subtype.groupby('cohort')['slide_uuid'].sum()
-        slides_per_cohort_subtype['prop'] = slides_per_cohort_subtype['slide_uuid'] / slides_per_cohort_subtype[
-            'cohort'].map(slides_per_cohort)
-        slides_per_cohort_subtype['weight'] = 1 - slides_per_cohort_subtype['prop']
-        slides_per_cohort_subtype[df_labels.cohort.isin(Configs.SC_EXCLUDE_COHORT_AWARENESS)].weight = slides_per_cohort_subtype
-        Configs.SC_COHORT_WEIGHT = slides_per_cohort_subtype.groupby(['cohort', 'subtype']).weight.sum().to_dict()
-        # TODO: fix this.
-
-    elif Configs.SC_KW_ARGS.get('calc_proportions_class_w', None):
+    if Configs.SC_KW_ARGS.get('calc_proportions_class_w', None):
         Configs.SC_CLASS_WEIGHT = df_labels.groupby(
             Configs.SC_LABEL_COL).slide_uuid.nunique().to_dict()
 

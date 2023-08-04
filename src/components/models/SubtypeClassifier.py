@@ -28,6 +28,18 @@ class SubtypeClassifier(PretrainedClassifier):
             self.learnable_priors = nn.Parameter(torch.full((len(self.cohort_to_ind),), 0.1)).float()  # random init val
         Logger.log(f"""TransferLearningClassifier created with cohort weights: {self.cohort_weight}.""", log_importance=1)
 
+    def init_cohort_weight(self, train_dataset):
+        if not self.other_kwargs.get('sep_cohort_w_loss', None):
+            return
+        df_tiles = train_dataset.df_labels
+        tiles_per_cohort_subtype = df_tiles.groupby(['y', 'cohort'], as_index=False).tile_path.count()
+        tiles_per_cohort = tiles_per_cohort_subtype.groupby('cohort')['tile_path'].sum()
+        tiles_per_cohort_subtype['prop'] = tiles_per_cohort_subtype['tile_path'] / tiles_per_cohort_subtype[
+            'cohort'].map(tiles_per_cohort)
+        tiles_per_cohort_subtype['weight'] = 1 - tiles_per_cohort_subtype['prop']
+        self.cohort_weight = tiles_per_cohort_subtype.groupby('cohort').apply(lambda df_c:
+                                                                              df_c.sort_values(by='y').weight.values).to_dict()
+
     def forward(self, x, c=None):
         if self.other_kwargs.get('tile_encoder', None) == 'SSL_VIT_PRETRAINED_COHORT_AWARE':
             if self.other_kwargs.get('one_hot_cohort_head', None):
@@ -86,14 +98,17 @@ class SubtypeClassifier(PretrainedClassifier):
     def loss(self, scores, y, c=None):
         if self.cohort_weight is None or c is None:
             return super().loss(scores, y)
-        loss_per_sample = F.cross_entropy(scores, y, reduction='none')
-        sample_weight = []
-        for sample_cohort_ind, sample_class_ind in zip(c,y):
-            sample_weight.append(self.cohort_weight[(self.ind_to_cohort[sample_cohort_ind.item()],
-                                                     self.ind_to_class[sample_class_ind.item()])])
-        sum_w = float(sum(sample_weight))
-        weight_tensor = torch.Tensor([w / sum_w for w in sample_weight]).to(y.device)
-        return (loss_per_sample * weight_tensor).mean()
+        y = y.to(scores.dtype)
+        loss_list = []
+        for c_name, c_ind in self.cohort_to_ind.items():
+            scores_c = scores[c == c_ind]
+            y_c = y[c == c_ind]
+            pos_weight = self.cohort_weight[c_name][1] /\
+                         self.cohort_weight[c_name][0]
+            loss_c = F.binary_cross_entropy_with_logits(scores_c, y_c, reduction='mean',
+                                                        pos_weight=torch.tensor(pos_weight))
+            loss_list.append(loss_c * y_c.shape[0])
+        return sum(loss_list) / y.shape[0]
 
     def log_epoch_level_metrics(self, outputs, dataset_str):
         scores = torch.concat([out["scores"] for out in outputs])

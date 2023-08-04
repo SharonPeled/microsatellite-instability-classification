@@ -159,8 +159,8 @@ class TumorRegressionConfigs:
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
     SC_EXPERIMENT_NAME = 'SC_tile_based_cohort_bias_fusion'
-    SC_FORMULATION = f'cls_w_LP_FV_q_no_x_{SC_TILE_SIZE}'
-    SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_2"
+    SC_FORMULATION = f'cw_LP_FV_q_no_x_{SC_TILE_SIZE}'
+    SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_3"
     SC_RUN_DESCRIPTION = f"""Pretrained VIT DINO, fine 1e-6 1e-4 lr.
     Class weights: auto compute
     33% test, seed:{GeneralConfigs.RANDOM_SEED}
@@ -237,8 +237,8 @@ class SubtypeClassificationConfigs:
     # separate_head - each cohort allocated a head, head of other cohorts are zeroed
     # separate_query - each cohort allocated a query, query of other cohorts are used but not updates (no gradients)
     SC_KW_ARGS = {'one_hot_cohort_head': False,
-                  'calc_proportions_class_w': True,
-                  'calc_proportions_cohort_class_w': False,
+                  'calc_proportions_class_w': False,
+                  'sep_cohort_w_loss': True,
                   'learnable_cohort_prior_type': '+', # '*', # 0.1,  # initial prior value
                   'FoVs_augs_amounts': (0.15, 0.15),  # tuple of % from each FoVs to add
                   'tile_encoder': SC_TILE_ENCODER,
