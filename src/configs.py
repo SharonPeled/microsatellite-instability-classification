@@ -186,7 +186,7 @@ class SubtypeClassificationConfigs:
                                               f'df_processed_tile_paths_1024.csv')
     SC_LABEL_COL = 'subtype'
     SC_TRAINED_MODEL_PATH = os.path.join(GeneralConfigs.ROOT, 'models', 'subtype_classification',
-                                         f'SC_{SC_RUN_NAME}_{GeneralConfigs.START_TIME}.ckpt')
+                                         f'SC_{SC_RUN_NAME}_' + '{time}.ckpt')
     SC_TEST_PREDICT_OUTPUT_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                                f'{SC_RUN_NAME}_pred', 'test')
     SC_VALID_PREDICT_OUTPUT_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',

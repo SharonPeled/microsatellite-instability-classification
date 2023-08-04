@@ -331,7 +331,7 @@ class CohortAwareAttention(nn.Module):
         cb = self.get_cb_matrix(x, c)
 
         if self.cohort_aware_dict['bias_matrices'] in ['q_without_x']:
-            q = q + (cb*0.1)
+            q = q + cb
 
         q, k = self.q_norm(q), self.k_norm(k)
 

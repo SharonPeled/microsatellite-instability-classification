@@ -24,6 +24,7 @@ import signal
 from PIL import Image
 from copy import deepcopy
 from src.components.models.FusionClassifier import CohortAwareVisionTransformer
+from datetime import datetime
 
 
 def train(df, train_transform, test_transform, logger, callbacks, model):
@@ -90,10 +91,10 @@ def train_single_split(df_train, df_valid, df_test, train_transform, test_transf
     if Configs.joined['TEST_ONLY'] is None:
         if valid_loader is None:
             trainer.fit(model, train_loader, ckpt_path=None)
-            trainer.save_checkpoint(Configs.joined['TRAINED_MODEL_PATH'])
         else:
             trainer.fit(model, train_loader, valid_loader, ckpt_path=None)
-            trainer.save_checkpoint(Configs.joined['TRAINED_MODEL_PATH'])
+        time_str = datetime.now().strftime('%d_%m_%Y_%H_%M')
+        trainer.save_checkpoint(Configs.joined['TRAINED_MODEL_PATH'].format(time=time_str))
     Logger.log("Done Training.", log_importance=1)
     Logger.log("Starting Test.", log_importance=1)
     trainer.test(model, test_loader)
