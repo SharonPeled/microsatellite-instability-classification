@@ -103,8 +103,11 @@ class SubtypeClassifier(PretrainedClassifier):
         for c_name, c_ind in self.cohort_to_ind.items():
             scores_c = scores[c == c_ind]
             y_c = y[c == c_ind]
-            pos_weight = self.cohort_weight[c_name][1] /\
-                         self.cohort_weight[c_name][0]
+            if len(self.cohort_weight[c_name]) == 2:
+                pos_weight = self.cohort_weight[c_name][1] /\
+                             self.cohort_weight[c_name][0]
+            else:
+                pos_weight = 1
             loss_c = F.binary_cross_entropy_with_logits(scores_c, y_c, reduction='mean',
                                                         pos_weight=torch.tensor(pos_weight))
             loss_list.append(loss_c * y_c.shape[0])
