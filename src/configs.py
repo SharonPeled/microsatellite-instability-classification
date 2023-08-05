@@ -159,7 +159,7 @@ class TumorRegressionConfigs:
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
     SC_EXPERIMENT_NAME = 'SC_tile_based_cohort_bias_fusion'
-    SC_FORMULATION = f'cw_LP_FV_{SC_TILE_SIZE}'
+    SC_FORMULATION = f'cw_LP_FV_no2_{SC_TILE_SIZE}'
     SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_3"
     SC_RUN_DESCRIPTION = f"""Pretrained VIT DINO, fine 1e-6 1e-4 lr.
     Class weights: auto compute
@@ -202,8 +202,8 @@ class SubtypeClassificationConfigs:
     SC_Y_TO_BE_STRATIFIED = 'y_to_be_stratified'
     SC_CLASS_TO_IND = {'GS': 0, 'CIN': 1}
     SC_CLASS_WEIGHT = None #  {'GS': 770, 'CIN': 235}
-    SC_COHORT_TO_IND = {'CRC': 0, 'STAD': 1, 'ESCA': 2, 'UCEC': 3}
-    SC_EXCLUDE_COHORT_AWARENESS = {'ESCA': 2}
+    SC_COHORT_TO_IND = {'CRC': 0, 'STAD': 1, 'UCEC': 2}
+    SC_EXCLUDE_COHORT_AWARENESS = {} # {'ESCA': 2}
     SC_COHORT_WEIGHT = None # {('COAD', 'CIN'): 0.75, ('COAD', 'GS'): 2.25, ('ESCA', 'CIN'): 0.25, ('ESCA', 'GS'): 0.75, ('READ', 'CIN'): 0.75, ('READ', 'GS'): 2.25, ('STAD', 'CIN'): 0.25, ('STAD', 'GS'): 0.75, ('UCEC', 'CIN'): 0.25, ('UCEC', 'GS'): 0.75}
     # SC_COHORT_TUNE = None # ['COAD', 'READ']
     SC_TEST_ONLY = None
