@@ -159,7 +159,7 @@ class TumorRegressionConfigs:
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
     SC_EXPERIMENT_NAME = 'SC_tile_based_cohort_bias_fusion'
-    SC_FORMULATION = f'cw_LP_FV_q_no_x_{SC_TILE_SIZE}'
+    SC_FORMULATION = f'cw_LP_FV_{SC_TILE_SIZE}'
     SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_3"
     SC_RUN_DESCRIPTION = f"""Pretrained VIT DINO, fine 1e-6 1e-4 lr.
     Class weights: auto compute
@@ -198,7 +198,7 @@ class SubtypeClassificationConfigs:
                          'LAB': os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                              f'LAB_statistics_30_512.yaml')}
     SC_CROSS_VALIDATE = True  # num folds according to test size
-    SC_CONTINUE_FROM_FOLD = 1  # 0 to 1/TEST_SIZE
+    SC_CONTINUE_FROM_FOLD = 0  # 0 to 1/TEST_SIZE
     SC_Y_TO_BE_STRATIFIED = 'y_to_be_stratified'
     SC_CLASS_TO_IND = {'GS': 0, 'CIN': 1}
     SC_CLASS_WEIGHT = None #  {'GS': 770, 'CIN': 235}
@@ -231,8 +231,8 @@ class SubtypeClassificationConfigs:
                          'exclude_cohorts': list(SC_EXCLUDE_COHORT_AWARENESS.values()),
                          # separate_query_per_block, separate_noisy_query, separate_query, 'one_hot_head',
                          # 'shared_query_separate_training'
-                         'awareness_strategy': 'learnable_bias_matrices',
-                         'bias_matrices': 'q_without_x'
+                         'awareness_strategy': None,
+                         'bias_matrices': None
                          }
     # separate_head - each cohort allocated a head, head of other cohorts are zeroed
     # separate_query - each cohort allocated a query, query of other cohorts are used but not updates (no gradients)

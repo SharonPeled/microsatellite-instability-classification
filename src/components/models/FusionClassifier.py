@@ -48,7 +48,7 @@ class CohortAwareVisionTransformer(VisionTransformer):
         for key in keys_to_adjust:
             key_parts = key.split('.')
             block_number = int(key_parts[1]) + 1
-            if self.cohort_aware_dict['awareness_strategy'] in ['one_hot_head', 'shared_query_separate_training',
+            if self.cohort_aware_dict['awareness_strategy'] in ['one_hot_head', 'shared_query_separate_training', None,
                                                                 'learnable_bias_matrices'] or \
                     (self.cohort_aware_dict['awareness_strategy'] == 'separate_query_per_block' and
                      (block_number <= self.cohort_aware_dict['depth'] - self.cohort_aware_dict['num_blocks_per_cohort'])):
