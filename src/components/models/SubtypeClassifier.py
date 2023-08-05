@@ -56,13 +56,13 @@ class SubtypeClassifier(PretrainedClassifier):
             else:
                 x = self.model(x).squeeze()
         if self.other_kwargs.get('learnable_cohort_prior_type', None):
-            c = torch.eye((len(self.cohort_to_ind)), dtype=x.dtype, device=x.device)[c]
+            c_one_hot = torch.eye((len(self.cohort_to_ind)), dtype=x.dtype, device=x.device)[c]
             if self.other_kwargs.get('learnable_cohort_prior_type') == '+':
-                priors = c.matmul(self.learnable_priors)
+                priors = c_one_hot.matmul(self.learnable_priors)
                 x += priors
             elif self.other_kwargs.get('learnable_cohort_prior_type') == '*':
                 cohort_priors = softmax(self.learnable_priors)
-                priors = c.matmul(cohort_priors)
+                priors = c_one_hot.matmul(cohort_priors)
                 x *= priors
             else:
                 raise NotImplementedError("learnable cohort prior type not implemented.")

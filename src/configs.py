@@ -159,7 +159,7 @@ class TumorRegressionConfigs:
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
     SC_EXPERIMENT_NAME = 'SC_tile_based_cohort_bias_fusion'
-    SC_FORMULATION = f'cw_LP_FV_no2_{SC_TILE_SIZE}'
+    SC_FORMULATION = f'cw_FV_no2_{SC_TILE_SIZE}'
     SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_3"
     SC_RUN_DESCRIPTION = f"""Pretrained VIT DINO, fine 1e-6 1e-4 lr.
     Class weights: auto compute
@@ -198,7 +198,7 @@ class SubtypeClassificationConfigs:
                          'LAB': os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                              f'LAB_statistics_30_512.yaml')}
     SC_CROSS_VALIDATE = True  # num folds according to test size
-    SC_CONTINUE_FROM_FOLD = 0  # 0 to 1/TEST_SIZE
+    SC_CONTINUE_FROM_FOLD = 2  # 0 to 1/TEST_SIZE
     SC_Y_TO_BE_STRATIFIED = 'y_to_be_stratified'
     SC_CLASS_TO_IND = {'GS': 0, 'CIN': 1}
     SC_CLASS_WEIGHT = None #  {'GS': 770, 'CIN': 235}
@@ -239,7 +239,7 @@ class SubtypeClassificationConfigs:
     SC_KW_ARGS = {'one_hot_cohort_head': False,
                   'calc_proportions_class_w': False,
                   'sep_cohort_w_loss': True,
-                  'learnable_cohort_prior_type': '+', # '*', # 0.1,  # initial prior value
+                  'learnable_cohort_prior_type': None, #'+', # '*', # 0.1,  # initial prior value
                   'FoVs_augs_amounts': (0.15, 0.15),  # tuple of % from each FoVs to add
                   'tile_encoder': SC_TILE_ENCODER,
                   'cohort_aware_dict': COHORT_AWARE_DICT
