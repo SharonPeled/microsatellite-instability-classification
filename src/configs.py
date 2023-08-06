@@ -159,8 +159,8 @@ class TumorRegressionConfigs:
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
     SC_EXPERIMENT_NAME = 'SC_tile_based_cohort_bias_fusion'
-    SC_FORMULATION = f'cw_FV_LP_{SC_TILE_SIZE}'
-    SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_4"
+    SC_FORMULATION = f'cw_FV_LP_SQ3B4At_{SC_TILE_SIZE}'
+    SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_5"
     SC_RUN_DESCRIPTION = f"""Pretrained VIT DINO, fine 1e-6 1e-4 lr.
     Class weights: auto compute
     33% test, seed:{GeneralConfigs.RANDOM_SEED}
@@ -203,7 +203,7 @@ class SubtypeClassificationConfigs:
     SC_CLASS_TO_IND = {'GS': 0, 'CIN': 1}
     SC_CLASS_WEIGHT = None #  {'GS': 770, 'CIN': 235}
     SC_COHORT_TO_IND = {'CRC': 0, 'STAD': 1, 'ESCA': 2, 'UCEC': 3}
-    SC_EXCLUDE_COHORT_AWARENESS = {} # {'ESCA': 2}
+    SC_EXCLUDE_COHORT_AWARENESS = {'ESCA': 2}
     SC_COHORT_WEIGHT = None # {('COAD', 'CIN'): 0.75, ('COAD', 'GS'): 2.25, ('ESCA', 'CIN'): 0.25, ('ESCA', 'GS'): 0.75, ('READ', 'CIN'): 0.75, ('READ', 'GS'): 2.25, ('STAD', 'CIN'): 0.25, ('STAD', 'GS'): 0.75, ('UCEC', 'CIN'): 0.25, ('UCEC', 'GS'): 0.75}
     # SC_COHORT_TUNE = None # ['COAD', 'READ']
     SC_TEST_ONLY = None
@@ -226,12 +226,12 @@ class SubtypeClassificationConfigs:
     SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 2000
     SC_TILE_ENCODER = 'SSL_VIT_PRETRAINED_COHORT_AWARE'
     COHORT_AWARE_DICT = {'num_cohorts': 4,
-                         'num_heads_per_cohort': 0,
-                         'num_blocks_per_cohort': 0,  # default is last blocks
+                         'num_heads_per_cohort': 3,
+                         'num_blocks_per_cohort': 4,  # default is last blocks
                          'exclude_cohorts': list(SC_EXCLUDE_COHORT_AWARENESS.values()),
                          # separate_query_per_block, separate_noisy_query, separate_query, 'one_hot_head',
                          # 'shared_query_separate_training'
-                         'awareness_strategy': None,
+                         'awareness_strategy': 'separate_attended_query_per_block',
                          'bias_matrices': None
                          }
     # separate_head - each cohort allocated a head, head of other cohorts are zeroed

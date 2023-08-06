@@ -25,6 +25,7 @@ from PIL import Image
 from copy import deepcopy
 from src.components.models.FusionClassifier import CohortAwareVisionTransformer
 from datetime import datetime
+import subprocess
 
 
 def train(df, train_transform, test_transform, logger, callbacks, model):
@@ -62,6 +63,8 @@ def cross_validate(df, train_transform, test_transform, mlflow_logger, model, ca
 
 def train_single_split(df_train, df_valid, df_test, train_transform, test_transform, logger, model, callbacks=()):
     assert not model.is_fit
+    proc = subprocess.Popen(['rm /tmp/* -r -f'], shell=True)
+    proc.wait()
     df_train_sampled = df_train.groupby('slide_uuid').apply(
         lambda slide_df: slide_df.sample(n=Configs.joined['TILE_SAMPLE_LAMBDA_TRAIN'](len(slide_df)),
                                          random_state=Configs.RANDOM_SEED))

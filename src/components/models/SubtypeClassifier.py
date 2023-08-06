@@ -26,7 +26,7 @@ class SubtypeClassifier(PretrainedClassifier):
             self.model = MultiInputSequential(self.backbone, self.head)
         if self.other_kwargs.get('learnable_cohort_prior_type', None):
             self.learnable_priors = nn.Parameter(torch.full((len(self.cohort_to_ind),), 0.1)).float()  # random init val
-        Logger.log(f"""TransferLearningClassifier created with cohort weights: {self.cohort_weight}.""", log_importance=1)
+        Logger.log(f"""SubtypeClassifier created with cohort weights: {self.cohort_weight}.""", log_importance=1)
 
     def init_cohort_weight(self, train_dataset):
         if not self.other_kwargs.get('sep_cohort_w_loss', None):
@@ -39,6 +39,7 @@ class SubtypeClassifier(PretrainedClassifier):
         tiles_per_cohort_subtype['weight'] = 1 - tiles_per_cohort_subtype['prop']
         self.cohort_weight = tiles_per_cohort_subtype.groupby('cohort').apply(lambda df_c:
                                                                               df_c.sort_values(by='y').weight.values).to_dict()
+        Logger.log(f"""SubtypeClassifier update cohort weights: {self.cohort_weight}.""", log_importance=1)
 
     def forward(self, x, c=None):
         if self.other_kwargs.get('tile_encoder', None) == 'SSL_VIT_PRETRAINED_COHORT_AWARE':

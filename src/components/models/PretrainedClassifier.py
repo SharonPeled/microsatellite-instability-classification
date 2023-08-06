@@ -32,7 +32,7 @@ class PretrainedClassifier(TransferLearningClassifier):
         else:
             self.head = nn.Linear(self.num_features, self.nn_output_size)
         self.model = MultiInputSequential(self.backbone, self.head)
-        Logger.log(f"""TransferLearningClassifier created with encoder name: {tile_encoder_name}.""", log_importance=1)
+        Logger.log(f"""PretrainedClassifier created with encoder name: {tile_encoder_name}.""", log_importance=1)
 
     def configure_optimizers(self):
         self.set_training_warmup()

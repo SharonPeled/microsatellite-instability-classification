@@ -6,10 +6,11 @@ from timm.models.vision_transformer import LayerScale, VisionTransformer
 from copy import deepcopy
 from src.general_utils import MultiInputSequential
 import pandas as pd
+from torch.nn.functional import softmax
 
 
 class CohortAwareVisionTransformer(VisionTransformer):
-    
+
     def __init__(self, cohort_aware_dict, depth, **vit_kwargs):
         vit_kwargs['block_fn'] = cohort_aware_block_fn(cohort_aware_dict)
         self.cohort_aware_dict = cohort_aware_dict
@@ -47,13 +48,22 @@ class CohortAwareVisionTransformer(VisionTransformer):
             raise ValueError("state_dict_to_load is not in format of either VisionTransformer or CohortAwareVisionTransformer.")
         for key in keys_to_adjust:
             key_parts = key.split('.')
-            block_number = int(key_parts[1]) + 1
+            block_number = int(key_parts[1])
             if self.cohort_aware_dict['awareness_strategy'] in ['one_hot_head', 'shared_query_separate_training', None,
-                                                                'learnable_bias_matrices'] or \
+                                                                'learnable_bias_matrices',
+                                                                'separate_attended_query_per_block'] or \
                     (self.cohort_aware_dict['awareness_strategy'] == 'separate_query_per_block' and
                      (block_number <= self.cohort_aware_dict['depth'] - self.cohort_aware_dict['num_blocks_per_cohort'])):
                 new_key_format = '.'.join(key_parts[:-1]) + f'_{key_parts[-1][0]}'
                 state_dict_to_load[new_key_format] = state_dict_to_load[key]
+                if self.cohort_aware_dict['awareness_strategy'] == 'separate_attended_query_per_block' and \
+                        block_number >= (self.cohort_aware_dict['depth'] - self.cohort_aware_dict['num_blocks_per_cohort']):
+                    cohort_q_new_key_format = '.'.join(key_parts[:3]) + f'.cohort_q_{key_parts[-1][0]}'
+                    target_shape = curr_state_dict[cohort_q_new_key_format].shape
+                    q_shift = state_dict_to_load[key].shape[0] // 3
+                    rest_q = state_dict_to_load[key][:q_shift][-target_shape[1]:]  # the last heads
+                    state_dict_to_load[cohort_q_new_key_format] = rest_q.repeat(target_shape[0], 1).reshape(
+                        target_shape)
             elif self.cohort_aware_dict['awareness_strategy'] in ['separate_query', 'separate_noisy_query',
                                                                   'separate_query_per_block']:
                 kv_new_key_format = '.'.join(key_parts[:3]) + f'.kv_{key_parts[-1][0]}'
@@ -198,13 +208,22 @@ class CohortAwareAttention(nn.Module):
 
     def init_qkv(self):
         if self.cohort_aware_dict['awareness_strategy'] in ['one_hot_head', 'shared_query_separate_training',
-                                                            'learnable_bias_matrices', None] or\
+                                                            'learnable_bias_matrices', None,
+                                                            'separate_attended_query_per_block'] or\
                 not self.apply_awareness:
             self.num_shared_heads = self.num_heads - len(self.include_cohorts) * self.num_heads_per_cohort
             self.qkv_w = nn.Parameter(torch.randn(self.dim * 3, self.dim))
             self.qkv_b = nn.Parameter(torch.randn(self.dim * 3))
+            if self.cohort_aware_dict['awareness_strategy'] == 'separate_attended_query_per_block' and \
+                    self.apply_awareness:
+                self.cohort_q_w = nn.Parameter(
+                    torch.randn(len(self.include_cohorts), self.head_dim * self.num_heads_per_cohort,
+                                self.dim))
+                self.cohort_q_b = nn.Parameter(
+                    torch.randn(len(self.include_cohorts), self.head_dim * self.num_heads_per_cohort))
+                self.q_attn = nn.Parameter(torch.randn((self.num_heads_per_cohort, self.head_dim)))
         elif self.cohort_aware_dict['awareness_strategy'] in ['separate_query', 'separate_noisy_query',
-                                                                  'separate_query_per_block']:
+                                                              'separate_query_per_block']:
             self.num_shared_heads = self.num_heads - self.num_heads_per_cohort
             self.kv_w = nn.Parameter(torch.randn(self.dim * 2, self.dim))
             self.kv_b = nn.Parameter(torch.randn(self.dim * 2))
@@ -220,12 +239,13 @@ class CohortAwareAttention(nn.Module):
     def get_qkv_matrices(self, x, c):
         B, N, C = x.shape
         if self.cohort_aware_dict['awareness_strategy'] in ['one_hot_head', 'shared_query_separate_training',
-                                                            'learnable_bias_matrices', None] \
+                                                            'learnable_bias_matrices', None,
+                                                            'separate_attended_query_per_block'] \
                 or not self.apply_awareness:
             qkv = torch.matmul(x, self.qkv_w.t())
             if self.qkv_bias:
                 qkv += self.qkv_b
-            qkv = qkv.reshape(B, N, 3, self.num_heads, self.head_dim).permute(2, 0, 3, 1, 4)
+            qkv = qkv.reshape(B, N, 3, self.num_heads, self.head_dim).permute(2, 0, 3, 1, 4)  # B, num_heads, N, head_dim
             q, k, v = qkv.unbind(0)
 
             if self.cohort_aware_dict['awareness_strategy'] == 'one_hot_head' and self.apply_awareness:
@@ -237,13 +257,23 @@ class CohortAwareAttention(nn.Module):
                 head_mask = torch.cat((head_mask, c_one_hot),
                                       dim=1).unsqueeze(-1).unsqueeze(-1)
                 q = q * head_mask
-
             elif self.cohort_aware_dict['awareness_strategy'] == 'shared_query_separate_training' and self.apply_awareness:
                 q = q.clone()
                 for head_ind, c_ind in enumerate(self.include_cohorts):
                     q[c != c_ind, self.num_shared_heads + head_ind, :, :] = q[c != c_ind, self.num_shared_heads + head_ind,
                                                                             :, :].detach()
-
+            elif self.cohort_aware_dict['awareness_strategy'] == 'separate_attended_query_per_block' and \
+                    self.apply_awareness:
+                # q, k, v # B, num_heads, N, head_dim
+                q = q.permute(0, 2, 1, 3)
+                shared_q = q[:, :, :-self.num_heads_per_cohort, :]
+                shared_attn_q = q[:, :, -self.num_heads_per_cohort:, :]  # B, N, num_cohort_heads, head_dim
+                sep_q = self.get_sep_q(x, c, self.cohort_q_w, self.cohort_q_b)  # B, N, num_cohort_heads*head_dim
+                sep_q = sep_q.reshape(B, N, self.num_heads_per_cohort, self.head_dim)
+                q_combined = torch.stack([shared_attn_q, sep_q], dim=-2)
+                q_scores = softmax((q_combined * self.q_attn.view(1, 1, 3, 1, 64)).sum(dim=-1), dim=-1)
+                cohort_attended_q = (q_combined * q_scores.unsqueeze(-1)).sum(dim=-2)
+                q = torch.cat([shared_q, cohort_attended_q], dim=-2).permute(0, 2, 1, 3)
         elif self.cohort_aware_dict['awareness_strategy'] in ['separate_query', 'separate_noisy_query',
                                                               'separate_query_per_block']:
             # key, value only
@@ -257,31 +287,35 @@ class CohortAwareAttention(nn.Module):
             if self.qkv_bias:
                 shared_q += self.shared_q_b
             # separate q
-            c_cpu = c.cpu()
-            indices = torch.arange(B)
-            sep_q_list = []
-            sep_inds_list = []
-            for head_ind, c_ind in enumerate(self.include_cohorts):
-                x_c = x[c == c_ind]
-                sep_q_list.append(torch.matmul(x_c, self.cohort_q_w[head_ind].t()))
-                if self.qkv_bias:
-                    sep_q_list[-1] += self.cohort_q_b[head_ind]
-                sep_inds_list.append(indices[c_cpu == c_ind])
-            for c_ind in self.exclude_cohorts:
-                x_c = x[c == c_ind]
-                sep_q_list.append(torch.zeros((x_c.shape[0], x_c.shape[1],
-                                               self.head_dim*self.num_heads_per_cohort), device=x.device))
-                sep_inds_list.append(indices[c_cpu == c_ind])
-
-            sep_q = torch.cat(sep_q_list, dim=0)
-            sep_inds = torch.tensor(pd.Series(index=torch.cat(sep_inds_list).numpy(), data=indices).loc[indices].values,
-                                    device=sep_q.device)
-            sep_q = torch.index_select(sep_q, 0, sep_inds)
+            sep_q = self.get_sep_q(x, c, self.cohort_q_w, self.cohort_q_b)
             q = torch.cat([shared_q, sep_q], dim=-1)
             q = q.reshape(B, N, self.num_heads, self.head_dim).permute(0, 2, 1, 3)
         else:
             raise NotImplementedError
         return q, k, v
+
+    def get_sep_q(self, x, c, cohort_w, cohort_b):
+        B, N, C = x.shape
+        # separate q
+        c_cpu = c.cpu()
+        indices = torch.arange(B)
+        sep_q_list = []
+        sep_inds_list = []
+        for head_ind, c_ind in enumerate(self.include_cohorts):
+            x_c = x[c == c_ind]
+            sep_q_list.append(torch.matmul(x_c, cohort_w[head_ind].t()) + cohort_b[head_ind])
+            sep_inds_list.append(indices[c_cpu == c_ind])
+        for c_ind in self.exclude_cohorts:
+            x_c = x[c == c_ind]
+            sep_q_list.append(torch.zeros((x_c.shape[0], x_c.shape[1],
+                                           self.head_dim * self.num_heads_per_cohort), device=x.device))
+            sep_inds_list.append(indices[c_cpu == c_ind])
+
+        sep_q = torch.cat(sep_q_list, dim=0)
+        sep_inds = torch.tensor(pd.Series(index=torch.cat(sep_inds_list).numpy(), data=indices).loc[indices].values,
+                                device=sep_q.device)
+        sep_q = torch.index_select(sep_q, 0, sep_inds)
+        return sep_q
 
     def get_cb_matrix(self, x, c):
         B, N, C = x.shape

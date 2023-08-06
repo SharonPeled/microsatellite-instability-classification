@@ -13,6 +13,7 @@ on hold:
 
 
 to do:
+    load model Sq4B2 and check matrices are good
 
 runs -
     run bias injection in each MHA - lr, one hot, exclude cohort, cb hyperparam
