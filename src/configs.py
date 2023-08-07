@@ -159,8 +159,8 @@ class TumorRegressionConfigs:
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
     SC_EXPERIMENT_NAME = 'SC_tile_based_cohort_bias_fusion'
-    SC_FORMULATION = f'cw_FV_SQ2B12At_{SC_TILE_SIZE}'
-    SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_6"
+    SC_FORMULATION = f'cw_FV_SQ2B12_At2Ltanh_{SC_TILE_SIZE}'
+    SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_7"
     SC_RUN_DESCRIPTION = f"""Pretrained VIT DINO, fine 1e-6 1e-4 lr.
     Class weights: auto compute
     33% test, seed:{GeneralConfigs.RANDOM_SEED}
@@ -232,7 +232,7 @@ class SubtypeClassificationConfigs:
                          # separate_query_per_block, separate_noisy_query, separate_query, 'one_hot_head',
                          # 'shared_query_separate_training'
                          'awareness_strategy': 'separate_attended_query_per_block',
-                         'q_attention_type': 'linear', #  linear, 2_layered_tanh
+                         'q_attention_type': '2_layered_tanh', #  linear, 2_layered_tanh
                          'q_attention_drop': 0.0,
                          'bias_matrices': None
                          }

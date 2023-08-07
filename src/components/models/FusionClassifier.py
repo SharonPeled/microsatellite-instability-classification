@@ -226,12 +226,12 @@ class CohortAwareAttention(nn.Module):
                     self.q_attn_w = nn.Parameter(torch.randn((self.num_heads_per_cohort, self.head_dim)))
                     self.q_attn_b = nn.Parameter(torch.randn((self.num_heads_per_cohort, 1)))
                 elif self.cohort_aware_dict['q_attention_type'] == '2_layered_tanh':
-                    self.q_attn = [nn.Sequential(
-                                                nn.Linear(self.head_dim, self.head_dim),
-                                                nn.Dropout(self.cohort_aware_dict['q_attention_drop']),
-                                                nn.Tanh(),
-                                                nn.Linear(self.head_dim, 1)
-                    ) for _ in range(self.num_heads_per_cohort)]
+                    self.q_attn = nn.ModuleList([nn.Sequential(
+                        nn.Linear(self.head_dim, self.head_dim),
+                        nn.Dropout(self.cohort_aware_dict['q_attention_drop']),
+                        nn.Tanh(),
+                        nn.Linear(self.head_dim, 1))
+                        for _ in range(self.num_heads_per_cohort)])
 
         elif self.cohort_aware_dict['awareness_strategy'] in ['separate_query', 'separate_noisy_query',
                                                               'separate_query_per_block']:
@@ -314,11 +314,11 @@ class CohortAwareAttention(nn.Module):
             q_scores = q_scores.unsqueeze(-1)
             return q_scores
         elif self.cohort_aware_dict['q_attention_type'] == '2_layered_tanh':
-            q_scores_list = []
-            for i in range(self.num_heads_per_cohort):
-                q_combined
-
-            self.q_attn
+            q_scores_list = [self.q_attn[i](q_combined[:, :, i]).squeeze()
+                             for i in range(self.num_heads_per_cohort)]
+            q_scores = torch.stack(q_scores_list, dim=-2)
+            q_scores = softmax(q_scores, dim=-1)
+            return q_scores.unsqueeze(-1)
 
     def get_sep_q(self, x, c, cohort_w, cohort_b):
         B, N, C = x.shape
