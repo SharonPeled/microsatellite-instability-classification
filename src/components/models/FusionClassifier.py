@@ -221,7 +221,18 @@ class CohortAwareAttention(nn.Module):
                                 self.dim))
                 self.cohort_q_b = nn.Parameter(
                     torch.randn(len(self.include_cohorts), self.head_dim * self.num_heads_per_cohort))
-                self.q_attn = nn.Parameter(torch.randn((self.num_heads_per_cohort, self.head_dim)))
+                self.q_attn_drop = torch.nn.Dropout(p=self.cohort_aware_dict['q_attention_drop'])
+                if self.cohort_aware_dict['q_attention_type'] == 'linear':
+                    self.q_attn_w = nn.Parameter(torch.randn((self.num_heads_per_cohort, self.head_dim)))
+                    self.q_attn_b = nn.Parameter(torch.randn((self.num_heads_per_cohort, 1)))
+                elif self.cohort_aware_dict['q_attention_type'] == '2_layered_tanh':
+                    self.q_attn = [nn.Sequential(
+                                                nn.Linear(self.head_dim, self.head_dim),
+                                                nn.Dropout(self.cohort_aware_dict['q_attention_drop']),
+                                                nn.Tanh(),
+                                                nn.Linear(self.head_dim, 1)
+                    ) for _ in range(self.num_heads_per_cohort)]
+
         elif self.cohort_aware_dict['awareness_strategy'] in ['separate_query', 'separate_noisy_query',
                                                               'separate_query_per_block']:
             self.num_shared_heads = self.num_heads - self.num_heads_per_cohort
@@ -271,8 +282,8 @@ class CohortAwareAttention(nn.Module):
                 sep_q = self.get_sep_q(x, c, self.cohort_q_w, self.cohort_q_b)  # B, N, num_cohort_heads*head_dim
                 sep_q = sep_q.reshape(B, N, self.num_heads_per_cohort, self.head_dim)
                 q_combined = torch.stack([shared_attn_q, sep_q], dim=-2)
-                q_scores = softmax((q_combined * self.q_attn.view(1, 1, 3, 1, 64)).sum(dim=-1), dim=-1)
-                cohort_attended_q = (q_combined * q_scores.unsqueeze(-1)).sum(dim=-2)
+                q_scores = self.get_q_attn_scores(q_combined)
+                cohort_attended_q = (q_combined * q_scores).sum(dim=-2)
                 q = torch.cat([shared_q, cohort_attended_q], dim=-2).permute(0, 2, 1, 3)
         elif self.cohort_aware_dict['awareness_strategy'] in ['separate_query', 'separate_noisy_query',
                                                               'separate_query_per_block']:
@@ -293,6 +304,21 @@ class CohortAwareAttention(nn.Module):
         else:
             raise NotImplementedError
         return q, k, v
+
+    def get_q_attn_scores(self, q_combined):
+        if self.cohort_aware_dict['q_attention_type'] == 'linear':
+            q_scores_features = q_combined * self.q_attn_w.view(1, 1, self.num_heads_per_cohort, 1, 64)
+            q_scores = q_scores_features.sum(dim=-1)
+            q_scores += self.q_attn_b.view(1, 1, self.num_heads_per_cohort, 1)
+            q_scores = softmax(q_scores, dim=-1)
+            q_scores = q_scores.unsqueeze(-1)
+            return q_scores
+        elif self.cohort_aware_dict['q_attention_type'] == '2_layered_tanh':
+            q_scores_list = []
+            for i in range(self.num_heads_per_cohort):
+                q_combined
+
+            self.q_attn
 
     def get_sep_q(self, x, c, cohort_w, cohort_b):
         B, N, C = x.shape
@@ -362,10 +388,10 @@ class CohortAwareAttention(nn.Module):
     def forward(self, x, c):
         B, N, C = x.shape
         q, k, v = self.get_qkv_matrices(x, c)
-        cb = self.get_cb_matrix(x, c)
+        # cb = self.get_cb_matrix(x, c)
 
-        if self.cohort_aware_dict['bias_matrices'] in ['q_without_x']:
-            q = q + cb
+        # if self.cohort_aware_dict['bias_matrices'] in ['q_without_x']:
+        #     q = q + cb
 
         q, k = self.q_norm(q), self.k_norm(k)
 
@@ -378,8 +404,8 @@ class CohortAwareAttention(nn.Module):
         x = x.transpose(1, 2).reshape(B, N, C)
         x = self.proj(x)
 
-        if self.cohort_aware_dict['bias_matrices'] in ['z_before_fc', 'z_before_fc_without_x']:
-            x = x + cb
+        # if self.cohort_aware_dict['bias_matrices'] in ['z_before_fc', 'z_before_fc_without_x']:
+        #     x = x + cb
 
         x = self.proj_drop(x)
         return x

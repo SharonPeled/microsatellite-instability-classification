@@ -159,8 +159,8 @@ class TumorRegressionConfigs:
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
     SC_EXPERIMENT_NAME = 'SC_tile_based_cohort_bias_fusion'
-    SC_FORMULATION = f'cw_FV_LP_SQ3B4At_2e5_{SC_TILE_SIZE}'
-    SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_5"
+    SC_FORMULATION = f'cw_FV_SQ2B12At_{SC_TILE_SIZE}'
+    SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_6"
     SC_RUN_DESCRIPTION = f"""Pretrained VIT DINO, fine 1e-6 1e-4 lr.
     Class weights: auto compute
     33% test, seed:{GeneralConfigs.RANDOM_SEED}
@@ -207,7 +207,7 @@ class SubtypeClassificationConfigs:
     SC_COHORT_WEIGHT = None # {('COAD', 'CIN'): 0.75, ('COAD', 'GS'): 2.25, ('ESCA', 'CIN'): 0.25, ('ESCA', 'GS'): 0.75, ('READ', 'CIN'): 0.75, ('READ', 'GS'): 2.25, ('STAD', 'CIN'): 0.25, ('STAD', 'GS'): 0.75, ('UCEC', 'CIN'): 0.25, ('UCEC', 'GS'): 0.75}
     # SC_COHORT_TUNE = None # ['COAD', 'READ']
     SC_TEST_ONLY = None
-    SC_NUM_EPOCHS = 2
+    SC_NUM_EPOCHS = 1
     SC_NUM_DEVICES = [0, ]  # for slurm always 0
     SC_NUM_NODES = 1
     SC_DEVICE = 'gpu'
@@ -218,7 +218,7 @@ class SubtypeClassificationConfigs:
     SC_NUM_WORKERS = 30
     SC_TEST_SIZE = 0.333
     SC_VALID_SIZE = 0  # not used if CV=True
-    SC_INIT_LR = [1e-5 * (SC_TRAINING_BATCH_SIZE/256),
+    SC_INIT_LR = [1e-6 * (SC_TRAINING_BATCH_SIZE/256),
                   1e-4 * (SC_TRAINING_BATCH_SIZE/256)]  # per part of the network, in order of the actual nn
     SC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count, 1e10)  # all tiles
     SC_TILE_SAMPLE_LAMBDA_TRAIN_TUNE = None
@@ -226,12 +226,14 @@ class SubtypeClassificationConfigs:
     SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 2000
     SC_TILE_ENCODER = 'SSL_VIT_PRETRAINED_COHORT_AWARE'
     COHORT_AWARE_DICT = {'num_cohorts': 4,
-                         'num_heads_per_cohort': 3,
-                         'num_blocks_per_cohort': 4,  # default is last blocks
+                         'num_heads_per_cohort': 2,
+                         'num_blocks_per_cohort': 12,  # default is last blocks
                          'exclude_cohorts': list(SC_EXCLUDE_COHORT_AWARENESS.values()),
                          # separate_query_per_block, separate_noisy_query, separate_query, 'one_hot_head',
                          # 'shared_query_separate_training'
                          'awareness_strategy': 'separate_attended_query_per_block',
+                         'q_attention_type': 'linear', #  linear, 2_layered_tanh
+                         'q_attention_drop': 0.0,
                          'bias_matrices': None
                          }
     # separate_head - each cohort allocated a head, head of other cohorts are zeroed
@@ -239,7 +241,7 @@ class SubtypeClassificationConfigs:
     SC_KW_ARGS = {'one_hot_cohort_head': False,
                   'calc_proportions_class_w': False,
                   'sep_cohort_w_loss': True,
-                  'learnable_cohort_prior_type': '+', # '*', # 0.1,  # initial prior value
+                  'learnable_cohort_prior_type': None, # '+', # '*', # 0.1,  # initial prior value
                   'FoVs_augs_amounts': (0.15, 0.15),  # tuple of % from each FoVs to add
                   'tile_encoder': SC_TILE_ENCODER,
                   'cohort_aware_dict': COHORT_AWARE_DICT

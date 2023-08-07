@@ -59,6 +59,7 @@ class SubtypeClassifier(PretrainedClassifier):
         if self.other_kwargs.get('learnable_cohort_prior_type', None):
             c_one_hot = torch.eye((len(self.cohort_to_ind)), dtype=x.dtype, device=x.device)[c]
             if self.other_kwargs.get('learnable_cohort_prior_type') == '+':
+                print(f'LP: {self.learnable_priors}')
                 priors = c_one_hot.matmul(self.learnable_priors)
                 x += priors
             elif self.other_kwargs.get('learnable_cohort_prior_type') == '*':

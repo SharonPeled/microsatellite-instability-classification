@@ -13,25 +13,26 @@ on hold:
 
 
 to do:
-    load model Sq4B2 and check matrices are good
+    attention score during training
+    blur slides ect.. (error analysis)
 
 runs -
-    run bias injection in each MHA - lr, one hot, exclude cohort, cb hyperparam
-    shared and sep loss
-    according to brain storm - weights according to num tiles? per cohort?
+    per cohort attention scorer?
+    2 nn score with dropout
+    warmup to all non-pretrained parameters
 
-    check whether the low aUC on CRC is due to LP
+
     check agg methods
 other -
     summarize (google sheets) of papers from CVPR and ICCV related to WSI - understand the innovation and what their are looking for.
     train and test on another cohort.
     quantify the long tail and the histograms of the SNPs
 
-
+general -
+    LP stabillization
 
     Daniel's files
     SSL ViT
-    think of fusion between datasets
     think/move to mil
 
 
@@ -44,10 +45,8 @@ load a ViT and fine tune a DINO with my augs.
 
 
 thinking:
-balanced batches
 look at the cleaning phases of Cell and the paper about UCEC
 bigger head (3 layered nn)
-blur slides ect.. (error analysis)
 
 
 future:
