@@ -13,13 +13,16 @@ on hold:
 
 
 to do:
-    attention score during training
-    blur slides ect.. (error analysis)
+    quantify the long tail
+    summarize papers
+    write research proposal
+    blur slides ect.. (error analysis, are the False slides same slides?)
+    train same data ablation analysis
+    pretrained everything
+    MIL / agg methods
 
 runs -
-    per cohort attention scorer?
-    2 nn score with dropout
-    warmup to all non-pretrained parameters
+    warmup to all non-pretrained parameters - or just pretrain everything?
 
 
     check agg methods

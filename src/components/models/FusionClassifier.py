@@ -53,11 +53,20 @@ class CohortAwareVisionTransformer(VisionTransformer):
                                                                 'learnable_bias_matrices',
                                                                 'separate_attended_query_per_block'] or \
                     (self.cohort_aware_dict['awareness_strategy'] == 'separate_query_per_block' and
-                     (block_number <= self.cohort_aware_dict['depth'] - self.cohort_aware_dict['num_blocks_per_cohort'])):
+                     (((block_number < self.cohort_aware_dict['depth'] - self.cohort_aware_dict['num_blocks_per_cohort'])
+                     and self.cohort_aware_dict['block_position'] == 'end') or
+                      ((block_number >= self.cohort_aware_dict['num_blocks_per_cohort'])
+                       and self.cohort_aware_dict['block_position'] == 'beginning')
+                     )
+                    ):
                 new_key_format = '.'.join(key_parts[:-1]) + f'_{key_parts[-1][0]}'
                 state_dict_to_load[new_key_format] = state_dict_to_load[key]
                 if self.cohort_aware_dict['awareness_strategy'] == 'separate_attended_query_per_block' and \
-                        block_number >= (self.cohort_aware_dict['depth'] - self.cohort_aware_dict['num_blocks_per_cohort']):
+                        (((block_number >= self.cohort_aware_dict['depth'] - self.cohort_aware_dict['num_blocks_per_cohort'])
+                     and self.cohort_aware_dict['block_position'] == 'end') or
+                      ((block_number < self.cohort_aware_dict['num_blocks_per_cohort'])
+                       and self.cohort_aware_dict['block_position'] == 'beginning')
+                     ):
                     cohort_q_new_key_format = '.'.join(key_parts[:3]) + f'.cohort_q_{key_parts[-1][0]}'
                     target_shape = curr_state_dict[cohort_q_new_key_format].shape
                     q_shift = state_dict_to_load[key].shape[0] // 3
@@ -122,7 +131,11 @@ class CohortAwareBlock(nn.Module):
             mlp_layer=Mlp
     ):
         super().__init__()
-        if cohort_aware_dict['block_num'] <= cohort_aware_dict['depth'] - cohort_aware_dict['num_blocks_per_cohort']:
+        if (((cohort_aware_dict['block_num'] < cohort_aware_dict['depth'] - cohort_aware_dict['num_blocks_per_cohort'])
+                     and cohort_aware_dict['block_position'] == 'end') or
+                      ((cohort_aware_dict['block_num'] >= cohort_aware_dict['num_blocks_per_cohort'])
+                       and cohort_aware_dict['block_position'] == 'beginning')
+                     ):
             apply_awareness = False
         else:
             apply_awareness = True
