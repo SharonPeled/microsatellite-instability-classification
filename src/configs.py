@@ -159,8 +159,8 @@ class TumorRegressionConfigs:
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
     SC_EXPERIMENT_NAME = 'SC_tile_based_cohort_bias_fusion'
-    SC_FORMULATION = f'cw_FV_SQ3B4b_At2Ltanh_{SC_TILE_SIZE}'
-    SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_8"
+    SC_FORMULATION = f'cw_FV_SQ6B12_At2Ltanh_{SC_TILE_SIZE}'
+    SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_9"
     SC_RUN_DESCRIPTION = f"""Pretrained VIT DINO, fine 1e-6 1e-4 lr.
     Class weights: auto compute
     33% test, seed:{GeneralConfigs.RANDOM_SEED}
@@ -226,8 +226,8 @@ class SubtypeClassificationConfigs:
     SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 2000
     SC_TILE_ENCODER = 'SSL_VIT_PRETRAINED_COHORT_AWARE'
     COHORT_AWARE_DICT = {'num_cohorts': 4,
-                         'num_heads_per_cohort': 3,
-                         'num_blocks_per_cohort': 4,  # default is last blocks
+                         'num_heads_per_cohort': 6,
+                         'num_blocks_per_cohort': 12,  # default is last blocks
                          'block_position': 'end',
                          'exclude_cohorts': list(SC_EXCLUDE_COHORT_AWARENESS.values()),
                          # separate_query_per_block, separate_noisy_query, separate_query, 'one_hot_head',

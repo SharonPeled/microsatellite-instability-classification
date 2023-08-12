@@ -1,5 +1,6 @@
 
-
+write about:
+    quantify the long tail - significant when auc > 0.55
 
 
 
@@ -13,27 +14,21 @@ on hold:
 
 
 to do:
-    quantify the long tail
     summarize papers
     write research proposal
-    blur slides ect.. (error analysis, are the False slides same slides?)
     train same data ablation analysis
     pretrained everything
     MIL / agg methods
 
 runs -
-    warmup to all non-pretrained parameters - or just pretrain everything?
-
-
-    check agg methods
+    -- it overfits when using more data ..., why? should I insert regularization? lower the data? lower lr?
 other -
     summarize (google sheets) of papers from CVPR and ICCV related to WSI - understand the innovation and what their are looking for.
     train and test on another cohort.
-    quantify the long tail and the histograms of the SNPs
+
 
 general -
     LP stabillization
-
     Daniel's files
     SSL ViT
     think/move to mil
@@ -49,7 +44,6 @@ load a ViT and fine tune a DINO with my augs.
 
 thinking:
 look at the cleaning phases of Cell and the paper about UCEC
-bigger head (3 layered nn)
 
 
 future:
@@ -58,9 +52,9 @@ testing on OOD dataset - could be a potential for improvement.
 
 
 Questions:
-differences in high vs low CNV
 
 
 comments:
-    blur slides
+    blur slides - not correlated to AUC
+    slides mistakes  - looks pretty similar
     lightly?
