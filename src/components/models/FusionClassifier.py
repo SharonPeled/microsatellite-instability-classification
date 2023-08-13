@@ -234,7 +234,6 @@ class CohortAwareAttention(nn.Module):
                                 self.dim))
                 self.cohort_q_b = nn.Parameter(
                     torch.randn(len(self.include_cohorts), self.head_dim * self.num_heads_per_cohort))
-                self.q_attn_drop = torch.nn.Dropout(p=self.cohort_aware_dict['q_attention_drop'])
                 if self.cohort_aware_dict['q_attention_type'] == 'linear':
                     self.q_attn_w = nn.Parameter(torch.randn((self.num_heads_per_cohort, self.head_dim)))
                     self.q_attn_b = nn.Parameter(torch.randn((self.num_heads_per_cohort, 1)))

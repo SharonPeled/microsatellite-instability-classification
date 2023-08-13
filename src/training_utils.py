@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from src.components.models.TransferLearningClassifier import TransferLearningClassifier
 from torchvision.models import resnet50
 from timm.models.vision_transformer import VisionTransformer
@@ -49,6 +50,7 @@ def cross_validate(df, train_transform, test_transform, mlflow_logger, model, ca
                                                            valid_size=0,
                                                            random_seed=Configs.RANDOM_SEED,
                                                            return_split_obj=True)
+    cv_metrics = []
     for i, (train_inds, test_inds) in enumerate(split_obj):
         if Configs.joined['CONTINUE_FROM_FOLD'] and Configs.joined['CONTINUE_FROM_FOLD'] > i:
             Logger.log(f"Skipped Fold {i}", log_importance=1)
@@ -56,9 +58,12 @@ def cross_validate(df, train_transform, test_transform, mlflow_logger, model, ca
         Logger.log(f"Fold {i}", log_importance=1)
         df_train = df.iloc[train_inds].reset_index(drop=True)
         df_test = df.iloc[test_inds].reset_index(drop=True)
-        # get all the scores ..
-        train_single_split(df_train, None, df_test, train_transform, test_transform, mlflow_logger, deepcopy(model),
-                           callbacks=callbacks)
+        fitted_model = train_single_split(df_train, None, df_test, train_transform, test_transform, mlflow_logger, deepcopy(model),
+                                          callbacks=callbacks)
+        cv_metrics.append(fitted_model.metrics)
+    metrics_dict = pd.DataFrame(cv_metrics).mean().add_suffix('_cv').to_dict()
+    for metric_str, metric_val in metrics_dict.items():
+        mlflow_logger.experiment.log_metric(mlflow_logger.run_id, metric_str, metric_val)
 
 
 def train_single_split(df_train, df_valid, df_test, train_transform, test_transform, logger, model, callbacks=()):
@@ -144,7 +149,7 @@ def init_training_transforms():
 
         transforms.RandomApply([transforms.GaussianBlur(kernel_size=(5, 5), sigma=(0.25, 1)), ], p=0.1),
 
-        transforms.RandomApply([transforms.RandomAdjustSharpness(sharpness_factor=2), ], p=0.1),
+        # transforms.RandomApply([transforms.RandomAdjustSharpness(sharpness_factor=2), ], p=0.1),
 
         transforms.RandomApply([transforms.Grayscale(num_output_channels=3), ], p=0.2),  # grayscale 20% of the images
         transforms.RandomApply([transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1)], p=0.8),

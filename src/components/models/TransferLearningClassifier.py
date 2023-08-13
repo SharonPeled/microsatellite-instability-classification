@@ -38,6 +38,7 @@ class TransferLearningClassifier(pl.LightningModule):
         self.test_outputs = None
         self.valid_outputs = None
         self.is_fit = False
+        self.metrics = {}
         Logger.log(f"""TransferLearningClassifier created with loss weights: {self.class_weights}.""", log_importance=1)
 
     def init_weights(self, class_to_weight):

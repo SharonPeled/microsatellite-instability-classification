@@ -136,6 +136,7 @@ class SubtypeClassifier(PretrainedClassifier):
         tile_cin_auc = calc_safe_auc(df.y_true, df.CIN_score)
         self.logger.experiment.log_metric(self.logger.run_id, f"{dataset_str}_tile_CIN_AUC",
                                           tile_cin_auc)
+        self.metrics[f"{dataset_str}_tile_CIN_AUC"] = tile_cin_auc
 
         df_slide = df.groupby(['patient_id', 'cohort'], as_index=False).agg({
             'y_true': 'max',
@@ -144,6 +145,8 @@ class SubtypeClassifier(PretrainedClassifier):
         slide_cin_auc = calc_safe_auc(df_slide.y_true, df_slide.CIN_score)
         self.logger.experiment.log_metric(self.logger.run_id, f"{dataset_str}_patient_CIN_AUC",
                                           slide_cin_auc)
+        self.metrics[f"{dataset_str}_patient_CIN_AUC"] = slide_cin_auc
+
 
         df_slide_cohort = df_slide.groupby('cohort').apply(lambda df_group:
                                                            calc_safe_auc(df_group.y_true,
@@ -151,5 +154,7 @@ class SubtypeClassifier(PretrainedClassifier):
         for cohort, auc in df_slide_cohort.iteritems():
             self.logger.experiment.log_metric(self.logger.run_id, f"{dataset_str}_patient_{cohort}_CIN_AUC",
                                               auc)
+            self.metrics[f"{dataset_str}_C{cohort}_AUC"] = auc
+
 
 
