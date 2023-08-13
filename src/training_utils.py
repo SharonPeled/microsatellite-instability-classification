@@ -241,11 +241,10 @@ def SLL_vit_small(pretrained, progress, key, **kwargs):
     return model
 
 
-def SLL_vit_small_cohort_aware(pretrained, progress, key, **kwargs):
-    patch_size = kwargs.get("patch_size", 16)
+def SLL_vit_small_cohort_aware(pretrained, progress, key, cohort_aware_dict, **vit_kwargs):
     model = CohortAwareVisionTransformer(
-        cohort_aware_dict=kwargs['cohort_aware_dict'],
-        img_size=224, patch_size=patch_size, embed_dim=384, num_heads=6, num_classes=0, depth=12
+        cohort_aware_dict=cohort_aware_dict,
+        img_size=224, patch_size=16, embed_dim=384, num_heads=6, num_classes=0, depth=12, **vit_kwargs
     )
     if pretrained:
         pretrained_url = get_pretrained_url(key)
@@ -310,8 +309,8 @@ def load_headless_tile_encoder(tile_encoder_name, path=None, **kwargs):
         model = SSL_resnet50(pretrained=True, progress=False, key="MoCoV2")
         return model, model.num_features
     elif tile_encoder_name == 'SSL_VIT_PRETRAINED_COHORT_AWARE':
-        model = SLL_vit_small_cohort_aware(pretrained=True, progress=False, key="DINO_p16", patch_size=16,
-                                           **kwargs)
+        model = SLL_vit_small_cohort_aware(pretrained=True, progress=False, key="DINO_p16",
+                                           cohort_aware_dict=kwargs['cohort_aware_dict'])
         return model, model.num_features
 
 
