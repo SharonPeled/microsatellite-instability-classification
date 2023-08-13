@@ -159,7 +159,7 @@ class TumorRegressionConfigs:
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
     SC_EXPERIMENT_NAME = 'SC_tile_based_cohort_bias_fusion'
-    SC_FORMULATION = f'cw_FV_LP_SQ6B12_At2Ltanh_reg_{SC_TILE_SIZE}'
+    SC_FORMULATION = f'cw_FV_LP_SQ6B12_At2Ltanh_{SC_TILE_SIZE}'
     SC_RUN_NAME = f"SSL_VIT_{SC_FORMULATION}_9"
     SC_RUN_DESCRIPTION = f"""Pretrained VIT DINO, fine 1e-6 1e-4 lr.
     Class weights: auto compute
@@ -208,7 +208,7 @@ class SubtypeClassificationConfigs:
     # SC_COHORT_TUNE = None # ['COAD', 'READ']
     SC_TEST_ONLY = None
     SC_NUM_EPOCHS = 1
-    SC_NUM_DEVICES = [0, ]  # for slurm always 0
+    SC_NUM_DEVICES = [1, ]  # for slurm always 0
     SC_NUM_NODES = 1
     SC_DEVICE = 'gpu'
     SC_TEST_BATCH_SIZE = 512
@@ -234,7 +234,7 @@ class SubtypeClassificationConfigs:
                          # 'shared_query_separate_training'
                          'awareness_strategy': 'separate_attended_query_per_block',
                          'q_attention_type': '2_layered_tanh', #  linear, 2_layered_tanh
-                         'q_attention_drop': 0.25,
+                         'q_attention_drop': 0.0,
                          'bias_matrices': None
                          }
     # separate_head - each cohort allocated a head, head of other cohorts are zeroed
@@ -268,6 +268,11 @@ class SubtypeClassificationConfigs:
 
 class DINOConfigs:
     DINO_DICT = {}
+    DINO_CMD_flags = f'---arch fusion_cw --out_dim 65536 --momentum_teacher 0.9995' + \
+                     f'--batch_size_per_gpu {SubtypeClassificationConfigs.SC_TRAINING_BATCH_SIZE}' + \
+                     f'--epochs 3 --warmup_epochs 1 --saveckp_freq 1 --num_workers {SubtypeClassificationConfigs.SC_NUM_WORKERS}' + \
+                     f'--seed {GeneralConfigs.RANDOM_SEED}' + \
+                     f'--output_dir {GeneralConfigs.ROOT}/data/subtype_classification/{SubtypeClassificationConfigs.SC_RUN_NAME}_dino_checkpoints'
 
 
 class VariantClassificationConfigs:
