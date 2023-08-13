@@ -45,6 +45,7 @@ class ProcessedTileDataset(Dataset, Logger):
             return df_pred
 
     def __getitem__(self, index):
+        # TODO: index can be a slice
         if self.group_size == -1:
             row = self.df_labels.loc[index]
             img, cohort, y, slide_id, patient_id = self.load_single_tile(row)
