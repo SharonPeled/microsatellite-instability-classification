@@ -19,6 +19,12 @@ from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import StratifiedGroupKFold
 from torch import nn
 import pytorch_lightning as pl
+import subprocess
+
+
+def rm_tmp_files():
+    proc = subprocess.Popen(['rm /tmp/* -r -f'], shell=True)
+    proc.wait()
 
 
 class MultiInputSequential(nn.Sequential):

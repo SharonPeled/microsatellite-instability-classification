@@ -28,8 +28,6 @@ srun -p debug python /home/sharonpe/microsatellite-instability-classification/ma
 echo "Current date and time: $(date)"
 echo "END"
 """)
-    proc = subprocess.Popen(['rm /tmp/* -r -f'], shell=True)
-    proc.wait()
     proc = subprocess.Popen(['sbatch slurm_script.sh'], shell=True)
     proc.wait()
     print('Done.')

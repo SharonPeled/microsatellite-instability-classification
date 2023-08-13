@@ -18,7 +18,7 @@ from torch.utils.data import DataLoader
 from src.components.datasets.ProcessedTileDataset import ProcessedTileDataset
 from torch.multiprocessing import set_start_method, set_sharing_strategy
 import pytorch_lightning as pl
-from src.general_utils import save_pred_outputs
+from src.general_utils import save_pred_outputs, rm_tmp_files
 from src.general_utils import train_test_valid_split_patients_stratified
 from pytorch_lightning.plugins.environments import SLURMEnvironment
 import signal
@@ -26,7 +26,6 @@ from PIL import Image
 from copy import deepcopy
 from src.components.models.FusionClassifier import CohortAwareVisionTransformer
 from datetime import datetime
-import subprocess
 
 
 def train(df, train_transform, test_transform, logger, callbacks, model):
@@ -68,8 +67,7 @@ def cross_validate(df, train_transform, test_transform, mlflow_logger, model, ca
 
 def train_single_split(df_train, df_valid, df_test, train_transform, test_transform, logger, model, callbacks=()):
     assert not model.is_fit
-    proc = subprocess.Popen(['rm /tmp/* -r -f'], shell=True)
-    proc.wait()
+    rm_tmp_files()
     df_train_sampled = df_train.groupby('slide_uuid').apply(
         lambda slide_df: slide_df.sample(n=Configs.joined['TILE_SAMPLE_LAMBDA_TRAIN'](len(slide_df)),
                                          random_state=Configs.RANDOM_SEED))

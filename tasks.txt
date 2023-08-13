@@ -9,25 +9,23 @@ test:
 
 
 on hold:
-
+    write research proposal - waiting for Avi
 
 
 
 to do:
-    summarize papers
-    write research proposal
-    train same data ablation analysis
     pretrained everything
+    summarize papers
+    train and test on another cohort
     MIL / agg methods
 
 runs -
-    -- it overfits when using more data ..., why? should I insert regularization? lower the data? lower lr?
 other -
-    summarize (google sheets) of papers from CVPR and ICCV related to WSI - understand the innovation and what their are looking for.
-    train and test on another cohort.
 
 
 general -
+    summarize (google sheets) of papers from CVPR and ICCV related to WSI - understand the innovation and what their are looking for
+    it overfits when using more data ..., why? should I insert regularization? lower the data? lower lr?
     LP stabillization
     Daniel's files
     SSL ViT
