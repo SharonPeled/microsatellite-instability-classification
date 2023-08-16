@@ -7,13 +7,13 @@ if __name__ == '__main__':
     with open("slurm_script.sh", "w") as file:
         file.write(f"""#!/bin/bash
 
-#SBATCH --job-name={Configs.SC_RUN_NAME}
+#SBATCH --job-name={Configs.joined['RUN_NAME']}
 #SBATCH --output=out_%j_%x.out
 #SBATCH --error=err_%j_%x.err
 #SBATCH --mem=25GB
-#SBATCH --gres=gpu:{len(Configs.SC_NUM_DEVICES)}
-#SBATCH --nodes={Configs.SC_NUM_NODES}   # This needs to match Trainer(num_nodes=...)
-#SBATCH --ntasks-per-node={len(Configs.SC_NUM_DEVICES)}   # This needs to match Trainer(devices=...)
+#SBATCH --gres=gpu:{len(Configs.joined['NUM_DEVICES'])}
+#SBATCH --nodes={Configs.joined['NUM_NODES']}   # This needs to match Trainer(num_nodes=...)
+#SBATCH --ntasks-per-node={len(Configs.joined['NUM_DEVICES'])}   # This needs to match Trainer(devices=...)
 #SBATCH --cpus-per-task=1
 
 echo "Current date and time: $(date)"
@@ -23,7 +23,7 @@ pwd
 source /home/sharonpe/miniconda3/etc/profile.d/conda.sh
 conda activate MSI
 
-srun -p debug python /home/sharonpe/microsatellite-instability-classification/main.py --pretrain-subtype-classification-tile
+srun -p debug python /home/sharonpe/microsatellite-instability-classification/main.py --train-subtype-classification-tile
 
 echo "Current date and time: $(date)"
 echo "END"
