@@ -22,9 +22,19 @@ class CohortAwareVisionTransformer(VisionTransformer):
         super(CohortAwareVisionTransformer, self).__init__(**vit_kwargs)
         self.blocks = MultiInputSequential(*[block for block in self.blocks])  # to allow to multi input through blocks sequential
 
+    def patch_embed_override(self, x):
+        x = self.patch_embed.proj(x).flatten(2).transpose(1, 2)  # NCHW -> NLC
+        x = self.patch_embed.norm(x)
+        return x
+
+    def pos_embed_override(self, x):
+        x = torch.cat((self.cls_token.expand(x.shape[0], -1, -1), x), dim=1)
+        x = x + self.pos_embed[:, :x.shape[1], :]
+        return self.pos_drop(x)
+
     def forward_features(self, x, c):
-        x = self.patch_embed(x)
-        x = self._pos_embed(x)
+        x = self.patch_embed_override(x)
+        x = self.pos_embed_override(x)
         x = self.patch_drop(x)
         x = self.norm_pre(x)
         x, c = self.blocks(x, c)

@@ -267,12 +267,27 @@ class SubtypeClassificationConfigs:
 
 
 class DINOConfigs:
+    DN_TILE_SIZE = 512
+    DN_EXPERIMENT_NAME = 'SC_fusion_dino'
+    DN_FORMULATION = f'raw_try'
+    DN_RUN_NAME = f"{DN_FORMULATION}_1"
     DINO_DICT = {}
-    DINO_CMD_flags = f'---arch fusion_cw --out_dim 65536 --momentum_teacher 0.9995' + \
-                     f'--batch_size_per_gpu {SubtypeClassificationConfigs.SC_TRAINING_BATCH_SIZE}' + \
-                     f'--epochs 3 --warmup_epochs 1 --saveckp_freq 1 --num_workers {SubtypeClassificationConfigs.SC_NUM_WORKERS}' + \
-                     f'--seed {GeneralConfigs.RANDOM_SEED}' + \
-                     f'--output_dir {GeneralConfigs.ROOT}/data/subtype_classification/{SubtypeClassificationConfigs.SC_RUN_NAME}_dino_checkpoints'
+    OUT_DIM = 1024
+    DN_BATCH_SIZE = 256  # accumulating gradients in MIL only
+    DN_NUM_WORKERS = 30
+    DN_NUM_EPOCHS = 3
+    DN_NUM_DEVICES = [0, ]  # for slurm always 0
+    DN_NUM_NODES = 1
+    DN_DEVICE = 'gpu'
+    DINO_CMD_flags = f'--arch fusion_cw --out_dim {OUT_DIM} --momentum_teacher 0.9995 ' + \
+                     f'--batch_size_per_gpu {DN_BATCH_SIZE} ' + \
+                     f'--epochs {DN_NUM_EPOCHS} --warmup_epochs 1 --saveckp_freq 1 --num_workers {DN_NUM_WORKERS} ' + \
+                     f'--seed {GeneralConfigs.RANDOM_SEED} ' + \
+                     f'--output_dir {GeneralConfigs.ROOT}/data/subtype_classification/{DN_RUN_NAME}_dino_checkpoints '
+    DN_RUN_DESCRIPTION = f"""DINO raw, single GPU, raw dataset and raw warmups.
+    Command:
+    {DINO_CMD_flags}
+            """
 
 
 class VariantClassificationConfigs:
@@ -327,7 +342,7 @@ class VariantClassificationConfigs:
 @dataclass
 class ConfigsClass(GeneralConfigs, PreprocessingConfigs, TumorClassificationConfigs, SemanticSegConfigs,
                    TumorRegressionConfigs, SubtypeClassificationConfigs, VariantClassificationConfigs, DINOConfigs):
-    TASK_PREFIX = ''
+    TASK_PREFIXES = ''
 
     def __init__(self):
         set_global_configs(verbose=self.VERBOSE,
@@ -339,7 +354,9 @@ class ConfigsClass(GeneralConfigs, PreprocessingConfigs, TumorClassificationConf
         self.joined = defaultdict(lambda: None)
 
     def set_task_configs(self, task_prefix):
-        self.TASK_PREFIX = task_prefix
+        if not isinstance(task_prefix, list):
+            task_prefix = [task_prefix, ]
+        self.TASK_PREFIXES = task_prefix
         common_configs = ['EXPERIMENT_NAME', 'RUN_NAME', 'RUN_DESCRIPTION', 'LABEL_DF_PATH', 'DF_TILE_PATHS_PATH',
                           'TRAINED_MODEL_PATH', 'CLASS_TO_IND', 'NUM_EPOCHS', 'NUM_DEVICES', 'DEVICE', 'TEST_BATCH_SIZE',
                           'SAVE_CHECKPOINT_STEP_INTERVAL', 'VAL_STEP_INTERVAL', 'TRAINING_BATCH_SIZE', 'NUM_WORKERS',
@@ -347,8 +364,12 @@ class ConfigsClass(GeneralConfigs, PreprocessingConfigs, TumorClassificationConf
                           'CROSS_VALIDATE', 'Y_TO_BE_STRATIFIED', 'TEST_ONLY', 'TEST_PREDICT_OUTPUT_PATH',
                           'VALID_PREDICT_OUTPUT_PATH', 'COHORT_TO_IND', 'CONTINUE_FROM_FOLD', 'NUM_NODES']
         for c in common_configs:
-            task_c = f'{self.TASK_PREFIX}_{c}'
-            self.joined[c] = getattr(self, task_c, None)
+            for prefix in self.TASK_PREFIXES:
+                task_c = f'{prefix}_{c}'
+                if not hasattr(self, task_c):
+                    continue
+                self.joined[c] = getattr(self, task_c)
+                break
 
 
 Configs = ConfigsClass()

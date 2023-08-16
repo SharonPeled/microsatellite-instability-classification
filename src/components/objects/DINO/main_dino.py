@@ -30,9 +30,12 @@ import torch.nn.functional as F
 from torchvision import datasets, transforms
 from torchvision import models as torchvision_models
 
-import utils
-import vision_transformer as vits
-from vision_transformer import DINOHead
+import src.components.objects.DINO.utils as utils
+import src.components.objects.DINO.vision_transformer as vits
+from src.components.objects.DINO.vision_transformer import DINOHead
+from src.configs import Configs
+from functools import partial
+from src.components.objects.RandStainNA.randstainna import RandStainNA
 
 torchvision_archs = sorted(name for name in torchvision_models.__dict__
     if name.islower() and not name.startswith("__")
@@ -43,7 +46,7 @@ def get_args_parser():
 
     # Model parameters
     parser.add_argument('--arch', default='vit_small', type=str,
-        choices=['vit_tiny', 'vit_small', 'vit_base', 'xcit', 'deit_tiny', 'deit_small'] \
+        choices=['vit_tiny', 'vit_small', 'vit_base', 'xcit', 'deit_tiny', 'deit_small', 'fusion_cw'] \
                 + torchvision_archs + torch.hub.list("facebookresearch/xcit:main"),
         help="""Name of architecture to train. For quick experiments with ViTs,
         we recommend using vit_tiny or vit_small.""")
@@ -142,7 +145,11 @@ def train_dino(args):
         args.local_crops_scale,
         args.local_crops_number,
     )
-    dataset = datasets.ImageFolder(args.data_path, transform=transform)
+    if Configs.DINO_DICT.get('dataset', None):
+        dataset = Configs.DINO_DICT['dataset']
+        dataset.transform = transform
+    else:
+        dataset = datasets.ImageFolder(args.data_path, transform=transform)
     sampler = torch.utils.data.DistributedSampler(dataset, shuffle=True)
     data_loader = torch.utils.data.DataLoader(
         dataset,
@@ -176,10 +183,17 @@ def train_dino(args):
         student = torchvision_models.__dict__[args.arch]()
         teacher = torchvision_models.__dict__[args.arch]()
         embed_dim = student.fc.weight.shape[1]
+    elif args.arch == 'fusion_cw':
+        # norm_layer is added in small_vit
+        student = Configs.DINO_DICT['model_fn'](drop_path_rate=args.drop_path_rate,
+                                                norm_layer=partial(nn.LayerNorm, eps=1e-6))
+        teacher = Configs.DINO_DICT['model_fn'](norm_layer=partial(nn.LayerNorm, eps=1e-6))
+        embed_dim = student.embed_dim
     else:
         print(f"Unknow architecture: {args.arch}")
 
     # multi-crop wrapper handles forward with inputs of different resolutions
+    # each element is a couple of views, this forward each of the views separately and concat the output
     student = utils.MultiCropWrapper(student, DINOHead(
         embed_dim,
         args.out_dim,
@@ -303,7 +317,9 @@ def train_one_epoch(student, teacher, teacher_without_ddp, dino_loss, data_loade
                     fp16_scaler, args):
     metric_logger = utils.MetricLogger(delimiter="  ")
     header = 'Epoch: [{}/{}]'.format(epoch, args.epochs)
-    for it, (images, _) in enumerate(metric_logger.log_every(data_loader, 10, header)):
+    for it, objs in enumerate(metric_logger.log_every(data_loader, 10, header)):
+        images = objs[0]
+        c = objs[1]
         # update weight decay and learning rate according to their schedule
         it = len(data_loader) * epoch + it  # global training iteration
         for i, param_group in enumerate(optimizer.param_groups):
@@ -315,8 +331,8 @@ def train_one_epoch(student, teacher, teacher_without_ddp, dino_loss, data_loade
         images = [im.cuda(non_blocking=True) for im in images]
         # teacher and student forward passes + compute dino loss
         with torch.cuda.amp.autocast(fp16_scaler is not None):
-            teacher_output = teacher(images[:2])  # only the 2 global views pass through the teacher
-            student_output = student(images)
+            teacher_output = teacher(images[:2], c)  # only the 2 global views pass through the teacher
+            student_output = student(images, c)
             loss = dino_loss(student_output, teacher_output, epoch)
 
         if not math.isfinite(loss.item()):
@@ -419,39 +435,55 @@ class DINOLoss(nn.Module):
 class DataAugmentationDINO(object):
     def __init__(self, global_crops_scale, local_crops_scale, local_crops_number):
         flip_and_color_jitter = transforms.Compose([
-            transforms.RandomHorizontalFlip(p=0.5),
-            transforms.RandomApply(
-                [transforms.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.2, hue=0.1)],
-                p=0.8
-            ),
+            transforms.RandomHorizontalFlip(),  # reverse 50% of images
+            transforms.RandomVerticalFlip(),  # reverse 50% of images
+
+            transforms.RandomApply([transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1)],
+                                   p=0.8),
             transforms.RandomGrayscale(p=0.2),
         ])
         normalize = transforms.Compose([
             transforms.ToTensor(),
-            transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
+            transforms.Normalize((0.485, 0.456, 0.406),
+                                 (0.229, 0.224, 0.225)),
         ])
+
+        rand_stain = transforms.RandomApply([
+            RandStainNA(yaml_file=Configs.joined['SSL_STATISTICS']['HSV'], std_hyper=0.01, probability=1.0, distribution="normal",
+                        is_train=True),
+            RandStainNA(yaml_file=Configs.joined['SSL_STATISTICS']['HED'], std_hyper=0.01, probability=1.0, distribution="normal",
+                        is_train=True),
+            RandStainNA(yaml_file=Configs.joined['SSL_STATISTICS']['LAB'], std_hyper=0.01, probability=1.0, distribution="normal",
+                        is_train=True)],
+            p=0.8)
 
         # first global crop
         self.global_transfo1 = transforms.Compose([
+            transforms.Resize(224),
             transforms.RandomResizedCrop(224, scale=global_crops_scale, interpolation=Image.BICUBIC),
             flip_and_color_jitter,
             utils.GaussianBlur(1.0),
+            rand_stain,
             normalize,
         ])
         # second global crop
         self.global_transfo2 = transforms.Compose([
+            transforms.Resize(224),
             transforms.RandomResizedCrop(224, scale=global_crops_scale, interpolation=Image.BICUBIC),
             flip_and_color_jitter,
             utils.GaussianBlur(0.1),
             utils.Solarization(0.2),
+            rand_stain,
             normalize,
         ])
         # transformation for the local small crops
         self.local_crops_number = local_crops_number
         self.local_transfo = transforms.Compose([
+            transforms.Resize(224),
             transforms.RandomResizedCrop(96, scale=local_crops_scale, interpolation=Image.BICUBIC),
             flip_and_color_jitter,
             utils.GaussianBlur(p=0.5),
+            rand_stain,
             normalize,
         ])
 

@@ -104,7 +104,7 @@ def main():
         Configs.set_task_configs('SC')
         train_subtype_classification_tile()
     if args.pretrain_subtype_classification_tile:
-        Configs.set_task_configs('SC')
+        Configs.set_task_configs(['DN', 'SC'])
         pretrain_subtype_classification_tile()
     if args.train_subtype_classification_mil:
         Configs.set_task_configs('SC')

@@ -26,7 +26,7 @@ class Logger:
         Logger.flush_logger(logger)
 
     @staticmethod
-    def log(msg, log_importance=0, **kwargs):
+    def log(msg, log_importance=1, **kwargs):
         msg = Logger.add_importance_level_to_msg(msg, log_importance)
         logging.log(msg=msg, level=Logger.LOG_IMPORTANCE_MAP[log_importance], **kwargs)
         Logger.flush_logger(logging.getLogger())

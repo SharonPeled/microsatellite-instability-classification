@@ -9,7 +9,7 @@ test:
 
 
 on hold:
-    write research proposal - waiting for Avi
+    write research proposal - waiting for Moti?
 
 
 
@@ -56,3 +56,4 @@ comments:
     blur slides - not correlated to AUC
     slides mistakes  - looks pretty similar
     lightly?
+    slide aware network? using positional encoding?
