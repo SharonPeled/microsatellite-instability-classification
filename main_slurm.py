@@ -4,6 +4,7 @@ import subprocess
 
 
 if __name__ == '__main__':
+    Configs.set_task_configs(['DN', 'SC'])
     with open("slurm_script.sh", "w") as file:
         file.write(f"""#!/bin/bash
 
