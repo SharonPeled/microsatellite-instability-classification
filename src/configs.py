@@ -271,11 +271,12 @@ class DINOConfigs:
     DN_EXPERIMENT_NAME = 'SC_fusion_dino'
     DN_FORMULATION = f'raw_try'
     DN_RUN_NAME = f"{DN_FORMULATION}_1"
+    DN_NUM_MINI_EPOCHS = 5
     DINO_DICT = {}
     OUT_DIM = 4096
     DN_BATCH_SIZE = 32  # accumulating gradients in MIL only
     DN_NUM_WORKERS = 1
-    DN_NUM_EPOCHS = 3
+    DN_NUM_EPOCHS = 3*DN_NUM_MINI_EPOCHS
     DN_NUM_DEVICES = [0, ]  # for slurm always 0
     DN_NUM_NODES = 1
     DN_DEVICE = 'gpu'

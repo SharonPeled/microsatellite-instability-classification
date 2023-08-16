@@ -6,7 +6,8 @@ import torch
 
 
 class ProcessedTileDataset(Dataset, Logger):
-    def __init__(self, df_labels, cohort_to_index=None, transform=None, target_transform=None, group_size=-1):
+    def __init__(self, df_labels, cohort_to_index=None, transform=None, target_transform=None, group_size=-1,
+                 num_mini_epochs=0):
         self.df_labels = df_labels.reset_index(drop=True)
         self.cohort_to_index = cohort_to_index
         self.transform = transform
@@ -19,23 +20,28 @@ class ProcessedTileDataset(Dataset, Logger):
             self.df_labels = self.df_labels.groupby(['slide_uuid', 'group_id']).filter(lambda x: len(x) == group_size)
             self.df_labels['slide_group_id'] = self.df_labels.groupby(['slide_uuid', 'group_id']).ngroup()
             self.df_labels.set_index('slide_group_id', inplace=True)
-        self.index_shift = 0
         self.dataset_full_length = self.df_labels.index.nunique()
         self.dataset_length = self.dataset_full_length
+        self.num_mini_epochs = num_mini_epochs
+        self.index_shift = 0
+        self.init_mini_epochs()
         self.log(f"ProcessedTileDataset created with {self.df_labels.slide_uuid.nunique()} slides, " +
                  f"{self.dataset_full_length} groups, and {len(self.df_labels)} tiles.",
                  log_importance=1)
 
-    def deploy_dataset_limits(self, dataset_limits):
-        """
-        dataset_limits: (steps_to_fastforward, num_steps_to_execute)
-        """
-        self.index_shift = dataset_limits[0]
-        if dataset_limits[1] == -1:
-            self.dataset_length = self.dataset_full_length - self.index_shift
-        else:
-            self.dataset_length = dataset_limits[1]
-        self.log(f"ProcessedTileDataset was limited to steps from {self.index_shift} to {self.index_shift+self.dataset_length} ", log_importance=1)
+    def init_mini_epochs(self):
+        if self.num_mini_epochs < 2:
+            return
+        self.dataset_length = self.dataset_full_length // self.num_mini_epochs
+        self.index_shift = 0
+
+    def next_mini_epoch(self):
+        if self.num_mini_epochs < 2:
+            return
+        self.index_shift += self.dataset_length
+        if self.index_shift + self.dataset_length < self.dataset_full_length:
+            self.index_shift = 0
+        Logger.log(f"Mini epoch number {self.index_shift // self.dataset_length}.")
 
     def join_metadata(self, df_pred, inds):
         if self.group_size > 1:
@@ -45,6 +51,7 @@ class ProcessedTileDataset(Dataset, Logger):
             return df_pred
 
     def __getitem__(self, index):
+        index += self.index_shift
         # TODO: index can be a slice
         if self.group_size == -1:
             row = self.df_labels.loc[index]
@@ -53,7 +60,6 @@ class ProcessedTileDataset(Dataset, Logger):
                 return img, cohort, y, slide_id, patient_id
             return img, y, slide_id, patient_id
         else:
-            index += self.index_shift
             imgs, cohort, y, slide_id, patient_id = self.load_group_tiles(index)
             if self.cohort_to_index is not None:
                 return imgs, cohort, y, slide_id, patient_id

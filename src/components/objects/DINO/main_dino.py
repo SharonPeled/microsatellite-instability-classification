@@ -287,6 +287,8 @@ def train_dino(args):
         train_stats = train_one_epoch(student, teacher, teacher_without_ddp, dino_loss,
             data_loader, optimizer, lr_schedule, wd_schedule, momentum_schedule,
             epoch, fp16_scaler, args)
+        data_loader.dataset.next_mini_epoch()
+
 
         # ============ writing logs ... ============
         save_dict = {
