@@ -15,7 +15,7 @@ class Logger:
                           2: logging.CRITICAL}
     TILE_PROGRESS_LOG_FREQ = 0
 
-    def _log(self, msg, log_importance=0, name=None, **kwargs):
+    def _log(self, msg, log_importance=1, name=None, **kwargs):
         msg = Logger.add_importance_level_to_msg(msg, log_importance)
         if name:
             logger = logging.getLogger(name)

@@ -273,7 +273,7 @@ class DINOConfigs:
     DN_RUN_NAME = f"{DN_FORMULATION}_1"
     DN_NUM_MINI_EPOCHS = 5
     DINO_DICT = {}
-    OUT_DIM = 4096
+    OUT_DIM = 8192
     DN_BATCH_SIZE = 32  # accumulating gradients in MIL only
     DN_NUM_WORKERS = 1
     DN_NUM_EPOCHS = 3*DN_NUM_MINI_EPOCHS

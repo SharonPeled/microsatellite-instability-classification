@@ -19,7 +19,7 @@ def train():
     Configs.DINO_DICT['model_fn'] = partial(SLL_vit_small_cohort_aware, pretrained=True,
                                             progress=False, key='DINO_p16',
                                             cohort_aware_dict=Configs.SC_KW_ARGS['cohort_aware_dict'])
-
+    Configs.DINO_DICT['logger'] = logger
     parser = argparse.ArgumentParser('DINO', parents=[get_args_parser()])
     args = parser.parse_args(Configs.DINO_CMD_flags.split())
     Logger.log(f"Dino CMD: {Configs.DINO_CMD_flags}")
