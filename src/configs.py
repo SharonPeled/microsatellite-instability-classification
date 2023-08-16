@@ -273,10 +273,10 @@ class DINOConfigs:
     DN_RUN_NAME = f"{DN_FORMULATION}_1"
     DINO_DICT = {}
     OUT_DIM = 4096
-    DN_BATCH_SIZE = 64  # accumulating gradients in MIL only
+    DN_BATCH_SIZE = 32  # accumulating gradients in MIL only
     DN_NUM_WORKERS = 1
     DN_NUM_EPOCHS = 3
-    DN_NUM_DEVICES = [0, 1]  # for slurm always 0
+    DN_NUM_DEVICES = [0, ]  # for slurm always 0
     DN_NUM_NODES = 1
     DN_DEVICE = 'gpu'
     DINO_CMD_flags = f'--arch fusion_cw --out_dim {OUT_DIM} --momentum_teacher 0.9995 ' + \
