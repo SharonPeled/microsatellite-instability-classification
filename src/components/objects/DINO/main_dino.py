@@ -36,6 +36,7 @@ from src.components.objects.DINO.vision_transformer import DINOHead
 from src.configs import Configs
 from functools import partial
 from src.components.objects.RandStainNA.randstainna import RandStainNA
+from src.general_utils import rm_tmp_files
 
 torchvision_archs = sorted(name for name in torchvision_models.__dict__
     if name.islower() and not name.startswith("__")
@@ -288,6 +289,7 @@ def train_dino(args):
             data_loader, optimizer, lr_schedule, wd_schedule, momentum_schedule,
             epoch, fp16_scaler, args)
         data_loader.dataset.next_mini_epoch()
+        rm_tmp_files()
 
 
         # ============ writing logs ... ============
