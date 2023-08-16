@@ -23,7 +23,7 @@ pwd
 source /home/sharonpe/miniconda3/etc/profile.d/conda.sh
 conda activate MSI
 
-srun -p debug python /home/sharonpe/microsatellite-instability-classification/main.py --train-subtype-classification-tile
+srun -p debug python /home/sharonpe/microsatellite-instability-classification/main.py --pretrain-subtype-classification-tile
 
 echo "Current date and time: $(date)"
 echo "END"
