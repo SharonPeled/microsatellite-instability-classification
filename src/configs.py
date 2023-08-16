@@ -272,8 +272,8 @@ class DINOConfigs:
     DN_FORMULATION = f'raw_try'
     DN_RUN_NAME = f"{DN_FORMULATION}_1"
     DINO_DICT = {}
-    OUT_DIM = 1024
-    DN_BATCH_SIZE = 256  # accumulating gradients in MIL only
+    OUT_DIM = 4096
+    DN_BATCH_SIZE = 64  # accumulating gradients in MIL only
     DN_NUM_WORKERS = 30
     DN_NUM_EPOCHS = 3
     DN_NUM_DEVICES = [0, ]  # for slurm always 0
@@ -285,6 +285,7 @@ class DINOConfigs:
                      f'--seed {GeneralConfigs.RANDOM_SEED} ' + \
                      f'--output_dir {GeneralConfigs.ROOT}/data/subtype_classification/{DN_RUN_NAME}_dino_checkpoints '
     DN_RUN_DESCRIPTION = f"""DINO raw, single GPU, raw dataset and raw warmups.
+    SC run name: {SubtypeClassificationConfigs.SC_RUN_NAME}
     Command:
     {DINO_CMD_flags}
             """
