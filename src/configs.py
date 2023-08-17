@@ -273,9 +273,9 @@ class DINOConfigs:
     DN_RUN_NAME = f"{DN_FORMULATION}_1"
     DN_NUM_MINI_EPOCHS = 5
     DINO_DICT = {}
-    OUT_DIM = 8192
-    DN_BATCH_SIZE = 64
-    DN_NUM_WORKERS = 15
+    OUT_DIM = 4096
+    DN_BATCH_SIZE = 128
+    DN_NUM_WORKERS = 30
     DN_NUM_EPOCHS = 3*DN_NUM_MINI_EPOCHS
     DN_NUM_DEVICES = [0, ]  # for slurm always 0
     DN_NUM_NODES = 1
