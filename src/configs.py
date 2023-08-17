@@ -275,7 +275,7 @@ class DINOConfigs:
     DINO_DICT = {}
     OUT_DIM = 16384
     DN_BATCH_SIZE = 64
-    DN_NUM_WORKERS = 1
+    DN_NUM_WORKERS = 15
     DN_NUM_EPOCHS = 3*DN_NUM_MINI_EPOCHS
     DN_NUM_DEVICES = [0, ]  # for slurm always 0
     DN_NUM_NODES = 1
