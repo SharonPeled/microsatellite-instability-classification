@@ -282,14 +282,14 @@ def train_dino(args):
     start_time = time.time()
     print("Starting DINO training !")
     for epoch in range(start_epoch, args.epochs):
+        data_loader.dataset.set_mini_epoch(epoch)
         data_loader.sampler.set_epoch(epoch)
+        rm_tmp_files()
 
         # ============ training one epoch of DINO ... ============
         train_stats = train_one_epoch(student, teacher, teacher_without_ddp, dino_loss,
             data_loader, optimizer, lr_schedule, wd_schedule, momentum_schedule,
             epoch, fp16_scaler, args)
-        data_loader.dataset.next_mini_epoch()
-        rm_tmp_files()
 
 
         # ============ writing logs ... ============

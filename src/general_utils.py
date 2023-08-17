@@ -23,8 +23,9 @@ import subprocess
 
 
 def rm_tmp_files():
-    proc = subprocess.Popen(['rm /tmp/* -r -f'], shell=True)
+    proc = subprocess.Popen(['rm /tmp/* -r -f'], shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
     proc.wait()
+    Logger.log("TMP files deleted!")
 
 
 class MultiInputSequential(nn.Sequential):

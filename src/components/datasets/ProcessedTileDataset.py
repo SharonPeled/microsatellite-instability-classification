@@ -35,13 +35,11 @@ class ProcessedTileDataset(Dataset, Logger):
         self.dataset_length = self.dataset_full_length // self.num_mini_epochs
         self.index_shift = 0
 
-    def next_mini_epoch(self):
+    def set_mini_epoch(self, epoch):
         if self.num_mini_epochs < 2:
             return
-        self.index_shift += self.dataset_length
-        if self.index_shift + self.dataset_length > self.dataset_full_length:
-            self.index_shift = 0
-        Logger.log(f"Mini epoch number {self.index_shift // self.dataset_length}.")
+        self.index_shift = self.dataset_length * (epoch % self.num_mini_epochs)
+        Logger.log(f"Mini epoch number {epoch}, index_shift: {self.index_shift}.")
 
     def join_metadata(self, df_pred, inds):
         if self.group_size > 1:
