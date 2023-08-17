@@ -39,7 +39,7 @@ class ProcessedTileDataset(Dataset, Logger):
         if self.num_mini_epochs < 2:
             return
         self.index_shift += self.dataset_length
-        if self.index_shift + self.dataset_length < self.dataset_full_length:
+        if self.index_shift + self.dataset_length > self.dataset_full_length:
             self.index_shift = 0
         Logger.log(f"Mini epoch number {self.index_shift // self.dataset_length}.")
 
