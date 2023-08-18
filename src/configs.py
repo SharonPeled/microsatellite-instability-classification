@@ -269,14 +269,14 @@ class SubtypeClassificationConfigs:
 class DINOConfigs:
     DN_TILE_SIZE = 512
     DN_EXPERIMENT_NAME = 'SC_fusion_dino'
-    DN_FORMULATION = f'raw_try'
-    DN_RUN_NAME = f"{DN_FORMULATION}_1"
+    DN_FORMULATION = f'first_try_1651_slides'
+    DN_RUN_NAME = f"{DN_FORMULATION}_2"
     DN_DF_TILE_PATHS_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                          f'df_all_processed_tile_paths_dino.csv')
-    DINO_DICT = {}# {'FoVs_augs_amounts': (0.2, 0.2)}  # tuple of % from each FoVs to add
+    DINO_DICT = {'FoVs_augs_amounts': (0.2, 0.2)}  # tuple of % from each FoVs to add
     DN_OUT_DIM = 8192
     DN_BATCH_SIZE = 96
-    DN_NUM_WORKERS = 1
+    DN_NUM_WORKERS = 15
     DN_NUM_MINI_EPOCHS = 25
     DN_NUM_EPOCHS = 2 * DN_NUM_MINI_EPOCHS
     CONTINUE_FROM_EPOCH = 0
