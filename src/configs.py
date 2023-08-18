@@ -273,7 +273,7 @@ class DINOConfigs:
     DN_RUN_NAME = f"{DN_FORMULATION}_2"
     DN_DF_TILE_PATHS_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                          f'df_all_processed_tile_paths_dino.csv')
-    DINO_DICT = {'FoVs_augs_amounts': (0.2, 0.2)}  # tuple of % from each FoVs to add
+    DINO_DICT = {}#{'FoVs_augs_amounts': (0.2, 0.2)}  # tuple of % from each FoVs to add
     DN_OUT_DIM = 8192
     DN_BATCH_SIZE = 96
     DN_NUM_WORKERS = 15
