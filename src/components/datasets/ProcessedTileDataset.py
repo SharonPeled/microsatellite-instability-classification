@@ -7,7 +7,8 @@ import torch
 
 class ProcessedTileDataset(Dataset, Logger):
     def __init__(self, df_labels, cohort_to_index=None, transform=None, target_transform=None, group_size=-1,
-                 num_mini_epochs=0):
+                 num_mini_epochs=0, pretraining=False):
+        self.pretraining = pretraining
         self.df_labels = df_labels.reset_index(drop=True)
         self.cohort_to_index = cohort_to_index
         self.transform = transform
@@ -53,6 +54,8 @@ class ProcessedTileDataset(Dataset, Logger):
         # TODO: index can be a slice
         if self.group_size == -1:
             row = self.df_labels.loc[index]
+            if self.pretraining:
+                return self.load_single_tile(row)
             img, cohort, y, slide_id, patient_id = self.load_single_tile(row)
             if self.cohort_to_index is not None:
                 return img, cohort, y, slide_id, patient_id
@@ -81,12 +84,14 @@ class ProcessedTileDataset(Dataset, Logger):
 
     def load_single_tile(self, row):
         img = Image.open(row['tile_path'])
-        y = row['y']
-        cohort = row['cohort']
-        slide_id = row['slide_id']
-        patient_id = row['patient_id']
         if self.transform:
             img = self.transform(img)
+        cohort = row['cohort']
+        if self.pretraining:
+            return img, self.cohort_to_index[cohort]
+        y = row['y']
+        slide_id = row['slide_id']
+        patient_id = row['patient_id']
         if self.target_transform:
             y = self.target_transform(y)
         if self.cohort_to_index is not None:

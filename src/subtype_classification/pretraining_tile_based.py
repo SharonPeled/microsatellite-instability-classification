@@ -1,4 +1,4 @@
-from src.subtype_classification.init_task import init_task
+from src.subtype_classification.init_task_pretraining import init_task
 from src.general_utils import rm_tmp_files
 from src.components.datasets.ProcessedTileDataset import ProcessedTileDataset
 from src.configs import Configs
@@ -11,10 +11,10 @@ from src.components.objects.Logger import Logger
 
 
 def train():
-    df, train_transform, test_transform, logger, callbacks, model = init_task()
+    df, _, _, logger, _, model = init_task()
     rm_tmp_files()
     dataset = ProcessedTileDataset(df_labels=df, transform=None, cohort_to_index=Configs.joined['COHORT_TO_IND'],
-                                   num_mini_epochs=Configs.DN_NUM_MINI_EPOCHS)
+                                   num_mini_epochs=Configs.DN_NUM_MINI_EPOCHS, pretraining=True)
     Configs.DINO_DICT['dataset'] = dataset
     Configs.DINO_DICT['model_fn'] = partial(SLL_vit_small_cohort_aware, pretrained=True,
                                             progress=False, key='DINO_p16',
