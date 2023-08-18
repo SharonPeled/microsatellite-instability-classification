@@ -275,7 +275,7 @@ class DINOConfigs:
                                          f'df_all_processed_tile_paths_dino.csv')
     DINO_DICT = {'FoVs_augs_amounts': (0.2, 0.2)}  # tuple of % from each FoVs to add
     DN_OUT_DIM = 8192
-    DN_BATCH_SIZE = 96
+    DN_BATCH_SIZE = 80
     DN_NUM_WORKERS = 15
     DN_NUM_MINI_EPOCHS = 25
     DN_NUM_EPOCHS = 2 * DN_NUM_MINI_EPOCHS
