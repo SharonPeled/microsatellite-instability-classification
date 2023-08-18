@@ -277,7 +277,7 @@ class DINOConfigs:
     DN_OUT_DIM = 8192
     DN_BATCH_SIZE = 80
     DN_NUM_WORKERS = 15
-    DN_NUM_MINI_EPOCHS = 25
+    DN_NUM_MINI_EPOCHS = 50
     DN_NUM_EPOCHS = 2 * DN_NUM_MINI_EPOCHS
     CONTINUE_FROM_EPOCH = 0
     DN_NUM_DEVICES = [0, ]  # for slurm always 0
