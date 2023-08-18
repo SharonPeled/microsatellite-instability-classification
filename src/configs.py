@@ -35,9 +35,9 @@ class PreprocessingConfigs:
     TO_MACENKO_NORMALIZE = False
     PREPROCESSING_DEVICE = 'cpu'
     # Assuming TCGA folder structure, where each slide is in a separate dir and the dir is named after the slide ID
-    SLIDES_DIR = os.path.join(GeneralConfigs.ROOT, 'data', 'slides')
+    # SLIDES_DIR = os.path.join(GeneralConfigs.ROOT, 'data', 'slides')
     # PROCESSED_TILES_DIR = os.path.join(GeneralConfigs.ROOT, 'data', f'processed_tiles_{PREPROCESS_RUN_NAME}')
-    # SLIDES_DIR = '/mnt/data/users/sharonpe/slides'
+    SLIDES_DIR = '/mnt/data/users/sharonpe/slides'
     PROCESSED_TILES_DIR = f'/mnt/data/users/sharonpe/processed_tiles_{PREPROCESS_RUN_NAME}'
     REDUCED_LEVEL_TO_MEMORY = [3, 2]  # attempting to load according to order
     TARGET_MAG_POWER = 20

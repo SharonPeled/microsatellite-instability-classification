@@ -47,6 +47,7 @@ look at the cleaning phases of Cell and the paper about UCEC
 future:
 3/5 CV - on all results before submission
 testing on OOD dataset - could be a potential for improvement.
+Using pretrained HIPT?
 
 
 Questions:
