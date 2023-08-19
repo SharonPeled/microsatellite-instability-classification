@@ -279,7 +279,7 @@ class DINOConfigs:
     DN_NUM_WORKERS = 15
     DN_NUM_MINI_EPOCHS = 50
     DN_NUM_EPOCHS = 2 * DN_NUM_MINI_EPOCHS
-    CONTINUE_FROM_EPOCH = 0
+    CONTINUE_FROM_EPOCH = 6
     DN_NUM_DEVICES = [0, ]  # for slurm always 0
     DN_NUM_NODES = 1
     DN_DEVICE = 'gpu'

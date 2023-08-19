@@ -159,6 +159,7 @@ def restart_from_checkpoint(ckp_path, run_variables=None, **kwargs):
 
     # open checkpoint file
     checkpoint = torch.load(ckp_path, map_location="cpu")
+    Logger.log('Checkpoint Loaded!')
 
     # key is what to look for in the checkpoint file
     # value is the object to load
@@ -167,15 +168,15 @@ def restart_from_checkpoint(ckp_path, run_variables=None, **kwargs):
         if key in checkpoint and value is not None:
             try:
                 msg = value.load_state_dict(checkpoint[key], strict=False)
-                print("=> loaded '{}' from checkpoint '{}' with msg {}".format(key, ckp_path, msg))
+                Logger.log("=> loaded '{}' from checkpoint '{}' with msg {}".format(key, ckp_path, msg))
             except TypeError:
                 try:
                     msg = value.load_state_dict(checkpoint[key])
-                    print("=> loaded '{}' from checkpoint: '{}'".format(key, ckp_path))
+                    Logger.log("=> loaded '{}' from checkpoint: '{}'".format(key, ckp_path))
                 except ValueError:
-                    print("=> failed to load '{}' from checkpoint: '{}'".format(key, ckp_path))
+                    Logger.log("=> failed to load '{}' from checkpoint: '{}'".format(key, ckp_path))
         else:
-            print("=> key '{}' not found in checkpoint: '{}'".format(key, ckp_path))
+            Logger.log("=> key '{}' not found in checkpoint: '{}'".format(key, ckp_path))
 
     # re load variable important for the run
     if run_variables is not None:
