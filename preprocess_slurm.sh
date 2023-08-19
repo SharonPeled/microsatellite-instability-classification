@@ -3,6 +3,8 @@
 #SBATCH --job-name=preprocess
 #SBATCH --output=%x.%j.out
 #SBATCH --error=%x.%j.err
+#SBATCH --mem=20GB
+
 
 echo "Current date and time: $(date)"
 hostname
