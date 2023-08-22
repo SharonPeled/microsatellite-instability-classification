@@ -269,23 +269,23 @@ class SubtypeClassificationConfigs:
 class DINOConfigs:
     DN_TILE_SIZE = 512
     DN_EXPERIMENT_NAME = 'SC_fusion_dino'
-    DN_FORMULATION = f'third_try_all_slides_16k'
-    DN_RUN_NAME = f"{DN_FORMULATION}_4"
+    DN_FORMULATION = f'fourth_try_all_slides_16k'
+    DN_RUN_NAME = f"{DN_FORMULATION}_5"
     DN_DF_TILE_PATHS_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                          f'df_all_processed_tile_paths_dino_512.csv')
     DINO_DICT = {'FoVs_augs_amounts': (0.2, 0.2)}  # tuple of % from each FoVs to add
     DN_OUT_DIM = 16384
     DN_BATCH_SIZE = 32
     DN_NUM_WORKERS = 15
-    DN_NUM_MINI_EPOCHS = 10
+    DN_NUM_MINI_EPOCHS = 1
     DN_NUM_EPOCHS = 3 * DN_NUM_MINI_EPOCHS
-    CONTINUE_FROM_EPOCH = 12
+    CONTINUE_FROM_EPOCH = 0
     DN_NUM_DEVICES = [0, ]  # for slurm always 0
     DN_NUM_NODES = 1
     DN_DEVICE = 'gpu'
     DINO_CMD_flags = f'--arch fusion_cw --out_dim {DN_OUT_DIM} --momentum_teacher 0.9999 ' + \
                      f'--batch_size_per_gpu {DN_BATCH_SIZE} ' + \
-                     f'--epochs {DN_NUM_EPOCHS} --saveckp_freq 5 --num_workers {DN_NUM_WORKERS} ' + \
+                     f'--epochs {DN_NUM_EPOCHS} --saveckp_freq 1 --num_workers {DN_NUM_WORKERS} ' + \
                      f'--seed {GeneralConfigs.RANDOM_SEED} ' + \
                      f'--output_dir {GeneralConfigs.ROOT}/data/subtype_classification/{DN_RUN_NAME}_dino_checkpoints ' + \
                      f'--norm_last_layer False --warmup_teacher_temp_epochs 2 --warmup_epochs 2 ' + \
