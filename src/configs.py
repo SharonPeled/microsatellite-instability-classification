@@ -288,7 +288,7 @@ class DINOConfigs:
                      f'--epochs {DN_NUM_EPOCHS} --saveckp_freq 1 --num_workers {DN_NUM_WORKERS} ' + \
                      f'--seed {GeneralConfigs.RANDOM_SEED} ' + \
                      f'--output_dir {GeneralConfigs.ROOT}/data/subtype_classification/{DN_RUN_NAME}_dino_checkpoints ' + \
-                     f'--norm_last_layer False --warmup_teacher_temp_epochs 2 --warmup_epochs 2 ' + \
+                     f'--norm_last_layer False --warmup_teacher_temp_epochs 0 --warmup_epochs 0 ' + \
                      f'--local_crops_number 8 '
     DN_RUN_DESCRIPTION = f"""DINO raw, single GPU, raw dataset and raw warmups.
     SC run name: {SubtypeClassificationConfigs.SC_RUN_NAME}
