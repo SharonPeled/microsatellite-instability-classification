@@ -54,6 +54,9 @@ def init_task():
         df_labels_merged_aug_tiles = df_labels.merge(df_tiles_aug_sampled, how='inner', on='slide_uuid')
         df_labels_merged_tiles = pd.concat([df_labels_merged_tiles, df_labels_merged_aug_tiles])
 
+    if 'cohort' not in df_labels_merged_tiles.columns and 'cohort_x' in df_labels_merged_tiles.columns:
+        df_labels_merged_tiles['cohort'] = df_labels_merged_tiles['cohort_x']
+
     model = init_model()
 
     return df_labels_merged_tiles, train_transform, test_transform, logger, callbacks, model

@@ -252,6 +252,23 @@ def SLL_vit_small_cohort_aware(pretrained, progress, key, cohort_aware_dict, **v
     return model
 
 
+def DINO_vit_small_cohort_aware(ckp_path, cohort_aware_dict, **vit_kwargs):
+    state_dict = torch.load(ckp_path, map_location="cpu")
+    state_dict = state_dict['teacher']
+    # remove `module.` prefix
+    state_dict = {k.replace("module.", ""): v for k, v in state_dict.items()}
+    # remove `backbone.` prefix induced by multicrop wrapper
+    state_dict = {k.replace("backbone.", ""): v for k, v in state_dict.items()}
+    model = CohortAwareVisionTransformer(
+        cohort_aware_dict=cohort_aware_dict,
+        img_size=224, patch_size=16, embed_dim=384, num_heads=6, num_classes=0, depth=12, **vit_kwargs
+    )
+    model.fc = nn.Identity()
+    msg = model.load_state_dict(state_dict, strict=False)
+    Logger.log(msg)
+    return model
+
+
 class ResNetTrunk(ResNet):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -311,6 +328,10 @@ def load_headless_tile_encoder(tile_encoder_name, path=None, **kwargs):
     elif tile_encoder_name == 'SSL_VIT_PRETRAINED_COHORT_AWARE':
         model = SLL_vit_small_cohort_aware(pretrained=True, progress=False, key="DINO_p16",
                                            cohort_aware_dict=kwargs['cohort_aware_dict'])
+        return model, model.num_features
+    elif tile_encoder_name == 'DINO_third_try_small_vit':
+        model = DINO_vit_small_cohort_aware(ckp_path=kwargs['pretrained_ckp_path'],
+                                            cohort_aware_dict=kwargs['cohort_aware_dict'])
         return model, model.num_features
 
 
