@@ -330,6 +330,7 @@ class VariantClassificationConfigs:
     VC_CLASS_TO_IND = {'GT0': 0, 'GT1': 1, 'GT2': 2}
     VC_NUM_EPOCHS = 1
     VC_NUM_DEVICES = [0, ]
+    VC_NUM_NODES = 1
     VC_DEVICE = 'gpu'
     VC_TEST_BATCH_SIZE = 128
     VC_SAVE_CHECKPOINT_STEP_INTERVAL = 10000
