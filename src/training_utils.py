@@ -80,7 +80,8 @@ def train_single_split(df_train, df_valid, df_test, train_transform, test_transf
     train_dataset, valid_dataset, test_dataset, train_loader, valid_loader, test_loader = get_loader_and_datasets(
         df_train_sampled,
         df_valid, df_test, train_transform, test_transform)
-    model.init_cohort_weight(train_dataset)
+    if hasattr(model, 'init_cohort_weight'):
+        model.init_cohort_weight(train_dataset)
     Logger.log("Starting Training.", log_importance=1)
     Logger.log(f"Training loader size: {len(train_loader)}.", log_importance=1)
     trainer = pl.Trainer(devices=Configs.joined['NUM_DEVICES'], accelerator=Configs.joined['DEVICE'],
@@ -115,12 +116,12 @@ def save_results(model, test_dataset, valid_dataset):
     _, df_pred_path = save_pred_outputs(model.test_outputs, test_dataset, Configs.joined['TEST_BATCH_SIZE'],
                                         save_path=Configs.joined['TEST_PREDICT_OUTPUT_PATH'],
                                         class_to_ind=Configs.joined['CLASS_TO_IND'])
-    Logger.log(f"""Saved Test df_pred: {df_pred_path}""", log_importance=1)
+    # Logger.log(f"""Saved Test df_pred: {df_pred_path}""", log_importance=1)
     if valid_dataset is not None and model.valid_outputs is not None:
         _, df_pred_path = save_pred_outputs(model.valid_outputs, valid_dataset, Configs.joined['TEST_BATCH_SIZE'],
                                             save_path=Configs.joined['VALID_PREDICT_OUTPUT_PATH'],
                                             class_to_ind=Configs.joined['CLASS_TO_IND'], suffix='')
-        Logger.log(f"""Saved valid df_pred: {df_pred_path}""", log_importance=1)
+        # Logger.log(f"""Saved valid df_pred: {df_pred_path}""", log_importance=1)
 
 
 def init_training_callbacks():

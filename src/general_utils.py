@@ -175,12 +175,14 @@ def remove_artifact(path):
 
 def save_pred_outputs_raw(outputs, dataset, save_path, suffix):
     dataset.df_labels['y'] = dataset.df_labels['y'].apply(lambda x: x.numpy())
-    outputs_path = os.path.join(save_path, f"outputs_{suffix}.csv")
+    outputs_path = os.path.join(save_path, f"outputs_{suffix}.tensor")
     dataset_df_path = os.path.join(save_path, f"dataset_df_{suffix}.csv")
     os.makedirs(os.path.dirname(outputs_path), exist_ok=True)
     os.makedirs(os.path.dirname(dataset_df_path), exist_ok=True)
     dataset.df_labels.to_csv(dataset_df_path, index=False)
+    Logger.log(f'Save dataset.df_labels in: {dataset_df_path}')
     torch.save(outputs, outputs_path)
+    Logger.log(f'Save tensor outputs in: {outputs_path}')
     return None, outputs_path
 
 
@@ -209,6 +211,7 @@ def save_pred_outputs(outputs, dataset, batch_size, save_path, class_to_ind, suf
                                     f"df_pred_{suffix}_{time_str}.csv")
         os.makedirs(os.path.dirname(df_pred_path), exist_ok=True)
         df_pred.to_csv(df_pred_path, index=False)
+        Logger.log(f"""Saved Test df_pred: {df_pred_path}""", log_importance=1)
         return df_pred, df_pred_path
     except Exception as e:
         Logger.log("Error in Saving results." + '-'*100, log_importance=1)

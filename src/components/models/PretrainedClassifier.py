@@ -29,7 +29,7 @@ class PretrainedClassifier(TransferLearningClassifier):
             Logger.log(f"Backbone frozen.", log_importance=1)
         if self.nn_output_size is not None:
             self.head_out_size = self.nn_output_size
-        if self.other_kwargs['n_nn_head'] is not None:
+        if self.other_kwargs.get('n_nn_head', None) is not None:
             num_layers = self.other_kwargs['n_nn_head']['num_layers']
             dropout_value = self.other_kwargs['n_nn_head']['dropout_value']
             self.head = nn.Sequential(*(PretrainedClassifier.head_layer_block(self.num_features, dropout_value=dropout_value)

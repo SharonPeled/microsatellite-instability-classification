@@ -301,7 +301,7 @@ class DINOConfigs:
 
 class VariantClassificationConfigs:
     VC_EXPERIMENT_NAME = 'cancer_variant_classification_tile_based'
-    VC_FORMULATION = 'cancer_fine_aug_512'
+    VC_FORMULATION = 'cancer_fine_aug_512_sampled_585'
     VC_RUN_NAME = f'SSL_VIT_{VC_FORMULATION}'
     # VC_RUN_NAME = f"resnet_" + VC_FORMULATION + '_{permutation_num}'
     VC_RUN_DESCRIPTION = f"""SSL_VIT - fill this
@@ -324,8 +324,8 @@ class VariantClassificationConfigs:
                                              f'HED_statistics_30_512.yaml'),
                          'LAB': os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                              f'LAB_statistics_30_512.yaml')}
-    VC_CROSS_VALIDATE = False
-    VC_TEST_ONLY = "/home/sharonpe/microsatellite-instability-classification/models/variant_classification/VC_SSL_VIT_cancer_fine_aug_512_15_07_2023_00_00.ckpt"
+    VC_CROSS_VALIDATE = True
+    VC_TEST_ONLY = None # "/home/sharonpe/microsatellite-instability-classification/models/variant_classification/VC_SSL_VIT_cancer_fine_aug_512_15_07_2023_00_00.ckpt"
     VC_Y_TO_BE_STRATIFIED = None
     VC_CLASS_TO_IND = {'GT0': 0, 'GT1': 1, 'GT2': 2}
     VC_NUM_EPOCHS = 1
@@ -333,16 +333,18 @@ class VariantClassificationConfigs:
     VC_DEVICE = 'gpu'
     VC_TEST_BATCH_SIZE = 128
     VC_SAVE_CHECKPOINT_STEP_INTERVAL = 10000
-    VC_VAL_STEP_INTERVAL = 0.25  # 10 times an epoch
+    VC_VAL_STEP_INTERVAL = None  # 10 times an epoch
     VC_TRAINING_BATCH_SIZE = 128
-    VC_NUM_WORKERS = 20
-    VC_TEST_SIZE = 0.2
-    VC_VALID_SIZE = 0.1
+    VC_NUM_WORKERS = 15
+    VC_TEST_SIZE = 0.3333
+    VC_VALID_SIZE = None
     VC_INIT_LR = [1e-6, 1e-4]  # per part of the network, in order of the actual nn
-    VC_ITER_TRAINING_WARMUP_WO_BACKBONE = 3500
-    VC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count, 3000)
+    VC_ITER_TRAINING_WARMUP_WO_BACKBONE = 1000
+    VC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count, 1e10)
     VC_FROZEN_BACKBONE = False
     VC_TILE_ENCODER = 'SSL_VIT_PRETRAINED'
+    # sample stuff
+    VC_SAMPLE_SNPS = 585
     # permutation stuff
     VC_NUM_PERMUTATIONS = 10
     VC_LAST_PERMUTATION = 4

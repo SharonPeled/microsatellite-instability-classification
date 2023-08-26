@@ -23,7 +23,10 @@ def init_task():
     df_labels_merged_tiles['slide_id'] = df_labels_merged_tiles.slide_uuid
 
     num_snps = len(df_labels.y.iloc[0])
-    model = init_model(num_snps)
+    if Configs.VC_SAMPLE_SNPS is not None:
+        model = init_model(Configs.VC_SAMPLE_SNPS)
+    else:
+        model = init_model(num_snps)
 
     return df_labels_merged_tiles, train_transform, test_transform, logger, callbacks, model
 
