@@ -86,16 +86,15 @@ class ProcessedTileDataset(Dataset, Logger):
         img = Image.open(row['tile_path'])
         if self.transform:
             img = self.transform(img)
-        cohort = row['cohort']
         if self.pretraining:
-            return img, self.cohort_to_index[cohort]
+            return img, self.cohort_to_index[row['cohort']]
         y = row['y']
         slide_id = row['slide_id']
         patient_id = row['patient_id']
         if self.target_transform:
             y = self.target_transform(y)
         if self.cohort_to_index is not None:
-            return img, self.cohort_to_index[cohort], y, slide_id, patient_id
+            return img, self.cohort_to_index[row['cohort']], y, slide_id, patient_id
         return img, None, y, slide_id, patient_id
 
     def __len__(self):
