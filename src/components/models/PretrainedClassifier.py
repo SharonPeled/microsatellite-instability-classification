@@ -27,10 +27,19 @@ class PretrainedClassifier(TransferLearningClassifier):
             if isinstance(self.learning_rate, list):
                 self.learning_rate = self.learning_rate[-1]
             Logger.log(f"Backbone frozen.", log_importance=1)
-        if self.nn_output_size is None:
-            self.head = nn.Linear(self.num_features, self.head_out_size)
+        if self.nn_output_size is not None:
+            self.head_out_size = self.nn_output_size
+        if self.other_kwargs['n_nn_head'] is not None:
+            num_layers = self.other_kwargs['n_nn_head']['num_layers']
+            dropout_value = self.other_kwargs['n_nn_head']['dropout_value']
+            self.head = nn.Sequential(*(PretrainedClassifier.head_layer_block(self.num_features, dropout_value=dropout_value)
+                 for _ in range(num_layers-1)),
+                nn.Linear(self.num_features, self.head_out_size)
+            )
+            Logger.log(f"{num_layers} layered head created.", log_importance=1)
         else:
-            self.head = nn.Linear(self.num_features, self.nn_output_size)
+            self.head = nn.Linear(self.num_features, self.head_out_size)
+            Logger.log(f"1 layered head created.", log_importance=1)
         self.model = MultiInputSequential(self.backbone, self.head)
         Logger.log(f"""PretrainedClassifier created with encoder name: {tile_encoder_name}.""", log_importance=1)
 
@@ -60,5 +69,13 @@ class PretrainedClassifier(TransferLearningClassifier):
         cohort_indices = base_indices + shift_indices
         out = torch.zeros((batch_size, hidden_dim * num_cohorts), dtype=x.dtype).to(x.device)
         return out.scatter_(1, cohort_indices, x)
+
+    @staticmethod
+    def head_layer_block(num_features, dropout_value):
+        return nn.Sequential(
+            nn.Linear(num_features, num_features),
+            nn.Dropout(dropout_value),
+            nn.ReLU()
+        )
 
 

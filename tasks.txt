@@ -14,13 +14,14 @@ on hold:
 
 
 to do:
-    new df_tiles_512 with all tiles
-    run new dino.
+    put the warmtile to all also..
+    warmup the dino heads
 
 
     summarize papers
     train and test on another cohort
     MIL / agg methods
+    move to to other biomarks
 
 runs -
 other -
