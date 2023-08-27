@@ -345,7 +345,7 @@ class VariantClassificationConfigs:
     VC_FROZEN_BACKBONE = False
     VC_TILE_ENCODER = 'SSL_VIT_PRETRAINED'
     # sample stuff
-    VC_SAMPLE_SNPS = 585
+    VC_SAMPLE_SNPS = None
     # permutation stuff
     VC_NUM_PERMUTATIONS = 10
     VC_LAST_PERMUTATION = 4
