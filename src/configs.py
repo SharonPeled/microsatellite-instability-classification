@@ -308,8 +308,8 @@ class VariantClassificationConfigs:
     """
     VC_TILE_SIZE = 512
     VC_LABEL_DF_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'variant_classification',
-                                    # 'variant_labels_1_cancer.csv')
-                                    'variant_labels_0.csv')
+                                    'variant_labels_1_cancer.csv')
+                                    # 'variant_labels_0.csv')
     VC_DF_TILE_PATHS_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'variant_classification',
                                          f'df_processed_tile_paths_{VC_TILE_SIZE}.csv')
     VC_TRAINED_MODEL_PATH = os.path.join(GeneralConfigs.ROOT, 'models', 'variant_classification',
