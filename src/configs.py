@@ -301,15 +301,15 @@ class DINOConfigs:
 
 class VariantClassificationConfigs:
     VC_EXPERIMENT_NAME = 'cancer_variant_classification_tile_based'
-    VC_FORMULATION = 'real_random_all_fine_aug_512_sampled_500'
+    VC_FORMULATION = 'cancer1_all_fine_aug_512_sampled_643'
     VC_RUN_NAME = f'SSL_VIT_{VC_FORMULATION}'
     # VC_RUN_NAME = f"resnet_" + VC_FORMULATION + '_{permutation_num}'
     VC_RUN_DESCRIPTION = f"""SSL_VIT - fill this
     """
     VC_TILE_SIZE = 512
     VC_LABEL_DF_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'variant_classification',
-                                    'variants_labels_1_rand.csv')
-                                    # 'variant_labels_1_cancer.csv')
+                                    # 'variants_labels_1_rand.csv')
+                                    'variant_labels_1_cancer.csv')
                                     # 'variant_labels_0.csv')
     VC_DF_TILE_PATHS_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'variant_classification',
                                          f'df_processed_tile_paths_{VC_TILE_SIZE}.csv')
@@ -326,7 +326,7 @@ class VariantClassificationConfigs:
                          'LAB': os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                              f'LAB_statistics_30_512.yaml')}
     VC_CROSS_VALIDATE = True
-    VC_CONTINUE_FROM_FOLD = 2
+    VC_CONTINUE_FROM_FOLD = 0
     VC_TEST_ONLY = None # "/home/sharonpe/microsatellite-instability-classification/models/variant_classification/VC_SSL_VIT_cancer_fine_aug_512_15_07_2023_00_00.ckpt"
     VC_Y_TO_BE_STRATIFIED = None
     VC_CLASS_TO_IND = {'GT0': 0, 'GT1': 1, 'GT2': 2}
@@ -347,7 +347,7 @@ class VariantClassificationConfigs:
     VC_FROZEN_BACKBONE = False
     VC_TILE_ENCODER = 'SSL_VIT_PRETRAINED'
     # sample stuff
-    VC_SAMPLE_SNPS = 500
+    VC_SAMPLE_SNPS = 643
     # permutation stuff
     VC_NUM_PERMUTATIONS = 10
     VC_LAST_PERMUTATION = 4
