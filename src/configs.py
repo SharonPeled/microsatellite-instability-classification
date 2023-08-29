@@ -301,14 +301,15 @@ class DINOConfigs:
 
 class VariantClassificationConfigs:
     VC_EXPERIMENT_NAME = 'cancer_variant_classification_tile_based'
-    VC_FORMULATION = 'cancer_all_fine_aug_512_sampled_585'
+    VC_FORMULATION = 'real_random_all_fine_aug_512_sampled_500'
     VC_RUN_NAME = f'SSL_VIT_{VC_FORMULATION}'
     # VC_RUN_NAME = f"resnet_" + VC_FORMULATION + '_{permutation_num}'
     VC_RUN_DESCRIPTION = f"""SSL_VIT - fill this
     """
     VC_TILE_SIZE = 512
     VC_LABEL_DF_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'variant_classification',
-                                    'variant_labels_1_cancer.csv')
+                                    'variants_labels_1_rand.csv')
+                                    # 'variant_labels_1_cancer.csv')
                                     # 'variant_labels_0.csv')
     VC_DF_TILE_PATHS_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'variant_classification',
                                          f'df_processed_tile_paths_{VC_TILE_SIZE}.csv')
@@ -346,7 +347,7 @@ class VariantClassificationConfigs:
     VC_FROZEN_BACKBONE = False
     VC_TILE_ENCODER = 'SSL_VIT_PRETRAINED'
     # sample stuff
-    VC_SAMPLE_SNPS = None
+    VC_SAMPLE_SNPS = 500
     # permutation stuff
     VC_NUM_PERMUTATIONS = 10
     VC_LAST_PERMUTATION = 4
