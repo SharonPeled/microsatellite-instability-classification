@@ -9,13 +9,12 @@ test:
 
 on hold:
     research proposal extension
-    DGX servers
 
 
 to do:
     fix the label files - do same logic for STAD/UCEC? - ask Yossi tommorow
-    symmetry ce loss
-
+    symmetry ce loss, tunmor only?
+    log in to dgs
 
     write a summary about the innovation in CIN/GS
     warmup the dino heads
