@@ -5,7 +5,7 @@ import subprocess
 
 if __name__ == '__main__':
     # Configs.set_task_configs(['DN', 'SC'])
-    Configs.set_task_configs('VC')
+    Configs.set_task_configs('SC')
     with open("slurm_script.sh", "w") as file:
         file.write(f"""#!/bin/bash
 
@@ -25,7 +25,7 @@ pwd
 source /home/sharonpe/miniconda3/etc/profile.d/conda.sh
 conda activate MSI
 
-srun -p debug python /home/sharonpe/microsatellite-instability-classification/main.py --train-variant-classification
+srun -p debug python /home/sharonpe/microsatellite-instability-classification/main.py --train-subtype-classification-tile
 
 echo "Current date and time: $(date)"
 echo "END"
