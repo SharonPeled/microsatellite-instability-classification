@@ -158,24 +158,14 @@ class TumorRegressionConfigs:
 
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
-    SC_EXPERIMENT_NAME = 'SC_tile_based_DINO_cohort_fusion'
-    SC_FORMULATION = f'cw_FV_SQ6B12_At2Ltanh_frozen_{SC_TILE_SIZE}'
-    SC_RUN_NAME = f"VIT_DINO_{SC_FORMULATION}_10"
-    SC_RUN_DESCRIPTION = f"""Pretrained VIT DINO, fine 1e-6 1e-4 lr.
-    Class weights: auto compute
-    33% test, seed:{GeneralConfigs.RANDOM_SEED}
-    All tiles.
-    AUG with blur/sharp separate, and soft scale 0.1
-    Warmup 2000,
-    AUG FoVs (0.15, 0.15).
-    Learnable priors 0.1.
-    10% random resize crop
-    1 epochs, lr decay 0.1.
-    Cohort bias init rand*0.1. To all 4 cohorts.
-    Cohort bias is added to z, before proj.
+    SC_EXPERIMENT_NAME = 'SC_tile_bilal_labels'
+    SC_FORMULATION = f'cw_FV_SQ6B12_At2Ltanh_{SC_TILE_SIZE}_MSI'
+    SC_RUN_NAME = f"DINO_{SC_FORMULATION}_1"
+    SC_RUN_DESCRIPTION = f"""Label file is matched the CRC to bilal. Other cohorts is MSI or MSS according to subtype.
     """
     SC_LABEL_DF_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
-                                    'manifest_labeled_dx_molecular_subtype.tsv')
+                                    # 'manifest_labeled_dx_molecular_subtype.tsv')
+                                    'df_labels_msi_slides_and_other_msi_mss.tsv')
     SC_DF_TILE_PATHS_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                          f'df_processed_tile_paths_{SC_TILE_SIZE}.csv')
     SC_DF_TILE_PATHS_PATH_224 = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
@@ -200,7 +190,7 @@ class SubtypeClassificationConfigs:
     SC_CROSS_VALIDATE = True  # num folds according to test size
     SC_CONTINUE_FROM_FOLD = 0  # 0 to 1/TEST_SIZE
     SC_Y_TO_BE_STRATIFIED = 'y_to_be_stratified'
-    SC_CLASS_TO_IND = {'GS': 0, 'CIN': 1}
+    SC_CLASS_TO_IND = {'MSS': 0, 'MSI': 1}
     SC_CLASS_WEIGHT = None #  {'GS': 770, 'CIN': 235}
     SC_COHORT_TO_IND = {'CRC': 0, 'STAD': 1, 'ESCA': 2, 'UCEC': 3}
     SC_EXCLUDE_COHORT_AWARENESS = {'ESCA': 2}
@@ -222,7 +212,7 @@ class SubtypeClassificationConfigs:
                   1e-4 * (SC_TRAINING_BATCH_SIZE/256)]  # per part of the network, in order of the actual nn
     SC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count, 1e10)  # all tiles
     SC_TILE_SAMPLE_LAMBDA_TRAIN_TUNE = None
-    SC_FROZEN_BACKBONE = True
+    SC_FROZEN_BACKBONE = False
     SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 2000
     SC_TILE_ENCODER = 'DINO_third_try_small_vit'
     COHORT_AWARE_DICT = {'num_cohorts': 4,

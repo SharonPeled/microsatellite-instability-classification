@@ -1,6 +1,5 @@
 
 write about:
-    quantify the long tail - significant when auc > 0.55
 
 
 
@@ -9,37 +8,34 @@ test:
 
 
 on hold:
-    write research proposal - waiting for Moti?
-
+    research proposal extension
+    DGX servers
 
 
 to do:
-    put the warmtile to all also..
+    fix the label files - do same logic for STAD/UCEC? - ask Yossi tommorow
+    symmetry ce loss
+
+
+    write a summary about the innovation in CIN/GS
     warmup the dino heads
 
 
-    summarize papers
-    train and test on another cohort
-    MIL / agg methods
+
+    MIL / agg methods / pooling
     move to to other biomarks
+
+    train and test on another cohort
 
 runs -
 other -
 
 
 general -
-    summarize (google sheets) of papers from CVPR and ICCV related to WSI - understand the innovation and what their are looking for
-    it overfits when using more data ..., why? should I insert regularization? lower the data? lower lr?
-    LP stabillization
-    Daniel's files
-    SSL ViT
-    think/move to mil
 
 
 
 
-load a ViT for both student and teacher - warmup the dino heads
-load a ViT and fine tune a DINO with my augs.
 
 
 
