@@ -21,12 +21,12 @@ def generate_slide_paths_from_manifest(manifest_path, slides_dir):
     return slide_paths, df_m
 
 
-def get_bash_str_preprocess(slide_ids, num_processes):
+def get_bash_str_preprocess(slide_ids, num_processes, full_batch_ind):
     slides_str = ' '.join(slide_ids)
     bash_str = f"""
     source /home/sharonpe/miniconda3/etc/profile.d/conda.sh
     conda activate MSI
-    python preprocess_full.py --num-processes {num_processes} --slide_ids {slides_str} --slide_dir {Configs.SLIDES_DIR} > preprocess_full_{get_time()}.txt
+    python preprocess_full.py --num-processes {num_processes} --slide_ids {slides_str} --slide_dir {Configs.SLIDES_DIR} > {full_batch_ind}_preprocess_full_{get_time()}.txt
     """
     return bash_str
 
@@ -50,7 +50,7 @@ if __name__ == '__main__':
                 df_batch = manifest_fullprocess_batch[full_batch_ind]
                 slide_ids = list(df_batch['id'])
                 full_batch_ind += 1
-                bash_str = get_bash_str_preprocess(slide_ids, num_subprocesses_per_process)
+                bash_str = get_bash_str_preprocess(slide_ids, num_subprocesses_per_process, full_batch_ind)
                 proc = subprocess.Popen([bash_str,],
                                       stdout=subprocess.PIPE,
                                       stderr=subprocess.PIPE,
