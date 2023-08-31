@@ -21,6 +21,7 @@ def download_slides(slides_dir, slides_str):
                                 stderr=subprocess.PIPE,
                                 text=True,
                                 shell=True)
+        print(bash_str)
         proc.wait()
         print(f"Finished Download {len(slides_str.split(' '))}.")
     except Exception as e:
