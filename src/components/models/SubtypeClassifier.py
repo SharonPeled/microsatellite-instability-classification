@@ -8,6 +8,7 @@ import pandas as pd
 from src.training_utils import calc_safe_auc
 import numpy as np
 from src.general_utils import MultiInputSequential
+from src.components.objects.SCELoss import BSCELoss
 
 
 class SubtypeClassifier(PretrainedClassifier):
@@ -111,8 +112,10 @@ class SubtypeClassifier(PretrainedClassifier):
                              self.cohort_weight[c_name][0]
             else:
                 pos_weight = 1
-            loss_c = F.binary_cross_entropy_with_logits(scores_c, y_c, reduction='mean',
-                                                        pos_weight=torch.tensor(pos_weight))
+            # loss_c = F.binary_cross_entropy_with_logits(scores_c, y_c, reduction='mean',
+            #                                             pos_weight=torch.tensor(pos_weight))
+            loss_c = BSCELoss.functional(scores_c, y_c, pos_weight=torch.tensor(pos_weight),
+                                         alpha=2, beta=3)
             loss_list.append(loss_c * y_c.shape[0])
         return sum(loss_list) / y.shape[0]
 

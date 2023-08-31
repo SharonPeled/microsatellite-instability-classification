@@ -158,15 +158,16 @@ class TumorRegressionConfigs:
 
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
-    SC_EXPERIMENT_NAME = 'SC_tile_bilal_labels'
-    SC_FORMULATION = f'cw_FV_SQ6B12_At2Ltanh_{SC_TILE_SIZE}_MSI'
-    SC_RUN_NAME = f"DINO_{SC_FORMULATION}_1"
+    SC_EXPERIMENT_NAME = 'SC_tile_bilal_labels_MSI'
+    SC_FORMULATION = f'cwS_FV_SQ6B12_At2Ltanh_{SC_TILE_SIZE}'
+    SC_RUN_NAME = f"DINO_{SC_FORMULATION}_2"
     SC_RUN_DESCRIPTION = f"""Label file is matched the CRC to bilal. Other cohorts is MSI or MSS according to subtype.
     """
     SC_LABEL_DF_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                     # 'manifest_labeled_dx_molecular_subtype.tsv')
                                     'df_labels_msi_slides_and_other_msi_mss.tsv')
                                     # 'df_labels_cin_slides_and_other_cin_gs.tsv')
+                                    # 'df_labels_cin_slides_and_other_cin_gs_2.tsv')
     SC_DF_TILE_PATHS_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                          f'df_processed_tile_paths_{SC_TILE_SIZE}.csv')
     SC_DF_TILE_PATHS_PATH_224 = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',

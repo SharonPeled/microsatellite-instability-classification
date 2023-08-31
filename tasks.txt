@@ -13,8 +13,10 @@ on hold:
 
 to do:
     fix the label files - do same logic for STAD/UCEC? - ask Yossi tommorow
+    ESCA 0
     symmetry ce loss, tunmor only?
     log in to dgs
+    mini epochs
 
     write a summary about the innovation in CIN/GS
     warmup the dino heads
