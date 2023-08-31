@@ -52,6 +52,11 @@ class TransferLearningClassifier(pl.LightningModule):
 
     def on_train_start(self):
         self.is_fit = True
+        if self.other_kwargs.get('config_filepath', None):
+            self.logger.experiment.log_artifact(self.logger.run_id, self.other_kwargs['config_filepath'],
+                                                artifact_path="configs")
+            Logger.log(f"""TransferLearningClassifier: config file logged.""",
+                       log_importance=1)
 
     def forward(self, x):
         return self.model(x)
