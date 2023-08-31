@@ -8,10 +8,15 @@ import time
 
 
 class SlideDataset(Dataset, Logger):
-    def __init__(self, slides_dir, slide_log_file_args, device, load_metadata=True):
+    def __init__(self, slides_dir, slide_log_file_args, device, sample, load_metadata=True, slide_ids=None):
+        self.sample = sample
         self.device = device
         self.slides_dir = slides_dir
-        self.slide_paths = sorted(glob(f"{slides_dir}/**/*.svs", recursive=True))  # all .svs files
+        self.slide_paths = sorted(glob(f"{slides_dir}/**/*.svs", recursive=True))
+        if slide_ids is not None:
+            slide_ids = [slide_id.strip("'") for slide_id in slide_ids]
+            self.slide_paths = [path for path in self.slide_paths
+                                if os.path.basename(os.path.dirname(path)) in slide_ids]
         self.slides = None
         self.load_metadata = load_metadata
         self.slide_log_file_args = slide_log_file_args
@@ -31,7 +36,7 @@ class SlideDataset(Dataset, Logger):
     def _apply_on_slide(self, path, pipeline, ind, metadata_filename, summary_df_filename):
         beg = time.time()
         slide = Slide(path, load_metadata=self.load_metadata, device=self.device, metadata_filename=metadata_filename,
-                      summary_df_filename=summary_df_filename)
+                      summary_df_filename=summary_df_filename, sample=self.sample)
         slide.apply_pipeline(pipeline, ind, len(self.slide_paths))
         self.log(f"[Slide ({ind+1}/{len(self.slide_paths)})] Total Processing time: {int(time.time() - beg)} seconds.",
                  log_importance=2)

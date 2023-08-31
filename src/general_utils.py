@@ -87,7 +87,7 @@ def modify_model_for_transfer_learning(model, num_classes=None, freezing_backbon
 
 def get_time():
     now = datetime.datetime.now()
-    return now.strftime("%d-%m-%y %H:%M:%S")
+    return now.strftime("%d-%m-%y_%H_%M_%S")
 
 
 def set_random_seed(seed):

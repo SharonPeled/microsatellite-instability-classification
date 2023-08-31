@@ -1,0 +1,9 @@
+{
+  "TILE_SIZE": 1024,
+  "PROGRAM_LOG_FILE_ARGS": ["main_preprocess_1024_log_{time}.txt", "a+"],
+  "PREPROCESS_RUN_NAME": "1024",
+  "METADATA_JSON_FILENAME": "metadata_1024.json",
+  "SUMMARY_DF_FILENAME": "summary_df_1024.csv", 
+  "THUMBNAIL_FILENAME": "thumbnail_1024.png",
+  "PROCESSED_TILES_DIR": "/home/sharonpe/dev/data/processed_tiles_1024"
+}

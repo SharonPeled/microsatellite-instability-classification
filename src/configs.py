@@ -15,6 +15,7 @@ class GeneralConfigs:
     RANDOM_SEED = 1234
     VERBOSE = 3  # 1 logs to LOG_FILE, 2 logs to console, 3 logs to both to file and console
     ROOT = Path(__file__).parent.parent.resolve()
+    DATA_FOLDER = '/mnt/data/users/sharonpe' if 'dev' not in str(ROOT) else os.path.join(ROOT, 'data')
     PROGRAM_LOG_FILE_ARGS = ['log.txt', 'a+']  # slide level log is in the slide dir. Use --bring-slide-logs to get all slide logs.
     LOG_IMPORTANCE = 1  # 0 (all), 1 or 2 (only high importance logs)
     LOG_FORMAT = {'format': '%(process)d  %(asctime)s  [%(name)s] - %(message)s', 'datefmt':'%d-%m-%y %H:%M:%S'}
@@ -24,12 +25,11 @@ class GeneralConfigs:
 
 @dataclass
 class PreprocessingConfigs:
-    TILE_SIZE = 512  # should be divisible by downsample of reduced image, the easiest way is to set to be a power of 2
+    TILE_SIZE = None  # should be divisible by downsample of reduced image, the easiest way is to set to be a power of 2
     PREPROCESS_RUN_NAME = f'{TILE_SIZE}'
     METADATA_JSON_FILENAME = f'metadata_{PREPROCESS_RUN_NAME}.json'
     SUMMARY_DF_FILENAME = f'summary_df_{PREPROCESS_RUN_NAME}.csv'
     THUMBNAIL_FILENAME = f'thumbnail_{PREPROCESS_RUN_NAME}.png'
-    SLIDE_LOG_FILE_ARGS = ['log.txt', 'w']  # slide level log
     TILE_PROGRESS_LOG_FREQ = 1000  # report progress every process of x tiles (convenient for multiprocessing)
     LOAD_METADATA = True
     TO_MACENKO_NORMALIZE = False
@@ -37,8 +37,10 @@ class PreprocessingConfigs:
     # Assuming TCGA folder structure, where each slide is in a separate dir and the dir is named after the slide ID
     # SLIDES_DIR = os.path.join(GeneralConfigs.ROOT, 'data', 'slides')
     # PROCESSED_TILES_DIR = os.path.join(GeneralConfigs.ROOT, 'data', f'processed_tiles_{PREPROCESS_RUN_NAME}')
-    SLIDES_DIR = '/mnt/data/users/sharonpe/slides'
-    PROCESSED_TILES_DIR = f'/mnt/data/users/sharonpe/processed_tiles_{PREPROCESS_RUN_NAME}'
+    SLIDES_DIR = os.path.join(GeneralConfigs.DATA_FOLDER, 'slides')
+    PROCESSED_TILES_DIR = os.path.join(GeneralConfigs.DATA_FOLDER, f'processed_tiles_{PREPROCESS_RUN_NAME}')
+    MANIFEST_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'slides', f'test_manifest.tsv')
+    SAMPLE_PROCESSED_TILES = {512: 1e10, 1024: 1e10, 224: 1000}
     REDUCED_LEVEL_TO_MEMORY = [3, 2]  # attempting to load according to order
     TARGET_MAG_POWER = 20
     MAG_ATTR = 'openslide.objective-power'

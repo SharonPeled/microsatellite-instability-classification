@@ -8,7 +8,7 @@ from src.semantic_segmentation.training import train as train_semantic_seg
 from src.semantic_segmentation.predict import predict as predict_semantic_seg
 from src.tumor_distance_estimation.training import train as train_tumor_regression
 from src.general_utils import bring_files, bring_joined_log_file, delete_all_artifacts, \
-    generate_thumbnails_with_tissue_classification, load_df_pred
+    generate_thumbnails_with_tissue_classification, load_df_pred, get_time
 from src.subtype_classification.training_MIL import train as train_subtype_classification_mil
 from src.subtype_classification.training_tile_based import train as train_subtype_classification_tile
 from src.subtype_classification.pretraining_tile_based import train as pretrain_subtype_classification_tile
@@ -25,8 +25,11 @@ matplotlib.use('agg')
 def deploy_config_file(filepath):
     with open(filepath, 'rb') as file:
         config_dict = json.load(file)
+    time_str = get_time()
     for key, val in config_dict.items():
-        if getattr(Configs, key, None):
+        if isinstance(val, list) and '{time}' in val[0]:
+            val[0] = config_dict[key][0].format(time=time_str)
+        if hasattr(Configs, key):
             setattr(Configs, key, val)
         else:
             raise NotImplementedError(f"Config not recognized: {key}: {val}.")
@@ -48,6 +51,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--config_filepath', type=str)
     parser.add_argument('--preprocess', action='store_true')
+    parser.add_argument("--slide_ids", nargs="+", type=str)
     parser.add_argument('--thumbnails-only', action='store_true')
     parser.add_argument('--suppress-signals', action='store_true')
     parser.add_argument('--bring-thumbnails', type=str)
@@ -85,9 +89,9 @@ def main():
         if input().lower() in ['y', 'yes']:
             delete_all_artifacts(Configs)
     if args.preprocess:
-        execute_preprocessing_pipeline(with_tiling=True, num_processes=args.num_processes)
+        execute_preprocessing_pipeline(with_tiling=True, num_processes=args.num_processes, slide_ids=args.slide_ids)
     if args.thumbnails_only:
-        execute_preprocessing_pipeline(with_tiling=False, num_processes=args.num_processes)
+        execute_preprocessing_pipeline(with_tiling=False, num_processes=args.num_processes, slide_ids=args.slide_ids)
     if args.bring_slide_logs:
         bring_joined_log_file(Configs.SLIDES_DIR, Configs.PROGRAM_LOG_FILE_ARGS[0], args.bring_slide_logs)
     if args.train_tumor_classifier:

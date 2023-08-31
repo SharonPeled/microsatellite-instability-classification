@@ -13,11 +13,12 @@ from torchvision import transforms
 import torchstain
 import time
 import warnings
+import numpy as np
 
 
 class Slide(Image):
     def __init__(self, path, slide_uuid=None, load_metadata=True, device=None, metadata_filename=None,
-                 summary_df_filename=None, **kwargs):
+                 summary_df_filename=None, sample=None, **kwargs):
         """
         :param slide_uuid:
         :param path: if slide_uuid=None then path directory name must be uuid of the slide, as in the gdc-client format
@@ -31,6 +32,7 @@ class Slide(Image):
             self.set('slide_uuid', self._get_uuid())
         self.metadata_filename = metadata_filename
         self.summary_df_filename = summary_df_filename
+        self.sample = sample
         self.set('summary_df_path', os.path.join(os.path.dirname(self.path), summary_df_filename))
 
         self.set('metadata_path', os.path.join(os.path.dirname(self.path), metadata_filename))
@@ -136,7 +138,11 @@ class Slide(Image):
                 elif resolution == 'tile':
                     tile_size = self.get('tile_size')
                     tiles_inds = self.get_tissue_indexes()
-                    self._log(f"""Processing {len(tiles_inds)} tissue tiles.""", log_importance=1)
+                    if self.sample is not None:
+                        np.random.shuffle(tiles_inds)
+                        tiles_inds = tiles_inds[:int(self.sample[tile_size])]  # sampling tiles
+                        self._log(f"""Sampling {len(tiles_inds)} tissue tiles.""", log_importance=1)
+                    self._log(f"""Processing {len(tiles_inds)} tissue tiles of size {tile_size}.""", log_importance=1)
 
                     tile_inds_by_norm_res = defaultdict(lambda: [])
                     beg = time.time()
