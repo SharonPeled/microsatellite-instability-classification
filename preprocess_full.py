@@ -12,7 +12,7 @@ def download_slides(slides_dir, slides_str):
     try:
         print('Start Downloading ..')
         bash_str = f"""
-    source /home/sharonpe/miniconda3/etc/profile.d/conda.sh
+    . /home/sharonpe/miniconda3/etc/profile.d/conda.sh
     conda activate gdc
     cd {slides_dir}
     gdc-client download {slides_str} > "download_log_{get_time()}.txt"
@@ -42,7 +42,7 @@ def delete_slides(slide_ids, slides_dir):
 def get_bash_str_preprocess(tile_size, slide_ids, num_processes):
     slides_str = ' '.join(slide_ids)
     bash_str = f"""
-    source /home/sharonpe/miniconda3/etc/profile.d/conda.sh
+    . /home/sharonpe/miniconda3/etc/profile.d/conda.sh
     conda activate MSI
     python main.py --preprocess --num-processes {num_processes} --config_filepath config_files/preprocess_{tile_size}.json --slide_ids {slides_str}
     """
