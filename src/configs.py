@@ -204,7 +204,7 @@ class SubtypeClassificationConfigs:
     SC_NUM_NODES = 1
     SC_DEVICE = 'gpu'
     SC_TEST_BATCH_SIZE = 512
-    SC_SAVE_CHECKPOINT_STEP_INTERVAL = 5000
+    SC_SAVE_CHECKPOINT_STEP_INTERVAL = 20000
     SC_VAL_STEP_INTERVAL = 1/2  # 2 times an epoch
     SC_TRAINING_BATCH_SIZE = 256  # accumulating gradients in MIL only
     SC_NUM_WORKERS = 15
@@ -240,7 +240,7 @@ class SubtypeClassificationConfigs:
                   'tile_encoder': SC_TILE_ENCODER,
                   'cohort_aware_dict': COHORT_AWARE_DICT,
                   'pretrained_ckp_path': "/home/sharonpe/microsatellite-instability-classification/data/subtype_classification/third_try_all_slides_16k_4_dino_checkpoints/checkpoint9.pth",
-                  'config_filepath': Path(__file__).parent.resolve()
+                  'config_filepath': Path(__file__).resolve()
                   }
     # MIL STUFF
     SC_MIL_GROUP_SIZE = 512
