@@ -15,7 +15,8 @@ class GeneralConfigs:
     RANDOM_SEED = 1234
     VERBOSE = 3  # 1 logs to LOG_FILE, 2 logs to console, 3 logs to both to file and console
     ROOT = Path(__file__).parent.parent.resolve()
-    DATA_FOLDER = '/mnt/data/users/sharonpe' if 'dev' not in str(ROOT) else os.path.join(ROOT, 'data')
+    # DATA_FOLDER = '/mnt/data/users/sharonpe' if 'dev' not in str(ROOT) else os.path.join(ROOT, 'data')
+    DATA_FOLDER = '/home/sharonpe/work/microsatellite-instability-classification'
     PROGRAM_LOG_FILE_ARGS = ['log.txt', 'a+']  # slide level log is in the slide dir. Use --bring-slide-logs to get all slide logs.
     LOG_IMPORTANCE = 1  # 0 (all), 1 or 2 (only high importance logs)
     LOG_FORMAT = {'format': '%(process)d  %(asctime)s  [%(name)s] - %(message)s', 'datefmt':'%d-%m-%y %H:%M:%S'}
