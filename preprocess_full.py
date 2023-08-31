@@ -79,9 +79,9 @@ def main(args):
         proc1.wait()
         proc2.wait()
         proc3.wait()
-        print(proc1.stderr.readline())
-        print(proc2.stderr.readline())
-        print(proc3.stderr.readline())
+        print(proc1.stderr.readlines())
+        print(proc2.stderr.readlines())
+        print(proc3.stderr.readlines())
 
         delete_slides(slide_ids, slides_dir)
     except Exception as e:
