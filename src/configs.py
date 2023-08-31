@@ -158,16 +158,16 @@ class TumorRegressionConfigs:
 
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
-    SC_EXPERIMENT_NAME = 'SC_tile_bilal_labels_CIN'
+    SC_EXPERIMENT_NAME = 'SC_tile_bilal_labels_MSI'
     SC_FORMULATION = f'cwS_FV_SQ6B12_At2Ltanh_{SC_TILE_SIZE}'
     SC_RUN_NAME = f"DINO_{SC_FORMULATION}_2"
     SC_RUN_DESCRIPTION = f"""Label file is matched the CRC to bilal. Other cohorts is MSI or MSS according to subtype.
     """
     SC_LABEL_DF_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                     # 'manifest_labeled_dx_molecular_subtype.tsv')
-                                    # 'df_labels_msi_slides_and_other_msi_mss.tsv')
+                                    'df_labels_msi_slides_and_other_msi_mss.tsv')
                                     # 'df_labels_cin_slides_and_other_cin_gs.tsv')
-                                    'df_labels_cin_slides_and_other_cin_gs_2.tsv')
+                                    # 'df_labels_cin_slides_and_other_cin_gs_2.tsv')
     SC_DF_TILE_PATHS_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                          f'df_processed_tile_paths_{SC_TILE_SIZE}.csv')
     SC_DF_TILE_PATHS_PATH_224 = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
@@ -192,7 +192,7 @@ class SubtypeClassificationConfigs:
     SC_CROSS_VALIDATE = True  # num folds according to test size
     SC_CONTINUE_FROM_FOLD = 0  # 0 to 1/TEST_SIZE
     SC_Y_TO_BE_STRATIFIED = 'y_to_be_stratified'
-    SC_CLASS_TO_IND = {'GS': 0, 'CIN': 1} # {'MSS': 0, 'MSI': 1}
+    SC_CLASS_TO_IND = {'MSS': 0, 'MSI': 1} # {'GS': 0, 'CIN': 1} # {'MSS': 0, 'MSI': 1} #
     SC_CLASS_WEIGHT = None #  {'GS': 770, 'CIN': 235}
     SC_COHORT_TO_IND = {'CRC': 0, 'STAD': 1, 'ESCA': 2, 'UCEC': 3}
     SC_EXCLUDE_COHORT_AWARENESS = {'ESCA': 2}
