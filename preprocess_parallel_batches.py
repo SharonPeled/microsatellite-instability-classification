@@ -7,6 +7,7 @@ import pandas as pd
 import numpy as np
 from time import sleep
 from dataclasses import dataclass
+import argparse
 
 
 def generate_slide_paths_from_manifest(manifest_path, slides_dir):
@@ -32,9 +33,15 @@ def get_bash_str_preprocess(slide_ids, num_processes, full_batch_ind):
 
 
 if __name__ == '__main__':
-    num_allowed_full_processes = 5
-    num_slides_per_process = 10
-    num_subprocesses_per_process = 5
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--num_allowed_full_processes', type=int)
+    parser.add_argument('--num_slides_per_process', type=int)
+    parser.add_argument('--num_subprocesses_per_process', type=int)
+    args = parser.parse_args()
+
+    num_allowed_full_processes = args.num_allowed_full_processes
+    num_slides_per_process = args.num_slides_per_process
+    num_subprocesses_per_process = args.num_subprocesses_per_process
     slide_paths, df_m = generate_slide_paths_from_manifest(manifest_path=Configs.MANIFEST_PATH,
                                                            slides_dir=Configs.SLIDES_DIR)
     manifest_fullprocess_batch = np.array_split(df_m, np.ceil(len(df_m) / num_slides_per_process))
