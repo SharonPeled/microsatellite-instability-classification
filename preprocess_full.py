@@ -56,7 +56,7 @@ def main(args):
     num_processes = args.num_processes
     print(f'Starting processing slides: {slide_ids}')
     try:
-        # download_slides(slides_dir=slides_dir, slides_str=' '.join(slide_ids))
+        download_slides(slides_dir=slides_dir, slides_str=' '.join(slide_ids))
 
         bash_str = get_bash_str_preprocess(512, slide_ids, num_processes)
         proc1 = subprocess.Popen([bash_str, ], stdout=subprocess.PIPE,
