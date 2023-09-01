@@ -15,7 +15,7 @@ def download_slides(slides_dir, slides_str):
     . /home/sharonpe/miniconda3/etc/profile.d/conda.sh
     conda activate gdc
     cd {slides_dir}
-    gdc-client download {slides_str} > "download_log_{get_time()}.txt"
+    gdc-client download {slides_str} >> "download_log_{get_time()}.txt 2>&1"
                 """
         proc = subprocess.Popen([bash_str], stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE,

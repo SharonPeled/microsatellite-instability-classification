@@ -26,7 +26,7 @@ def get_bash_str_preprocess(slide_ids, num_processes, full_batch_ind):
     bash_str = f"""
     . /home/sharonpe/miniconda3/etc/profile.d/conda.sh
     conda activate MSI
-    python preprocess_full.py --num-processes {num_processes} --slide_ids {slides_str} --slide_dir {Configs.SLIDES_DIR} > {full_batch_ind}_preprocess_full_{get_time()}.txt
+    python preprocess_full.py --num-processes {num_processes} --slide_ids {slides_str} --slide_dir {Configs.SLIDES_DIR} >> {full_batch_ind}_preprocess_full_{get_time()}.txt 2>&1
     """
     return bash_str
 
