@@ -45,7 +45,7 @@ def get_bash_str_preprocess(tile_size, slide_ids, num_processes):
     bash_str = f"""
     . /home/sharonpe/miniconda3/etc/profile.d/conda.sh
     conda activate MSI
-    python -u main.py --preprocess --num-processes {num_processes} --config_filepath config_files/preprocess_{tile_size}.json --slide_ids {slides_str}
+    python -u main.py --preprocess --num-processes {num_processes} --config_filepath config_files/preprocess_{tile_size}.json --slide_ids {slides_str} >> 'main_preprocess_{tile_size}.txt'
     """
     return bash_str
 
