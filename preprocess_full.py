@@ -45,7 +45,7 @@ def get_bash_str_preprocess(tile_size, slide_ids, num_processes):
     bash_str = f"""
     . /home/sharonpe/miniconda3/etc/profile.d/conda.sh
     conda activate MSI
-    python -u main.py --preprocess --num-processes {num_processes} --config_filepath config_files/preprocess_{tile_size}.json --slide_ids {slides_str} >> 'main_preprocess_{tile_size}.txt 2>&1'
+    python -u main.py --preprocess --num-processes {num_processes} --config_filepath config_files/preprocess_{tile_size}.json --slide_ids {slides_str} >> main_preprocess_{tile_size}.txt 2>&1
     """
     return bash_str
 
@@ -56,7 +56,7 @@ def main(args):
     num_processes = args.num_processes
     print(f'Starting processing slides: {slide_ids}')
     try:
-        download_slides(slides_dir=slides_dir, slides_str=' '.join(slide_ids))
+        # download_slides(slides_dir=slides_dir, slides_str=' '.join(slide_ids))
 
         bash_str = get_bash_str_preprocess(512, slide_ids, num_processes)
         proc1 = subprocess.Popen([bash_str, ], stdout=subprocess.PIPE,
