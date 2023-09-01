@@ -33,12 +33,6 @@ def deploy_config_file(filepath):
             setattr(Configs, key, val)
         else:
             raise NotImplementedError(f"Config not recognized: {key}: {val}.")
-    set_global_configs(verbose=Configs.VERBOSE,
-                       log_file_args=Configs.PROGRAM_LOG_FILE_ARGS,
-                       log_importance=Configs.LOG_IMPORTANCE,
-                       log_format=Configs.LOG_FORMAT,
-                       random_seed=Configs.RANDOM_SEED,
-                       tile_progress_log_freq=Configs.TILE_PROGRESS_LOG_FREQ)
 
 
 def write_to_file(s, frame_object=None, **kargs):
@@ -84,6 +78,12 @@ def main():
     args = parser.parse_args()
     if args.config_filepath:
         deploy_config_file(args.config_filepath)
+    set_global_configs(verbose=Configs.VERBOSE,
+                       log_file_args=Configs.PROGRAM_LOG_FILE_ARGS,
+                       log_importance=Configs.LOG_IMPORTANCE,
+                       log_format=Configs.LOG_FORMAT,
+                       random_seed=Configs.RANDOM_SEED,
+                       tile_progress_log_freq=Configs.TILE_PROGRESS_LOG_FREQ)
     if args.suppress_signals:
         print("suppressing signals!", flush=True)
         catchable_sigs = set(signal.Signals) - {signal.SIGKILL, signal.SIGSTOP}

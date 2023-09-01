@@ -355,12 +355,6 @@ class ConfigsClass(GeneralConfigs, PreprocessingConfigs, TumorClassificationConf
     TASK_PREFIXES = ''
 
     def __init__(self):
-        set_global_configs(verbose=self.VERBOSE,
-                           log_file_args=self.PROGRAM_LOG_FILE_ARGS,
-                           log_importance=self.LOG_IMPORTANCE,
-                           log_format=self.LOG_FORMAT,
-                           random_seed=self.RANDOM_SEED,
-                           tile_progress_log_freq=self.TILE_PROGRESS_LOG_FREQ)
         self.joined = defaultdict(lambda: None)
 
     def set_task_configs(self, task_prefix):
