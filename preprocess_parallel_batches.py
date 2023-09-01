@@ -26,15 +26,15 @@ def get_bash_str_preprocess(slide_ids, num_processes, full_batch_ind):
     bash_str = f"""
     . /home/sharonpe/miniconda3/etc/profile.d/conda.sh
     conda activate MSI
-    python -u preprocess_full.py --num-processes {num_processes} --slide_ids {slides_str} --slide_dir {Configs.SLIDES_DIR} >> {full_batch_ind}_preprocess_full_{get_time()}.txt 2>&1
+    python -u preprocess_full.py --num-processes {num_processes} --slide_ids {slides_str} --slide_dir {Configs.SLIDES_DIR} --full_batch_ind {full_batch_ind} >> {full_batch_ind}_preprocess_full_{get_time()}.txt 2>&1
     """
     return bash_str
 
 
 if __name__ == '__main__':
-    num_allowed_full_processes = 2
-    num_slides_per_process = 1
-    num_subprocesses_per_process = 2
+    num_allowed_full_processes = 5
+    num_slides_per_process = 10
+    num_subprocesses_per_process = 5
     slide_paths, df_m = generate_slide_paths_from_manifest(manifest_path=Configs.MANIFEST_PATH,
                                                            slides_dir=Configs.SLIDES_DIR)
     manifest_fullprocess_batch = np.array_split(df_m, np.ceil(len(df_m) / num_slides_per_process))
@@ -59,7 +59,7 @@ if __name__ == '__main__':
                 print(bash_str)
                 print(f'New Process created with slides: {slide_ids}')
                 continue
-            sleep(2)
+            sleep(30)
         print('Finished All!!')
     except Exception as e:
         print(f"Main program received {e}")

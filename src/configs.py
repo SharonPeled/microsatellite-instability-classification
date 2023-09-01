@@ -18,7 +18,7 @@ class GeneralConfigs:
     # DATA_FOLDER = '/mnt/data/users/sharonpe' if 'dev' not in str(ROOT) else os.path.join(ROOT, 'data')
     DATA_FOLDER = '/home/sharonpe/work/microsatellite-instability-classification'
     PROGRAM_LOG_FILE_ARGS = ['log.txt', 'a+']  # slide level log is in the slide dir. Use --bring-slide-logs to get all slide logs.
-    LOG_IMPORTANCE = 0  # 0 (all), 1 or 2 (only high importance logs)
+    LOG_IMPORTANCE = 1  # 0 (all), 1 or 2 (only high importance logs)
     LOG_FORMAT = {'format': '%(process)d  %(asctime)s  [%(name)s] - %(message)s', 'datefmt':'%d-%m-%y %H:%M:%S'}
     MLFLOW_SAVE_DIR = os.path.join(ROOT, 'models', 'mlruns')
     START_TIME = datetime.now().strftime('%d_%m_%Y_%H_%M')

@@ -40,12 +40,12 @@ def delete_slides(slide_ids, slides_dir):
     print(f"Finished Delete {len(slide_ids)}.")
 
 
-def get_bash_str_preprocess(tile_size, slide_ids, num_processes):
+def get_bash_str_preprocess(tile_size, slide_ids, num_processes, full_batch_ind):
     slides_str = ' '.join(slide_ids)
     bash_str = f"""
     . /home/sharonpe/miniconda3/etc/profile.d/conda.sh
     conda activate MSI
-    python -u main.py --preprocess --num-processes {num_processes} --config_filepath config_files/preprocess_{tile_size}.json --slide_ids {slides_str} >> main_preprocess_{tile_size}.txt 2>&1
+    python -u main.py --preprocess --num-processes {num_processes} --config_filepath config_files/preprocess_{tile_size}.json --slide_ids {slides_str} >> {full_batch_ind}_main_preprocess_{tile_size}.txt 2>&1
     """
     return bash_str
 
@@ -53,24 +53,25 @@ def get_bash_str_preprocess(tile_size, slide_ids, num_processes):
 def main(args):
     slide_ids = [slide_id.strip("'") for slide_id in args.slide_ids]
     slides_dir = args.slide_dir
+    full_batch_ind = args.full_batch_ind
     num_processes = args.num_processes
     print(f'Starting processing slides: {slide_ids}')
     try:
         download_slides(slides_dir=slides_dir, slides_str=' '.join(slide_ids))
 
-        bash_str = get_bash_str_preprocess(512, slide_ids, num_processes)
+        bash_str = get_bash_str_preprocess(512, slide_ids, num_processes, full_batch_ind)
         proc1 = subprocess.Popen([bash_str, ], stdout=subprocess.PIPE,
                                  stderr=subprocess.PIPE,
                                  text=True, shell=True)
         print(bash_str)
 
-        bash_str = get_bash_str_preprocess(1024, slide_ids, num_processes)
+        bash_str = get_bash_str_preprocess(1024, slide_ids, num_processes, full_batch_ind)
         print(bash_str)
         proc2 = subprocess.Popen([bash_str, ], stdout=subprocess.PIPE,
                                  stderr=subprocess.PIPE,
                                  text=True, shell=True)
 
-        bash_str = get_bash_str_preprocess(224, slide_ids, num_processes)
+        bash_str = get_bash_str_preprocess(224, slide_ids, num_processes, full_batch_ind)
         print(bash_str)
         proc3 = subprocess.Popen([bash_str, ], stdout=subprocess.PIPE,
                                  stderr=subprocess.PIPE,
@@ -80,9 +81,9 @@ def main(args):
         proc1.wait()
         proc2.wait()
         proc3.wait()
-        print(proc1.stderr.readlines())
-        print(proc2.stderr.readlines())
-        print(proc3.stderr.readlines())
+        # print(proc1.stderr.readlines())
+        # print(proc2.stderr.readlines())
+        # print(proc3.stderr.readlines())
 
         delete_slides(slide_ids, slides_dir)
     except Exception as e:
@@ -99,5 +100,6 @@ if __name__ == '__main__':
     parser.add_argument("--slide_ids", nargs="+", type=str)
     parser.add_argument('--num-processes', type=int)
     parser.add_argument('--slide_dir', type=str)
+    parser.add_argument('--full_batch_ind', type=int)
     args = parser.parse_args()
     main(args)
