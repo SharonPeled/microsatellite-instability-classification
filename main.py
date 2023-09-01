@@ -8,7 +8,7 @@ from src.semantic_segmentation.training import train as train_semantic_seg
 from src.semantic_segmentation.predict import predict as predict_semantic_seg
 from src.tumor_distance_estimation.training import train as train_tumor_regression
 from src.general_utils import bring_files, bring_joined_log_file, delete_all_artifacts, \
-    generate_thumbnails_with_tissue_classification, load_df_pred, get_time
+    generate_thumbnails_with_tissue_classification, load_df_pred, get_time, set_global_configs
 from src.subtype_classification.training_MIL import train as train_subtype_classification_mil
 from src.subtype_classification.training_tile_based import train as train_subtype_classification_tile
 from src.subtype_classification.pretraining_tile_based import train as pretrain_subtype_classification_tile
@@ -33,6 +33,12 @@ def deploy_config_file(filepath):
             setattr(Configs, key, val)
         else:
             raise NotImplementedError(f"Config not recognized: {key}: {val}.")
+    set_global_configs(verbose=Configs.VERBOSE,
+                       log_file_args=Configs.PROGRAM_LOG_FILE_ARGS,
+                       log_importance=Configs.LOG_IMPORTANCE,
+                       log_format=Configs.LOG_FORMAT,
+                       random_seed=Configs.RANDOM_SEED,
+                       tile_progress_log_freq=Configs.TILE_PROGRESS_LOG_FREQ)
 
 
 def write_to_file(s, frame_object=None, **kargs):
