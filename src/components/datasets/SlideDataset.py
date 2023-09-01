@@ -26,9 +26,9 @@ class SlideDataset(Dataset, Logger):
         self._log(f'Applying pipeline on {len(self.slide_paths)} slides.', log_importance=1)
         param_generator = ((path, pipeline, ind, metadata_filename, summary_df_filename)
                            for ind, path in enumerate(self.slide_paths))
-        log_file_args_generator = ((os.path.join(os.path.dirname(slide_path), self.slide_log_file_args[0]),
+        log_file_args_generator = ((os.path.join(os.path.dirname(slide_path), f'{i}_{self.slide_log_file_args[0]}'),
                                     self.slide_log_file_args[1])
-                              for slide_path in self.slide_paths)
+                              for i, slide_path in enumerate(self.slide_paths))
         self.slides = process_manager.execute_parallel_loop(self._apply_on_slide, param_generator,
                                                             log_file_args_generator)
         self._log(f'Finished pipeline on {len(self.slide_paths)} slides.', log_importance=1)
