@@ -34,7 +34,7 @@ def get_bash_str_preprocess(slide_ids, num_processes, full_batch_ind):
 if __name__ == '__main__':
     num_allowed_full_processes = 1
     num_slides_per_process = 1
-    num_subprocesses_per_process = 0
+    num_subprocesses_per_process = 1
     slide_paths, df_m = generate_slide_paths_from_manifest(manifest_path=Configs.MANIFEST_PATH,
                                                            slides_dir=Configs.SLIDES_DIR)
     manifest_fullprocess_batch = np.array_split(df_m, np.ceil(len(df_m) / num_slides_per_process))
