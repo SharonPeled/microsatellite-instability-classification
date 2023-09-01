@@ -42,6 +42,7 @@ def _job(job_func, log_file_args, verbose, log_format, log_importance, random_se
                            log_importance=log_importance,
                            random_seed=random_seed,
                            tile_progress_log_freq=tile_progress_log_freq)
+        print(log_file_args)
         return job_func(*args)
     except Exception as e:
         Logger.log(f"""Exception {e}""", log_importance=2)
