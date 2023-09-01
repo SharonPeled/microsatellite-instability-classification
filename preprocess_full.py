@@ -64,7 +64,7 @@ def main(args):
                                  stderr=subprocess.PIPE,
                                  text=True, shell=True)
         print(bash_str)
-        proc1.wait()
+        # proc1.wait()
 
         bash_str = get_bash_str_preprocess(1024, slide_ids, num_processes, full_batch_ind)
 
@@ -72,20 +72,20 @@ def main(args):
                                  stderr=subprocess.PIPE,
                                  text=True, shell=True)
         print(bash_str)
-        proc2.wait()
+        # proc2.wait()
 
         bash_str = get_bash_str_preprocess(224, slide_ids, num_processes, full_batch_ind)
         proc3 = subprocess.Popen([bash_str, ], stdout=subprocess.PIPE,
                                  stderr=subprocess.PIPE,
                                  text=True, shell=True)
         print(bash_str)
-        proc3.wait()
+        # proc3.wait()
 
         print('Finished 3 tiling processes.')
 
-        # proc1.wait()
-        # proc2.wait()
-        # proc3.wait()
+        proc1.wait()
+        proc2.wait()
+        proc3.wait()
         # print(proc1.stderr.readlines())
         # print(proc2.stderr.readlines())
         # print(proc3.stderr.readlines())
