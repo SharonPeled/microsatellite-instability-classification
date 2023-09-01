@@ -42,8 +42,8 @@ def execute_preprocessing_pipeline(with_tiling, num_processes, slide_ids):
                                                                               'thumbnail_filename': Configs.THUMBNAIL_FILENAME})),
             ('unload_reduced_image', LoggingFunctionTransformer(unload_reduced_image)),
             ('center_crop', LoggingFunctionTransformer(center_crop)),
-            ('fit_color_normalizer', LoggingFunctionTransformer(fit_color_normalizer,
-                                                                kw_args={'ref_img_path': Configs.COLOR_NORM_REF_IMG}))
+            # ('fit_color_normalizer', LoggingFunctionTransformer(fit_color_normalizer,
+            #                                                     kw_args={'ref_img_path': Configs.COLOR_NORM_REF_IMG}))
         ]))]
 
     if with_tiling:
