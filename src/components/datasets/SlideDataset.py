@@ -5,6 +5,7 @@ from glob import glob
 from src.components.objects.Slide import Slide
 from src.components.objects.Logger import Logger
 import time
+import pandas as pd
 
 
 class SlideDataset(Dataset, Logger):
@@ -13,10 +14,13 @@ class SlideDataset(Dataset, Logger):
         self.device = device
         self.slides_dir = slides_dir
         self.slide_paths = sorted(glob(f"{slides_dir}/**/*.svs", recursive=True))
+        self._log(f'Found {len(self.slide_paths)} slides in {slides_dir}', log_importance=1)
         if slide_ids is not None:
             slide_ids = [slide_id.strip("'") for slide_id in slide_ids]
-            self.slide_paths = [path for path in self.slide_paths
-                                if os.path.basename(os.path.dirname(path)) in slide_ids]
+            df_slides = pd.DataFrame({'slide_path': self.slide_paths})
+            df_slides.set_index(df_slides.slide_path.apply(lambda path: os.path.basename(os.path.dirname(path))),
+                                drop=True) # slide_uuids as index
+            self.slide_paths = df_slides.loc[slide_ids].slide_path.values
         self.slides = None
         self.load_metadata = load_metadata
         self.slide_log_file_args = slide_log_file_args
