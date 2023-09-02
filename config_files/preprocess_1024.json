@@ -5,5 +5,5 @@
   "METADATA_JSON_FILENAME": "metadata_1024.json",
   "SUMMARY_DF_FILENAME": "summary_df_1024.csv", 
   "THUMBNAIL_FILENAME": "thumbnail_1024.png",
-  "PROCESSED_TILES_DIR": "/home/sharonpe/work/microsatellite-instability-classification/data/slides/processed_tiles_1024"
+  "PROCESSED_TILES_DIR": "/home/sharonpe/work/microsatellite-instability-classification/data/processed_tiles_1024"
 }
