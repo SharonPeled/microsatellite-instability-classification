@@ -95,7 +95,7 @@ def main(args):
         print(bash_str)
         # proc3.wait()
 
-        print('Finished 3 tiling processes.')
+        print('Started 3 tiling processes.')
 
         proc1.wait()
         proc2.wait()
@@ -103,6 +103,8 @@ def main(args):
         # print(proc1.stderr.readlines())
         # print(proc2.stderr.readlines())
         # print(proc3.stderr.readlines())
+        print('Finished 3 tiling processes.')
+
 
         delete_slides(slide_ids, slides_dir)
     except Exception as e:
