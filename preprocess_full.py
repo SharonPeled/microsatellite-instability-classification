@@ -8,7 +8,7 @@ from time import sleep
 import argparse
 
 
-def download_slides(slides_dir, slides_str):
+def download_slides(slides_dir, slides_str, full_batch_ind):
     try:
         print('Start Downloading ..')
         os.makedirs(slides_dir, exist_ok=True)
@@ -16,7 +16,7 @@ def download_slides(slides_dir, slides_str):
     . /home/sharonpe/miniconda3/etc/profile.d/conda.sh
     conda activate gdc
     cd {slides_dir}
-    gdc-client download {slides_str} >> download_log_{get_time()}.txt 2>&1
+    gdc-client download {slides_str} >> {full_batch_ind}_download_log_{get_time()}.txt 2>&1
                 """
         proc = subprocess.Popen([bash_str], stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE,
@@ -71,7 +71,7 @@ def main(args):
     num_processes = args.num_processes
     print(f'Starting processing slides: {slide_ids}')
     try:
-        download_slides(slides_dir=slides_dir, slides_str=' '.join(slide_ids))
+        download_slides(slides_dir=slides_dir, slides_str=' '.join(slide_ids), full_batch_ind=full_batch_ind)
 
         bash_str = get_bash_str_preprocess(512, slide_ids, num_processes, full_batch_ind)
         proc1 = subprocess.Popen([bash_str, ], stdout=subprocess.PIPE,
