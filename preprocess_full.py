@@ -40,8 +40,20 @@ def delete_slides(slide_ids, slides_dir):
     print(f"Finished Delete {len(slide_ids)}.")
 
 
+def shift_ids(ids, tile_size):
+    # Calculate the shift distance (one-third of the list length)
+    if tile_size == 224:
+        return ids
+    elif tile_size == 512:
+        third_shift = len(ids) // 3
+        return ids[third_shift:] + ids[:third_shift]
+    elif tile_size == 1024:
+        two_thirds_shift = (2 * len(ids)) // 3
+        return ids[two_thirds_shift:] + ids[:two_thirds_shift]
+
+
 def get_bash_str_preprocess(tile_size, slide_ids, num_processes, full_batch_ind):
-    slides_str = ' '.join(slide_ids)
+    slides_str = ' '.join(shift_ids(slide_ids, tile_size))
     bash_str = f"""
     . /home/sharonpe/miniconda3/etc/profile.d/conda.sh
     conda activate MSI
