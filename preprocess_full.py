@@ -41,6 +41,7 @@ def delete_slides(slide_ids, slides_dir):
 
 
 def shift_ids(ids, tile_size):
+    tile_size = int(tile_size)
     # Calculate the shift distance (one-third of the list length)
     if tile_size == 224:
         return ids
