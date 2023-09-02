@@ -11,11 +11,12 @@ import argparse
 def download_slides(slides_dir, slides_str):
     try:
         print('Start Downloading ..')
+        os.makedirs(slides_dir, exist_ok=True)
         bash_str = f"""
     . /home/sharonpe/miniconda3/etc/profile.d/conda.sh
     conda activate gdc
     cd {slides_dir}
-    gdc-client download {slides_str} >> "download_log_{get_time()}.txt 2>&1"
+    gdc-client download {slides_str} >> download_log_{get_time()}.txt 2>&1
                 """
         proc = subprocess.Popen([bash_str], stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE,
