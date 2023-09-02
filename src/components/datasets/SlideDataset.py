@@ -19,7 +19,7 @@ class SlideDataset(Dataset, Logger):
             slide_ids = [slide_id.strip("'") for slide_id in slide_ids]
             df_slides = pd.DataFrame({'slide_path': self.slide_paths})
             df_slides.set_index(df_slides.slide_path.apply(lambda path: os.path.basename(os.path.dirname(path))),
-                                drop=True) # slide_uuids as index
+                                drop=True, inplace=True)  # slide_uuids as index
             self.slide_paths = df_slides.loc[slide_ids].slide_path.values
         self.slides = None
         self.load_metadata = load_metadata
