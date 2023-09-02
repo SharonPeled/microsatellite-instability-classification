@@ -20,7 +20,13 @@ class SlideDataset(Dataset, Logger):
             df_slides = pd.DataFrame({'slide_path': self.slide_paths})
             df_slides.set_index(df_slides.slide_path.apply(lambda path: os.path.basename(os.path.dirname(path))),
                                 drop=True, inplace=True)  # slide_uuids as index
-            self.slide_paths = df_slides.loc[slide_ids].slide_path.values
+            slide_ids_with_path = [slide_id for slide_id in slide_ids if slide_id in df_slides.index.values]
+            self.slide_paths = df_slides.loc[slide_ids_with_path].slide_path.values
+            if len(self.slide_paths) != len(slide_ids):
+                slide_ids_without_path = [slide_id for slide_id in slide_ids if slide_id not in slide_ids_with_path]
+                self._log(f'{len(slide_ids)} slide ids was received but only {len(self.slide_paths)} found!!' , log_importance=1)
+                self._log(f'ERROR '*20, log_importance=1)
+                self._log(f'Missing slides: {slide_ids_without_path}', log_importance=1)
         self.slides = None
         self.load_metadata = load_metadata
         self.slide_log_file_args = slide_log_file_args
