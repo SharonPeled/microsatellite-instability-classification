@@ -279,8 +279,8 @@ class DINOConfigs:
     DN_NUM_MINI_EPOCHS = 1
     DN_NUM_EPOCHS = 100 * DN_NUM_MINI_EPOCHS
     CONTINUE_FROM_EPOCH = 0
-    DN_NUM_DEVICES = 4 # num GPUS
-    DN_NUM_NODES = 2
+    DN_NUM_DEVICES = 8 # num GPUS
+    DN_NUM_NODES = 1
     DN_CPUS_PER_TASK = 10
     DN_TIMEOUT = 1400  # minutes
     DN_DEVICE = 'gpu'
