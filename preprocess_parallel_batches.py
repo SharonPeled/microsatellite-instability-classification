@@ -48,6 +48,7 @@ if __name__ == '__main__':
     df_m = generate_slide_paths_from_manifest(manifest_path=Configs.MANIFEST_PATH,
                                               slides_dir=Configs.SLIDES_DIR)
     df_m = df_m[df_m['id'].isin(slides_to_use)]
+    print(f'len df_m: {len(df_m)}')
     manifest_fullprocess_batch = np.array_split(df_m, np.ceil(len(df_m) / num_slides_per_process))
     full_batch_ind = 0
     processes = []
