@@ -5,7 +5,7 @@ import os
 
 tile_sizes = [224, 512, 1024]
 DATA_FOLDER = '/home/sharonpe/work/microsatellite-instability-classification/data'
-ROOT = '/home/sharonpe/microsatellite-instability-classification'
+ROOT = '/home/sharonpe/microsatellite-instability-classification/data'
 for tile_size in tile_sizes:
     print(f'Starting tile size {tile_size}.')
     paths = glob(f'{DATA_FOLDER}/processed_tiles_{tile_size}/*/*.jpg')
