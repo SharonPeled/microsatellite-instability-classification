@@ -20,36 +20,39 @@ import os
 import uuid
 from pathlib import Path
 
-import main_dino
+import src.components.objects.DINO.main_dino as main_dino
 import submitit
 
 
 def parse_args():
-    parser = argparse.ArgumentParser("Submitit for DINO", parents=[main_dino.get_args_parser()])
+    parser = argparse.ArgumentParser("Submitit for DINO", add_help=False)
     parser.add_argument("--ngpus", default=8, type=int, help="Number of gpus to request on each node")
     parser.add_argument("--nodes", default=2, type=int, help="Number of nodes to request")
-    parser.add_argument("--timeout", default=2800, type=int, help="Duration of the job")
+    parser.add_argument("--cpus_per_task", default=10, type=int, help="Number of cpus per gpu")
+    parser.add_argument("--timeout", default=2800, type=int, help="Duration of the job in minutes")
 
-    parser.add_argument("--partition", default="learnfair", type=str, help="Partition where to submit")
+    parser.add_argument("--partition", default="normal", type=str, help="Partition where to submit")
     parser.add_argument("--use_volta32", action='store_true', help="Big models? Use this")
     parser.add_argument('--comment', default="", type=str,
                         help='Comment to pass to scheduler, e.g. priority message')
-    return parser.parse_args()
+    return parser
 
 
-def get_shared_folder() -> Path:
+def get_shared_folder(args) -> Path:
     user = os.getenv("USER")
     if Path("/checkpoint/").is_dir():
         p = Path(f"/checkpoint/{user}/experiments")
         p.mkdir(exist_ok=True)
         return p
+    else:
+        return Path(args.output_dir)
     raise RuntimeError("No shared folder available")
 
 
-def get_init_file():
+def get_init_file(args):
     # Init file must not exist, but it's parent dir must exist.
-    os.makedirs(str(get_shared_folder()), exist_ok=True)
-    init_file = get_shared_folder() / f"{uuid.uuid4().hex}_init"
+    os.makedirs(str(get_shared_folder(args)), exist_ok=True)
+    init_file = get_shared_folder(args) / f"{uuid.uuid4().hex}_init"
     if init_file.exists():
         os.remove(str(init_file))
     return init_file
@@ -86,8 +89,7 @@ class Trainer(object):
         print(f"Process group: {job_env.num_tasks} tasks, rank: {job_env.global_rank}")
 
 
-def main():
-    args = parse_args()
+def main(args):
     if args.output_dir == "":
         args.output_dir = get_shared_folder() / "%j"
     Path(args.output_dir).mkdir(parents=True, exist_ok=True)
@@ -108,7 +110,7 @@ def main():
         mem_gb=40 * num_gpus_per_node,
         gpus_per_node=num_gpus_per_node,
         tasks_per_node=num_gpus_per_node,  # one task per GPU
-        cpus_per_task=10,
+        cpus_per_task=args.cpus_per_task,
         nodes=nodes,
         timeout_min=timeout_min,  # max is 60 * 72
         # Below are cluster dependent parameters
@@ -119,7 +121,7 @@ def main():
 
     executor.update_parameters(name="dino")
 
-    args.dist_url = get_init_file().as_uri()
+    args.dist_url = get_init_file(args).as_uri()
 
     trainer = Trainer(args)
     job = executor.submit(trainer)
@@ -129,4 +131,6 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser("Submitit for DINO", parents=[main_dino.get_args_parser(), parse_args()])
+    args = parser.parse_args()
+    main(args)

@@ -11,9 +11,12 @@ def init_task():
     set_sharing_strategy('file_system')
     set_start_method("spawn")
 
-    train_transform, test_transform = init_training_transforms()
-
     logger, callbacks = init_training_callbacks()
+    if Configs.SC_KW_ARGS.get('config_filepath', None):
+        logger.experiment.log_artifact(logger.run_id, Configs.SC_KW_ARGS['config_filepath'],
+                                       artifact_path="configs")
+        Logger.log(f"""Pretraining: config file logged.""",
+                   log_importance=1)
 
     Logger.log("Loading Datasets..", log_importance=1)
     df_tiles = pd.read_csv(Configs.DN_DF_TILE_PATHS_PATH)
@@ -37,33 +40,7 @@ def init_task():
         df_list.append(df_tiles)
         df_tiles = pd.concat(df_list)
 
-    model = init_model()
-
-    return df_tiles, train_transform, test_transform, logger, callbacks, model
-
-
-def init_model():
-    if Configs.SC_TEST_ONLY is None:
-        model = SubtypeClassifier(tile_encoder_name=Configs.SC_TILE_ENCODER, class_to_ind=Configs.SC_CLASS_TO_IND,
-                                  learning_rate=Configs.SC_INIT_LR, frozen_backbone=Configs.SC_FROZEN_BACKBONE,
-                                  class_to_weight=Configs.SC_CLASS_WEIGHT,
-                                  num_iters_warmup_wo_backbone=Configs.SC_ITER_TRAINING_WARMUP_WO_BACKBONE,
-                                  cohort_to_ind=Configs.SC_COHORT_TO_IND, cohort_weight=Configs.SC_COHORT_WEIGHT,
-                                  **Configs.SC_KW_ARGS)
-        Logger.log(f"New Model successfully created!", log_importance=1)
-    else:
-        model = SubtypeClassifier.load_from_checkpoint(Configs.SC_TEST_ONLY, tile_encoder_name=Configs.SC_TILE_ENCODER,
-                                                       class_to_ind=Configs.SC_CLASS_TO_IND,
-                                                       learning_rate=Configs.SC_INIT_LR,
-                                                       frozen_backbone=Configs.SC_FROZEN_BACKBONE,
-                                                       class_to_weight=Configs.SC_CLASS_WEIGHT,
-                                                       num_iters_warmup_wo_backbone=Configs.SC_ITER_TRAINING_WARMUP_WO_BACKBONE,
-                                                       cohort_to_ind=Configs.SC_COHORT_TO_IND,
-                                                       cohort_weight=Configs.SC_COHORT_WEIGHT,
-                                                       **Configs.SC_KW_ARGS)
-        Logger.log(f"Model successfully loaded from checkpoint!", log_importance=1)
-    return model
-
+    return df_tiles, logger
 
 
 

@@ -219,7 +219,7 @@ class SubtypeClassificationConfigs:
     SC_TILE_SAMPLE_LAMBDA_TRAIN_TUNE = None
     SC_FROZEN_BACKBONE = False
     SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 2000
-    SC_TILE_ENCODER = 'DINO_third_try_small_vit'
+    SC_TILE_ENCODER = None  # to load dino net for future classification - DINO_third_try_small_vit
     COHORT_AWARE_DICT = {'num_cohorts': 4,
                          'num_heads_per_cohort': 6,
                          'num_blocks_per_cohort': 12,  # default is last blocks
@@ -242,7 +242,7 @@ class SubtypeClassificationConfigs:
                   'FoVs_augs_amounts': (0.15, 0.15),  # tuple of % from each FoVs to add
                   'tile_encoder': SC_TILE_ENCODER,
                   'cohort_aware_dict': COHORT_AWARE_DICT,
-                  'pretrained_ckp_path': "/home/sharonpe/microsatellite-instability-classification/data/subtype_classification/third_try_all_slides_16k_4_dino_checkpoints/checkpoint9.pth",
+                  'pretrained_ckp_path': None, #"/home/sharonpe/microsatellite-instability-classification/data/subtype_classification/third_try_all_slides_16k_4_dino_checkpoints/checkpoint9.pth",
                   'config_filepath': Path(__file__).resolve()
                   }
     # MIL STUFF
@@ -267,27 +267,34 @@ class SubtypeClassificationConfigs:
 class DINOConfigs:
     DN_TILE_SIZE = 512
     DN_EXPERIMENT_NAME = 'SC_fusion_dino'
-    DN_FORMULATION = f'fourth_try_all_slides_16k'
-    DN_RUN_NAME = f"{DN_FORMULATION}_5"
+    DN_FORMULATION = f'dgx_SQ6B12_At2Ltanh_65k'
+    DN_RUN_NAME = f"{DN_FORMULATION}_1"
     DN_DF_TILE_PATHS_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                          f'df_all_processed_tile_paths_dino_512.csv')
-    DINO_DICT = {'FoVs_augs_amounts': (0.2, 0.2)}  # tuple of % from each FoVs to add
-    DN_OUT_DIM = 16384
-    DN_BATCH_SIZE = 32
-    DN_NUM_WORKERS = 15
+    DINO_DICT = {'FoVs_augs_amounts': (0.15, 0.15)}  # tuple of % from each FoVs to add
+    USE_SLURM = True
+    DN_OUT_DIM = 65536
+    DN_BATCH_SIZE = 256
+    DN_NUM_WORKERS = 45
     DN_NUM_MINI_EPOCHS = 1
-    DN_NUM_EPOCHS = 3 * DN_NUM_MINI_EPOCHS
+    DN_NUM_EPOCHS = 100 * DN_NUM_MINI_EPOCHS
     CONTINUE_FROM_EPOCH = 0
-    DN_NUM_DEVICES = [0, ]  # for slurm always 0
-    DN_NUM_NODES = 1
+    DN_NUM_DEVICES = 8 # num GPUS
+    DN_NUM_NODES = 2
+    DN_CPUS_PER_TASK = 50
+    DN_TIMEOUT = 1500 # minutes
     DN_DEVICE = 'gpu'
-    DINO_CMD_flags = f'--arch fusion_cw --out_dim {DN_OUT_DIM} --momentum_teacher 0.9999 ' + \
-                     f'--batch_size_per_gpu {DN_BATCH_SIZE} ' + \
-                     f'--epochs {DN_NUM_EPOCHS} --saveckp_freq 1 --num_workers {DN_NUM_WORKERS} ' + \
-                     f'--seed {GeneralConfigs.RANDOM_SEED} ' + \
-                     f'--output_dir {GeneralConfigs.ROOT}/data/subtype_classification/{DN_RUN_NAME}_dino_checkpoints ' + \
-                     f'--norm_last_layer False --warmup_teacher_temp_epochs 0 --warmup_epochs 0 ' + \
-                     f'--local_crops_number 8 '
+    DN_PARTITION = 'normal'
+    DINO_BASIC_CMD_FLAGS = f'--arch fusion_cw --out_dim {DN_OUT_DIM} --momentum_teacher 0.9995 ' + \
+                           f'--batch_size_per_gpu {DN_BATCH_SIZE} ' + \
+                           f'--epochs {DN_NUM_EPOCHS} --saveckp_freq 1 --num_workers {DN_NUM_WORKERS} ' + \
+                           f'--seed {GeneralConfigs.RANDOM_SEED} ' + \
+                           f'--output_dir {GeneralConfigs.ROOT}/data/subtype_classification/{DN_RUN_NAME}_dino_checkpoints ' + \
+                           f'--norm_last_layer False --warmup_teacher_temp_epochs 2 --warmup_epochs 2 ' + \
+                           f'--local_crops_number 8   '
+    DINO_SLURM_CMD_FLAGS = f'--ngpus {DN_NUM_DEVICES} --nodes {DN_NUM_NODES} --cpus_per_task {DN_CPUS_PER_TASK} ' + \
+                           f'--timeout {DN_TIMEOUT} --partition {DN_PARTITION}  '
+    DINO_CMD_flags = DINO_BASIC_CMD_FLAGS if not USE_SLURM else DINO_BASIC_CMD_FLAGS + DINO_SLURM_CMD_FLAGS
     DN_RUN_DESCRIPTION = f"""DINO raw, single GPU, raw dataset and raw warmups.
     SC run name: {SubtypeClassificationConfigs.SC_RUN_NAME}
     Command:

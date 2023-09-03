@@ -12,8 +12,8 @@ on hold:
 
 
 to do:
+
     fix the label files - do same logic for STAD/UCEC? - ask Yossi tommorow
-    ESCA 0
     symmetry ce loss, tunmor only?
 
 
@@ -36,7 +36,10 @@ other -
 
 
 general -
-
+CPTAC is publicly available
+Wang et al. trained the network using an unsupervised
+contrastive loss on data from TCGA and PAIP36 from multiple organs and provided the weights for public use. The embeddings
+for each tile are stored for the subsequent training procedure
 
 
 
