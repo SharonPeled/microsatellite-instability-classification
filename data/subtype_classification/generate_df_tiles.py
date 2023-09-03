@@ -1,13 +1,13 @@
 from glob import glob 
 import pandas as pd 
 import os
-from src.configs import Configs
 
 
 tile_sizes = [224, 512, 1024]
+DATA_FOLDER = '/home/sharonpe/work/microsatellite-instability-classification/data'
 for tile_size in tile_sizes:
     print(f'Starting tile size {tile_size}.')
-    paths = glob(f'{Configs.DATA_FOLDER}/processed_tiles_{tile_size}/*/*.jpg')
+    paths = glob(f'{DATA_FOLDER}/processed_tiles_{tile_size}/*/*.jpg')
     print(f'Found {len(paths)} tiles.')
     df_tiles = pd.DataFrame({'tile_path': paths})
     df_tiles['slide_uuid'] = df_tiles.tile_path.apply(lambda p: os.path.basename(os.path.dirname(p)))
