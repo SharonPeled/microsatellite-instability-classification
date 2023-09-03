@@ -282,7 +282,7 @@ class DINOConfigs:
     DN_NUM_DEVICES = 8 # num GPUS
     DN_NUM_NODES = 2
     DN_CPUS_PER_TASK = 50
-    DN_TIMEOUT = 1500 # minutes
+    DN_TIMEOUT = 1400  # minutes
     DN_DEVICE = 'gpu'
     DN_PARTITION = 'work'
     DINO_BASIC_CMD_FLAGS = f'--arch fusion_cw --out_dim {DN_OUT_DIM} --momentum_teacher 0.9995 ' + \
