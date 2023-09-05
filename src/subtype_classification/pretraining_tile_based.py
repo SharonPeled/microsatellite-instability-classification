@@ -11,7 +11,7 @@ from pathlib import Path
 from src.components.objects.Logger import Logger
 
 
-def train():
+def set_configs():
     df, logger = init_task()
     rm_tmp_files()
     dataset = ProcessedTileDataset(df_labels=df, transform=None, cohort_to_index=Configs.joined['COHORT_TO_IND'],
@@ -22,11 +22,14 @@ def train():
                                             cohort_aware_dict=Configs.SC_KW_ARGS['cohort_aware_dict'])
     Configs.DINO_DICT['logger'] = logger
     Logger.log(f"Dino CMD: {Configs.DINO_CMD_flags}")
+
+
+def train():
+    set_configs()
     if Configs.USE_SLURM:
         parser = argparse.ArgumentParser("Submitit for DINO", parents=[get_args_parser(), parse_args()])
         args = parser.parse_args(Configs.DINO_CMD_flags.split())
         Path(args.output_dir).mkdir(parents=True, exist_ok=True)
-
         main(args)
     else:
         parser = argparse.ArgumentParser('DINO', parents=[get_args_parser()])
