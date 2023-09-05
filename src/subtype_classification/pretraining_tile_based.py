@@ -32,7 +32,7 @@ def train():
         parser = argparse.ArgumentParser('DINO', parents=[get_args_parser()])
         args = parser.parse_args(Configs.DINO_CMD_flags.split())
         Path(args.output_dir).mkdir(parents=True, exist_ok=True)
-        train_dino(args)
+        train_dino(args, configs=Configs)
 
 
 

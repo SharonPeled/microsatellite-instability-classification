@@ -65,9 +65,11 @@ class Trainer(object):
 
     def __call__(self):
         import src.components.objects.DINO.main_dino as main_dino
+        from src.configs import Configs
+        Configs.set_task_configs(['DN', 'SC'])
 
         self._setup_gpu_args()
-        main_dino.train_dino(self.args)
+        main_dino.train_dino(self.args, Configs)
 
     def checkpoint(self):
         import os
