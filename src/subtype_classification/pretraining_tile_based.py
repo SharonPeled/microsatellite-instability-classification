@@ -26,6 +26,7 @@ def train():
         parser = argparse.ArgumentParser("Submitit for DINO", parents=[get_args_parser(), parse_args()])
         args = parser.parse_args(Configs.DINO_CMD_flags.split())
         Path(args.output_dir).mkdir(parents=True, exist_ok=True)
+
         main(args)
     else:
         parser = argparse.ArgumentParser('DINO', parents=[get_args_parser()])
