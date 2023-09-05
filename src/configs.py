@@ -279,7 +279,7 @@ class DINOConfigs:
     DN_NUM_MINI_EPOCHS = 1
     DN_NUM_EPOCHS = 100 * DN_NUM_MINI_EPOCHS
     CONTINUE_FROM_EPOCH = 0
-    DN_NUM_DEVICES = 8 # num GPUS
+    DN_NUM_GPUS_PER_NODE = 8  # num GPUS
     DN_NUM_NODES = 1
     DN_CPUS_PER_TASK = 10
     DN_TIMEOUT = 1400  # minutes
@@ -292,7 +292,7 @@ class DINOConfigs:
                            f'--output_dir {GeneralConfigs.ROOT}/data/subtype_classification/{DN_RUN_NAME}_dino_checkpoints ' + \
                            f'--norm_last_layer False --warmup_teacher_temp_epochs 2 --warmup_epochs 2 ' + \
                            f'--local_crops_number 8   '
-    DINO_SLURM_CMD_FLAGS = f'--ngpus {DN_NUM_DEVICES} --nodes {DN_NUM_NODES} --cpus_per_task {DN_CPUS_PER_TASK} ' + \
+    DINO_SLURM_CMD_FLAGS = f'--num_gpus_per_node {DN_NUM_GPUS_PER_NODE} --nodes {DN_NUM_NODES} --cpus_per_task {DN_CPUS_PER_TASK} ' + \
                            f'--timeout {DN_TIMEOUT} --partition {DN_PARTITION}  '
     DINO_CMD_flags = DINO_BASIC_CMD_FLAGS if not USE_SLURM else DINO_BASIC_CMD_FLAGS + DINO_SLURM_CMD_FLAGS
     DN_RUN_DESCRIPTION = f"""DINO raw, single GPU, raw dataset and raw warmups.
