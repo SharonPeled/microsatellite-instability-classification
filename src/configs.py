@@ -279,12 +279,13 @@ class DINOConfigs:
     DN_NUM_MINI_EPOCHS = 1
     DN_NUM_EPOCHS = 100 * DN_NUM_MINI_EPOCHS
     CONTINUE_FROM_EPOCH = 0
-    DN_NUM_GPUS_PER_NODE = 8  # num GPUS
+    DN_NUM_GPUS_PER_NODE = 4  # num GPUS
     DN_NUM_NODES = 1
     DN_CPUS_PER_TASK = 10
     DN_TIMEOUT = 1400  # minutes
     DN_DEVICE = 'gpu'
     DN_PARTITION = 'work'
+    DN_QOS = 'normal'
     DINO_BASIC_CMD_FLAGS = f'--arch fusion_cw --out_dim {DN_OUT_DIM} --momentum_teacher 0.9995 ' + \
                            f'--batch_size_per_gpu {DN_BATCH_SIZE} ' + \
                            f'--epochs {DN_NUM_EPOCHS} --saveckp_freq 1 --num_workers {DN_NUM_WORKERS} ' + \
@@ -293,7 +294,7 @@ class DINOConfigs:
                            f'--norm_last_layer False --warmup_teacher_temp_epochs 2 --warmup_epochs 2 ' + \
                            f'--local_crops_number 8   '
     DINO_SLURM_CMD_FLAGS = f'--num_gpus_per_node {DN_NUM_GPUS_PER_NODE} --nodes {DN_NUM_NODES} --cpus_per_task {DN_CPUS_PER_TASK} ' + \
-                           f'--timeout {DN_TIMEOUT} --partition {DN_PARTITION}  '
+                           f'--timeout {DN_TIMEOUT} --partition {DN_PARTITION} --qos {DN_QOS} '
     DINO_CMD_flags = DINO_BASIC_CMD_FLAGS if not USE_SLURM else DINO_BASIC_CMD_FLAGS + DINO_SLURM_CMD_FLAGS
     DN_RUN_DESCRIPTION = f"""DINO raw, single GPU, raw dataset and raw warmups.
     SC run name: {SubtypeClassificationConfigs.SC_RUN_NAME}
