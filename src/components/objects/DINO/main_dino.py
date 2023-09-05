@@ -452,8 +452,8 @@ class DataAugmentationDINO(object):
             transforms.Normalize((0.485, 0.456, 0.406),
                                  (0.229, 0.224, 0.225)),
         ])
-        print(Configs)
-        print(Configs.joined)
+        print(Configs.__dict__)
+        print(list(Configs.joined.items()))
         rand_stain = transforms.RandomApply([
             RandStainNA(yaml_file=Configs.joined['SSL_STATISTICS']['HSV'], std_hyper=0.01, probability=1.0, distribution="normal",
                         is_train=True),
