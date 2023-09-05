@@ -29,6 +29,7 @@ import torch.backends.cudnn as cudnn
 import torch.nn.functional as F
 from torchvision import datasets, transforms
 from torchvision import models as torchvision_models
+from copy import deepcopy
 
 import src.components.objects.DINO.utils as utils
 import src.components.objects.DINO.vision_transformer as vits
@@ -145,6 +146,7 @@ def train_dino(args):
         args.global_crops_scale,
         args.local_crops_scale,
         args.local_crops_number,
+        configs=Configs
     )
     if Configs.DINO_DICT.get('dataset', None):
         dataset = Configs.DINO_DICT['dataset']
@@ -438,7 +440,8 @@ class DINOLoss(nn.Module):
 
 
 class DataAugmentationDINO(object):
-    def __init__(self, global_crops_scale, local_crops_scale, local_crops_number):
+    def __init__(self, global_crops_scale, local_crops_scale, local_crops_number, configs):
+        self.configs = deepcopy(configs)
         flip_and_color_jitter = transforms.Compose([
             transforms.RandomHorizontalFlip(),  # reverse 50% of images
             transforms.RandomVerticalFlip(),  # reverse 50% of images
@@ -452,14 +455,12 @@ class DataAugmentationDINO(object):
             transforms.Normalize((0.485, 0.456, 0.406),
                                  (0.229, 0.224, 0.225)),
         ])
-        print(Configs.__dict__)
-        print(list(Configs.joined.items()))
         rand_stain = transforms.RandomApply([
-            RandStainNA(yaml_file=Configs.joined['SSL_STATISTICS']['HSV'], std_hyper=0.01, probability=1.0, distribution="normal",
+            RandStainNA(yaml_file=self.configs.joined['SSL_STATISTICS']['HSV'], std_hyper=0.01, probability=1.0, distribution="normal",
                         is_train=True),
-            RandStainNA(yaml_file=Configs.joined['SSL_STATISTICS']['HED'], std_hyper=0.01, probability=1.0, distribution="normal",
+            RandStainNA(yaml_file=self.configs.joined['SSL_STATISTICS']['HED'], std_hyper=0.01, probability=1.0, distribution="normal",
                         is_train=True),
-            RandStainNA(yaml_file=Configs.joined['SSL_STATISTICS']['LAB'], std_hyper=0.01, probability=1.0, distribution="normal",
+            RandStainNA(yaml_file=self.configs.joined['SSL_STATISTICS']['LAB'], std_hyper=0.01, probability=1.0, distribution="normal",
                         is_train=True)],
             p=0.8)
 
@@ -503,8 +504,6 @@ class DataAugmentationDINO(object):
 
 
 if __name__ == '__main__':
-    # if len(Configs.joined) == 0:
-    #     Configs.set_task_configs(['DN', 'SC'])
     parser = argparse.ArgumentParser('DINO', parents=[get_args_parser()])
     args = parser.parse_args()
     Path(args.output_dir).mkdir(parents=True, exist_ok=True)
