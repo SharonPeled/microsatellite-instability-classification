@@ -32,6 +32,7 @@ def parse_args():
     parser.add_argument("--timeout", default=2800, type=int, help="Duration of the job in minutes")
 
     parser.add_argument("--partition", default="work", type=str, help="Partition where to submit")
+    parser.add_argument("--qos", default="normal", type=str, help="QOS where to submit")
     parser.add_argument("--use_volta32", action='store_true', help="Big models? Use this")
     parser.add_argument('--comment', default="", type=str,
                         help='Comment to pass to scheduler, e.g. priority message')
@@ -100,6 +101,7 @@ def main(args):
     timeout_min = args.timeout
 
     partition = args.partition
+    qos = args.qos
     kwargs = {}
     if args.use_volta32:
         kwargs['slurm_constraint'] = 'volta32gb'
@@ -116,6 +118,7 @@ def main(args):
         # Below are cluster dependent parameters
         slurm_partition=partition,
         slurm_signal_delay_s=120,
+        qos=qos,
         **kwargs
     )
 
