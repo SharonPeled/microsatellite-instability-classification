@@ -452,7 +452,8 @@ class DataAugmentationDINO(object):
             transforms.Normalize((0.485, 0.456, 0.406),
                                  (0.229, 0.224, 0.225)),
         ])
-
+        print(Configs)
+        print(Configs.joined)
         rand_stain = transforms.RandomApply([
             RandStainNA(yaml_file=Configs.joined['SSL_STATISTICS']['HSV'], std_hyper=0.01, probability=1.0, distribution="normal",
                         is_train=True),
@@ -502,8 +503,8 @@ class DataAugmentationDINO(object):
 
 
 if __name__ == '__main__':
-    if len(Configs.joined) == 0:
-        Configs.set_task_configs(['DN', 'SC'])
+    # if len(Configs.joined) == 0:
+    #     Configs.set_task_configs(['DN', 'SC'])
     parser = argparse.ArgumentParser('DINO', parents=[get_args_parser()])
     args = parser.parse_args()
     Path(args.output_dir).mkdir(parents=True, exist_ok=True)
