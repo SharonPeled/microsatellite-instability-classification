@@ -26,12 +26,12 @@ import submitit
 
 def parse_args():
     parser = argparse.ArgumentParser("Submitit for DINO", add_help=False)
-    parser.add_argument("--ngpus", default=8, type=int, help="Number of gpus to request on each node")
+    parser.add_argument("--num_gpus_per_node", default=8, type=int, help="Number of gpus to request on each node")
     parser.add_argument("--nodes", default=2, type=int, help="Number of nodes to request")
     parser.add_argument("--cpus_per_task", default=10, type=int, help="Number of cpus per gpu")
     parser.add_argument("--timeout", default=2800, type=int, help="Duration of the job in minutes")
 
-    parser.add_argument("--partition", default="normal", type=str, help="Partition where to submit")
+    parser.add_argument("--partition", default="work", type=str, help="Partition where to submit")
     parser.add_argument("--use_volta32", action='store_true', help="Big models? Use this")
     parser.add_argument('--comment', default="", type=str,
                         help='Comment to pass to scheduler, e.g. priority message')
@@ -95,7 +95,7 @@ def main(args):
     Path(args.output_dir).mkdir(parents=True, exist_ok=True)
     executor = submitit.AutoExecutor(folder=args.output_dir, slurm_max_num_timeout=30)
 
-    num_gpus_per_node = args.ngpus
+    num_gpus_per_node = args.num_gpus_per_node
     nodes = args.nodes
     timeout_min = args.timeout
 
@@ -108,8 +108,7 @@ def main(args):
 
     executor.update_parameters(
         mem_gb=40 * num_gpus_per_node,
-        # gpus_per_node=num_gpus_per_node,
-        gres=f'gpu:{num_gpus_per_node}',
+        gpus_per_node=num_gpus_per_node,
         tasks_per_node=num_gpus_per_node,  # one task per GPU
         cpus_per_task=args.cpus_per_task,
         nodes=nodes,
