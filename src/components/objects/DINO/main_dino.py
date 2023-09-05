@@ -34,10 +34,10 @@ from copy import deepcopy
 import src.components.objects.DINO.utils as utils
 import src.components.objects.DINO.vision_transformer as vits
 from src.components.objects.DINO.vision_transformer import DINOHead
-from src.configs import Configs
 from functools import partial
 from src.components.objects.RandStainNA.randstainna import RandStainNA
 from src.general_utils import rm_tmp_files
+from src.configs import Configs
 
 torchvision_archs = sorted(name for name in torchvision_models.__dict__
     if name.islower() and not name.startswith("__")
@@ -134,7 +134,7 @@ def get_args_parser():
     return parser
 
 
-def train_dino(args):
+def train_dino(args, configs):
     utils.init_distributed_mode(args)
     utils.fix_random_seeds(args.seed)
     print("git:\n  {}\n".format(utils.get_sha()))
@@ -146,10 +146,10 @@ def train_dino(args):
         args.global_crops_scale,
         args.local_crops_scale,
         args.local_crops_number,
-        configs=Configs
+        configs=configs
     )
-    if Configs.DINO_DICT.get('dataset', None):
-        dataset = Configs.DINO_DICT['dataset']
+    if configs.DINO_DICT.get('dataset', None):
+        dataset = configs.DINO_DICT['dataset']
         dataset.transform = transform
     else:
         dataset = datasets.ImageFolder(args.data_path, transform=transform)
@@ -188,9 +188,9 @@ def train_dino(args):
         embed_dim = student.fc.weight.shape[1]
     elif args.arch == 'fusion_cw':
         # norm_layer is added in small_vit
-        student = Configs.DINO_DICT['model_fn'](drop_path_rate=args.drop_path_rate,
+        student = configs.DINO_DICT['model_fn'](drop_path_rate=args.drop_path_rate,
                                                 norm_layer=partial(nn.LayerNorm, eps=1e-6))
-        teacher = Configs.DINO_DICT['model_fn'](norm_layer=partial(nn.LayerNorm, eps=1e-6))
+        teacher = configs.DINO_DICT['model_fn'](norm_layer=partial(nn.LayerNorm, eps=1e-6))
         embed_dim = student.embed_dim
     else:
         print(f"Unknow architecture: {args.arch}")
@@ -269,7 +269,7 @@ def train_dino(args):
     print(f"Loss, optimizer and schedulers ready.")
 
     # ============ optionally resume training ... ============
-    to_restore = {"epoch": Configs.CONTINUE_FROM_EPOCH}
+    to_restore = {"epoch": configs.CONTINUE_FROM_EPOCH}
     utils.restart_from_checkpoint(
         os.path.join(args.output_dir, "checkpoint.pth"),
         run_variables=to_restore,
@@ -291,7 +291,7 @@ def train_dino(args):
         # ============ training one epoch of DINO ... ============
         train_stats = train_one_epoch(student, teacher, teacher_without_ddp, dino_loss,
             data_loader, optimizer, lr_schedule, wd_schedule, momentum_schedule,
-            epoch, fp16_scaler, args)
+            epoch, fp16_scaler, args, configs)
 
 
         # ============ writing logs ... ============
@@ -320,7 +320,7 @@ def train_dino(args):
 
 def train_one_epoch(student, teacher, teacher_without_ddp, dino_loss, data_loader,
                     optimizer, lr_schedule, wd_schedule, momentum_schedule,epoch,
-                    fp16_scaler, args):
+                    fp16_scaler, args, configs):
     metric_logger = utils.MetricLogger(delimiter="  ")
     header = 'Epoch: [{}/{}]'.format(epoch, args.epochs)
     for it, objs in enumerate(metric_logger.log_every(data_loader, 10, header)):
@@ -340,7 +340,7 @@ def train_one_epoch(student, teacher, teacher_without_ddp, dino_loss, data_loade
             teacher_output = teacher(images[:2], c)  # only the 2 global views pass through the teacher
             student_output = student(images, c)
             loss = dino_loss(student_output, teacher_output, epoch)
-            Configs.DINO_DICT['logger'].experiment.log_metric(Configs.DINO_DICT['logger'].run_id, 'train_loss', loss)
+            configs.DINO_DICT['logger'].experiment.log_metric(configs.DINO_DICT['logger'].run_id, 'train_loss', loss)
 
         if not math.isfinite(loss.item()):
             print("Loss is {}, stopping training".format(loss.item()), force=True)
@@ -441,7 +441,7 @@ class DINOLoss(nn.Module):
 
 class DataAugmentationDINO(object):
     def __init__(self, global_crops_scale, local_crops_scale, local_crops_number, configs):
-        self.configs = deepcopy(configs)
+        self.configs = configs
         flip_and_color_jitter = transforms.Compose([
             transforms.RandomHorizontalFlip(),  # reverse 50% of images
             transforms.RandomVerticalFlip(),  # reverse 50% of images
@@ -507,4 +507,4 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser('DINO', parents=[get_args_parser()])
     args = parser.parse_args()
     Path(args.output_dir).mkdir(parents=True, exist_ok=True)
-    train_dino(args)
+    train_dino(args, Configs)
