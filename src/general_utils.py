@@ -21,6 +21,12 @@ import pytorch_lightning as pl
 import subprocess
 
 
+def sample_tiles_lambda(min_tiles=1e10):
+    def sample(self, tile_count):
+        return min(tile_count, min_tiles)
+    return sample_tiles_lambda
+
+
 def rm_tmp_files():
     proc = subprocess.Popen(['rm /tmp/* -r -f'], shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
     proc.wait()

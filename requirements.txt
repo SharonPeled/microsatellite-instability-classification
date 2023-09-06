@@ -19,3 +19,4 @@ mlflow==2.1.1
 timm==0.9.2
 fitter==1.5.2
 scikit-image
+submitit
