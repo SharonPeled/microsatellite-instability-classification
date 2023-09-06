@@ -29,6 +29,7 @@ def parse_args():
     parser.add_argument("--num_gpus_per_node", default=8, type=int, help="Number of gpus to request on each node")
     parser.add_argument("--nodes", default=2, type=int, help="Number of nodes to request")
     parser.add_argument("--cpus_per_task", default=10, type=int, help="Number of cpus per gpu")
+    parser.add_argument("--mem_per_gpu", default=40, type=int, help="Number of GB RAM per gpu")
     parser.add_argument("--timeout", default=2800, type=int, help="Duration of the job in minutes")
 
     parser.add_argument("--partition", default="work", type=str, help="Partition where to submit")
@@ -102,6 +103,7 @@ def main(args):
     executor = submitit.SlurmExecutor(folder=args.output_dir, max_num_timeout=30, python=python_str)
 
     num_gpus_per_node = args.num_gpus_per_node
+    num_mem_per_gpu = args.mem_per_gpu
     nodes = args.nodes
     timeout_min = args.timeout
 
@@ -114,7 +116,7 @@ def main(args):
         kwargs['slurm_comment'] = args.comment
 
     executor.update_parameters(
-        mem_per_gpu='40GB',
+        mem_per_gpu=f'{num_mem_per_gpu}GB',
         gpus_per_node=num_gpus_per_node,
         ntasks_per_node=num_gpus_per_node,  # one task per GPU
         cpus_per_task=args.cpus_per_task,
