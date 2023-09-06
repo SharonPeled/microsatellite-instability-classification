@@ -98,7 +98,8 @@ def main(args):
     if args.output_dir == "":
         args.output_dir = get_shared_folder() / "%j"
     Path(args.output_dir).mkdir(parents=True, exist_ok=True)
-    executor = submitit.AutoExecutor(folder=args.output_dir, slurm_max_num_timeout=30)
+    python_str = """--container-image=/home/sharonpe/microsatellite-instability-classification/msi_pytorch2.sqsh  --container-mounts=/home/sharonpe/:/home/sharonpe/,/rg/freiman_prj/sharonpe/:/home/sharonpe/work /usr/bin/python """
+    executor = submitit.SlurmExecutor(folder=args.output_dir, max_num_timeout=30, python=python_str)
 
     num_gpus_per_node = args.num_gpus_per_node
     nodes = args.nodes
