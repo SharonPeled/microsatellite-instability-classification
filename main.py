@@ -1,5 +1,4 @@
 import argparse
-from src.preprocessing.pipeline import execute_preprocessing_pipeline
 from src.tumor_classification.training import train as train_tumor
 from src.tumor_classification.predict import predict as predict_tumor
 from src.semantic_segmentation.OOD_validation_tumor_TCGA import OOD_validation_tumor_TCGA
@@ -95,8 +94,10 @@ def main():
         if input().lower() in ['y', 'yes']:
             delete_all_artifacts(Configs)
     if args.preprocess:
+        from src.preprocessing.pipeline import execute_preprocessing_pipeline
         execute_preprocessing_pipeline(with_tiling=True, num_processes=args.num_processes, slide_ids=args.slide_ids)
     if args.thumbnails_only:
+        from src.preprocessing.pipeline import execute_preprocessing_pipeline
         execute_preprocessing_pipeline(with_tiling=False, num_processes=args.num_processes, slide_ids=args.slide_ids)
     if args.bring_slide_logs:
         bring_joined_log_file(Configs.SLIDES_DIR, Configs.PROGRAM_LOG_FILE_ARGS[0], args.bring_slide_logs)
