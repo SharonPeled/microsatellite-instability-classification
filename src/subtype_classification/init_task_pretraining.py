@@ -20,6 +20,7 @@ def init_task():
 
     Logger.log("Loading Datasets..", log_importance=1)
     df_tiles = pd.read_csv(Configs.DN_DF_TILE_PATHS_PATH)
+    df_tiles.cohort = df_tiles.cohort.apply(lambda c: c if c not in ['COAD', 'READ'] else 'CRC')
     num_slides = len(df_tiles.slide_uuid.unique())
 
     if Configs.DINO_DICT.get('FoVs_augs_amounts', None):
