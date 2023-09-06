@@ -30,6 +30,7 @@ def init_task():
             if Configs.SC_KW_ARGS.get('FoVs_augs_amounts')[i] is None or Configs.SC_KW_ARGS.get('FoVs_augs_amounts')[i] == 0:
                 continue
             df_tiles_aug = pd.read_csv(path)
+            df_tiles_aug.cohort = df_tiles_aug.cohort.apply(lambda c: c if c not in ['COAD', 'READ'] else 'CRC')
             num_tiles = Configs.DINO_DICT['FoVs_augs_amounts'][i] * len(df_tiles)
             num_tiles_per_slide = int(num_tiles / num_slides)
             df_tiles_aug_sampled = df_tiles_aug.groupby('slide_uuid', as_index=False).apply(
