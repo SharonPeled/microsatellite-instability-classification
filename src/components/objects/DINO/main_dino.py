@@ -340,7 +340,8 @@ def train_one_epoch(student, teacher, teacher_without_ddp, dino_loss, data_loade
             teacher_output = teacher(images[:2], c)  # only the 2 global views pass through the teacher
             student_output = student(images, c)
             loss = dino_loss(student_output, teacher_output, epoch)
-            configs.DINO_DICT['logger'].experiment.log_metric(configs.DINO_DICT['logger'].run_id, 'train_loss', loss)
+            if it % 10 == 0:
+                configs.DINO_DICT['logger'].experiment.log_metric(configs.DINO_DICT['logger'].run_id, 'train_loss', loss)
 
         if not math.isfinite(loss.item()):
             print("Loss is {}, stopping training".format(loss.item()), force=True)

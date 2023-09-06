@@ -273,18 +273,18 @@ class DINOConfigs:
                                          f'df_all_processed_tile_paths_dino_512.csv')
     DINO_DICT = {'FoVs_augs_amounts': (0.15, 0.15)}  # tuple of % from each FoVs to add
     USE_SLURM = True
-    DN_OUT_DIM = 2048
-    DN_BATCH_SIZE = 32
-    DN_NUM_WORKERS = 1
+    DN_OUT_DIM = 65536
+    DN_BATCH_SIZE = 256
+    DN_NUM_WORKERS = 15
     DN_NUM_MINI_EPOCHS = 1
     DN_NUM_EPOCHS = 100 * DN_NUM_MINI_EPOCHS
     CONTINUE_FROM_EPOCH = 0
-    DN_NUM_GPUS_PER_NODE = 1  # num GPUS
+    DN_NUM_GPUS_PER_NODE = 4  # num GPUS
     DN_NUM_NODES = 1
-    DN_CPUS_PER_TASK = 1
+    DN_CPUS_PER_TASK = 10
     DN_TIMEOUT = 1400  # minutes
     DN_DEVICE = 'gpu'
-    DN_PARTITION = 'mig'
+    DN_PARTITION = 'work'
     DN_QOS = 'normal'
     DINO_BASIC_CMD_FLAGS = f'--arch fusion_cw --out_dim {DN_OUT_DIM} --momentum_teacher 0.9995 ' + \
                            f'--batch_size_per_gpu {DN_BATCH_SIZE} ' + \
