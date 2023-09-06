@@ -2,7 +2,7 @@ from dataclasses import dataclass
 import os
 from pathlib import Path
 from .preprocessing.pen_filter import get_pen_color_palette
-from .general_utils import set_global_configs
+from .general_utils import set_global_configs, sample_tiles_lambda
 import torch
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning, module="torchstain")
@@ -215,7 +215,7 @@ class SubtypeClassificationConfigs:
     SC_VALID_SIZE = 0  # not used if CV=True
     SC_INIT_LR = [1e-6 * (SC_TRAINING_BATCH_SIZE/256),
                   1e-4 * (SC_TRAINING_BATCH_SIZE/256)]  # per part of the network, in order of the actual nn
-    SC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count, 1e10)  # all tiles
+    SC_TILE_SAMPLE_LAMBDA_TRAIN = sample_tiles_lambda(min_tiles=1e10)  # all tiles
     SC_TILE_SAMPLE_LAMBDA_TRAIN_TUNE = None
     SC_FROZEN_BACKBONE = False
     SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 2000
@@ -347,7 +347,7 @@ class VariantClassificationConfigs:
     VC_VALID_SIZE = None
     VC_INIT_LR = [1e-6, 1e-4]  # per part of the network, in order of the actual nn
     VC_ITER_TRAINING_WARMUP_WO_BACKBONE = 1000
-    VC_TILE_SAMPLE_LAMBDA_TRAIN = lambda self, tile_count: min(tile_count, 1e10)
+    VC_TILE_SAMPLE_LAMBDA_TRAIN = sample_tiles_lambda(min_tiles=1e10)
     VC_FROZEN_BACKBONE = False
     VC_TILE_ENCODER = 'SSL_VIT_PRETRAINED'
     # sample stuff
@@ -363,7 +363,7 @@ class ConfigsClass(GeneralConfigs, PreprocessingConfigs, TumorClassificationConf
     TASK_PREFIXES = ''
 
     def __init__(self):
-        self.joined = defaultdict(lambda: None)
+        self.joined = {}
 
     def set_task_configs(self, task_prefix):
         if not isinstance(task_prefix, list):
