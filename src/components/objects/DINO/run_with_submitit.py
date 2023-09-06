@@ -114,7 +114,7 @@ def main(args):
         kwargs['slurm_comment'] = args.comment
 
     executor.update_parameters(
-        mem_per_gpu=40,
+        mem_per_gpu='40GB',
         gpus_per_node=num_gpus_per_node,
         ntasks_per_node=num_gpus_per_node,  # one task per GPU
         cpus_per_task=args.cpus_per_task,
