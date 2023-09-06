@@ -2,7 +2,7 @@ from dataclasses import dataclass
 import os
 from pathlib import Path
 from .preprocessing.pen_filter import get_pen_color_palette
-from .general_utils import set_global_configs, sample_tiles_fn
+from .general_utils import set_global_configs
 import torch
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning, module="torchstain")
