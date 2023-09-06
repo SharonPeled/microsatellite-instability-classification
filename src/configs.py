@@ -284,7 +284,7 @@ class DINOConfigs:
     DN_CPUS_PER_TASK = 1
     DN_TIMEOUT = 1400  # minutes
     DN_DEVICE = 'gpu'
-    DN_PARTITION = 'work'
+    DN_PARTITION = 'mig'
     DN_QOS = 'normal'
     DINO_BASIC_CMD_FLAGS = f'--arch fusion_cw --out_dim {DN_OUT_DIM} --momentum_teacher 0.9995 ' + \
                            f'--batch_size_per_gpu {DN_BATCH_SIZE} ' + \
