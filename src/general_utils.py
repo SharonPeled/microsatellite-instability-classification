@@ -21,10 +21,10 @@ import pytorch_lightning as pl
 import subprocess
 
 
-def sample_tiles_lambda(min_tiles=1e10):
+def sample_tiles_fn(min_tiles=1e10):
     def sample(self, tile_count):
         return min(tile_count, min_tiles)
-    return sample_tiles_lambda
+    return sample
 
 
 def rm_tmp_files():

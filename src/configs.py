@@ -2,7 +2,7 @@ from dataclasses import dataclass
 import os
 from pathlib import Path
 from .preprocessing.pen_filter import get_pen_color_palette
-from .general_utils import set_global_configs, sample_tiles_lambda
+from .general_utils import set_global_configs, sample_tiles_fn
 import torch
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning, module="torchstain")
@@ -22,6 +22,7 @@ class GeneralConfigs:
     LOG_FORMAT = {'format': '%(process)d  %(asctime)s  [%(name)s] - %(message)s', 'datefmt':'%d-%m-%y %H:%M:%S'}
     MLFLOW_SAVE_DIR = os.path.join(ROOT, 'models', 'mlruns')
     START_TIME = datetime.now().strftime('%d_%m_%Y_%H_%M')
+    SAMPLE_TILES_FN = sample_tiles_fn
 
 
 @dataclass
@@ -215,7 +216,7 @@ class SubtypeClassificationConfigs:
     SC_VALID_SIZE = 0  # not used if CV=True
     SC_INIT_LR = [1e-6 * (SC_TRAINING_BATCH_SIZE/256),
                   1e-4 * (SC_TRAINING_BATCH_SIZE/256)]  # per part of the network, in order of the actual nn
-    SC_TILE_SAMPLE_LAMBDA_TRAIN = sample_tiles_lambda(min_tiles=1e10)  # all tiles
+    SC_TILE_SAMPLE_LAMBDA_TRAIN = GeneralConfigs.SAMPLE_TILES_FN(min_tiles=1e10)  # all tiles
     SC_TILE_SAMPLE_LAMBDA_TRAIN_TUNE = None
     SC_FROZEN_BACKBONE = False
     SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 2000
@@ -272,7 +273,7 @@ class DINOConfigs:
     DN_DF_TILE_PATHS_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                          f'df_all_processed_tile_paths_dino_512.csv')
     DINO_DICT = {'FoVs_augs_amounts': (0.15, 0.15)}  # tuple of % from each FoVs to add
-    USE_SLURM = True
+    USE_SLURM = False
     DN_OUT_DIM = 65536
     DN_BATCH_SIZE = 256
     DN_NUM_WORKERS = 15
@@ -347,7 +348,7 @@ class VariantClassificationConfigs:
     VC_VALID_SIZE = None
     VC_INIT_LR = [1e-6, 1e-4]  # per part of the network, in order of the actual nn
     VC_ITER_TRAINING_WARMUP_WO_BACKBONE = 1000
-    VC_TILE_SAMPLE_LAMBDA_TRAIN = sample_tiles_lambda(min_tiles=1e10)
+    VC_TILE_SAMPLE_LAMBDA_TRAIN = GeneralConfigs.SAMPLE_TILES_FN(min_tiles=1e10)
     VC_FROZEN_BACKBONE = False
     VC_TILE_ENCODER = 'SSL_VIT_PRETRAINED'
     # sample stuff
