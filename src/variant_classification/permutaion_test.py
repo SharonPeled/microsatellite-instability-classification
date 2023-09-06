@@ -124,7 +124,7 @@ def train():
     # sampling from each slide to reduce computational costs
     df_tiles_sampled = df_tiles.groupby('slide_uuid').apply(lambda slide_df:
                                                             slide_df.sample(
-                                                                n=Configs.VC_TILE_SAMPLE_LAMBDA_TRAIN(len(slide_df)),
+                                                                n=min(Configs.joined['TILE_SAMPLE_TRAIN'], len(slide_df)),
                                                                 random_state=Configs.RANDOM_SEED)).reset_index(
         drop=True)
     # permutation loop
