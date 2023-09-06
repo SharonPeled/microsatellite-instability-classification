@@ -22,7 +22,6 @@ class GeneralConfigs:
     LOG_FORMAT = {'format': '%(process)d  %(asctime)s  [%(name)s] - %(message)s', 'datefmt':'%d-%m-%y %H:%M:%S'}
     MLFLOW_SAVE_DIR = os.path.join(ROOT, 'models', 'mlruns')
     START_TIME = datetime.now().strftime('%d_%m_%Y_%H_%M')
-    SAMPLE_TILES_FN = sample_tiles_fn
 
 
 @dataclass
@@ -216,7 +215,7 @@ class SubtypeClassificationConfigs:
     SC_VALID_SIZE = 0  # not used if CV=True
     SC_INIT_LR = [1e-6 * (SC_TRAINING_BATCH_SIZE/256),
                   1e-4 * (SC_TRAINING_BATCH_SIZE/256)]  # per part of the network, in order of the actual nn
-    SC_TILE_SAMPLE_LAMBDA_TRAIN = GeneralConfigs.SAMPLE_TILES_FN(min_tiles=1e10)  # all tiles
+    SC_TILE_SAMPLE_TRAIN = 1e10  # all tiles
     SC_TILE_SAMPLE_LAMBDA_TRAIN_TUNE = None
     SC_FROZEN_BACKBONE = False
     SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 2000
@@ -348,7 +347,7 @@ class VariantClassificationConfigs:
     VC_VALID_SIZE = None
     VC_INIT_LR = [1e-6, 1e-4]  # per part of the network, in order of the actual nn
     VC_ITER_TRAINING_WARMUP_WO_BACKBONE = 1000
-    VC_TILE_SAMPLE_LAMBDA_TRAIN = GeneralConfigs.SAMPLE_TILES_FN(min_tiles=1e10)
+    VC_TILE_SAMPLE_TRAIN = 1e10
     VC_FROZEN_BACKBONE = False
     VC_TILE_ENCODER = 'SSL_VIT_PRETRAINED'
     # sample stuff
@@ -373,7 +372,7 @@ class ConfigsClass(GeneralConfigs, PreprocessingConfigs, TumorClassificationConf
         common_configs = ['EXPERIMENT_NAME', 'RUN_NAME', 'RUN_DESCRIPTION', 'LABEL_DF_PATH', 'DF_TILE_PATHS_PATH',
                           'TRAINED_MODEL_PATH', 'CLASS_TO_IND', 'NUM_EPOCHS', 'NUM_DEVICES', 'DEVICE', 'TEST_BATCH_SIZE',
                           'SAVE_CHECKPOINT_STEP_INTERVAL', 'VAL_STEP_INTERVAL', 'TRAINING_BATCH_SIZE', 'NUM_WORKERS',
-                          'TEST_SIZE', 'VALID_SIZE', 'INIT_LR', 'TILE_SAMPLE_LAMBDA_TRAIN', 'SSL_STATISTICS',
+                          'TEST_SIZE', 'VALID_SIZE', 'INIT_LR', 'TILE_SAMPLE_TRAIN', 'SSL_STATISTICS',
                           'CROSS_VALIDATE', 'Y_TO_BE_STRATIFIED', 'TEST_ONLY', 'TEST_PREDICT_OUTPUT_PATH',
                           'VALID_PREDICT_OUTPUT_PATH', 'COHORT_TO_IND', 'CONTINUE_FROM_FOLD', 'NUM_NODES']
         for c in common_configs:

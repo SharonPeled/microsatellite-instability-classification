@@ -66,7 +66,7 @@ def train():
     df_labels_merged_tiles = df_labels.merge(df_tiles, how='inner', on='slide_uuid')
     # sampling from each slide to reduce computational costs
     df_labels_merged_tiles_sampled = df_labels_merged_tiles.groupby('slide_uuid').apply(
-        lambda slide_df: slide_df.sample(n=Configs.SC_TILE_SAMPLE_LAMBDA_TRAIN(len(slide_df)),
+        lambda slide_df: slide_df.sample(n=min(Configs.joined['TILE_SAMPLE_TRAIN'], len(slide_df)),
                                          random_state=Configs.RANDOM_SEED)).reset_index(drop=True)
     # split to train, valid, test
     df_train, df_valid, df_test = train_test_valid_split_patients_stratified(df_labels_merged_tiles_sampled,
