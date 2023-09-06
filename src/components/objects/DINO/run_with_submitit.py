@@ -127,7 +127,7 @@ def main(args):
         **kwargs
     )
 
-    executor.update_parameters(name="dino")
+    # executor.update_parameters(name="dino")
 
     args.dist_url = get_init_file(args).as_uri()
 
