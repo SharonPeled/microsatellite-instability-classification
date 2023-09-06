@@ -273,26 +273,26 @@ class DINOConfigs:
                                          f'df_all_processed_tile_paths_dino_512.csv')
     DINO_DICT = {'FoVs_augs_amounts': (0.15, 0.15)}  # tuple of % from each FoVs to add
     USE_SLURM = True
-    DN_OUT_DIM = 16384
-    DN_BATCH_SIZE = 32
+    DN_OUT_DIM = 65536
+    DN_BATCH_SIZE = 128
     DN_NUM_WORKERS = 15
-    DN_NUM_MINI_EPOCHS = 1
-    DN_NUM_EPOCHS = 100 * DN_NUM_MINI_EPOCHS
+    DN_NUM_MINI_EPOCHS = 2
+    DN_NUM_EPOCHS = 3 * DN_NUM_MINI_EPOCHS
     CONTINUE_FROM_EPOCH = 0
-    DN_NUM_GPUS_PER_NODE = 1  # num GPUS
+    DN_NUM_GPUS_PER_NODE = 4  # num GPUS
     DN_NUM_NODES = 1
-    DN_CPUS_PER_TASK = 10
-    DN_MEM_PER_GPU = 60
+    DN_CPUS_PER_TASK = 20
+    DN_MEM_PER_GPU = 70
     DN_TIMEOUT = 1400  # minutes
     DN_DEVICE = 'gpu'
     DN_PARTITION = 'work'
     DN_QOS = 'normal'
-    DINO_BASIC_CMD_FLAGS = f'--arch fusion_cw --out_dim {DN_OUT_DIM} --momentum_teacher 0.9995 ' + \
+    DINO_BASIC_CMD_FLAGS = f'--arch fusion_cw --out_dim {DN_OUT_DIM} --momentum_teacher 0.9999 ' + \
                            f'--batch_size_per_gpu {DN_BATCH_SIZE} ' + \
                            f'--epochs {DN_NUM_EPOCHS} --saveckp_freq 1 --num_workers {DN_NUM_WORKERS} ' + \
                            f'--seed {GeneralConfigs.RANDOM_SEED} ' + \
                            f'--output_dir {GeneralConfigs.ROOT}/data/subtype_classification/{DN_RUN_NAME}_dino_checkpoints ' + \
-                           f'--norm_last_layer False --warmup_teacher_temp_epochs 2 --warmup_epochs 2 ' + \
+                           f'--norm_last_layer False --warmup_teacher_temp_epochs 1 --warmup_epochs 1 ' + \
                            f'--local_crops_number 8   '
     DINO_SLURM_CMD_FLAGS = f'--num_gpus_per_node {DN_NUM_GPUS_PER_NODE} --nodes {DN_NUM_NODES} --cpus_per_task {DN_CPUS_PER_TASK} ' + \
                            f'--timeout {DN_TIMEOUT} --partition {DN_PARTITION} --qos {DN_QOS} --mem_per_gpu {DN_MEM_PER_GPU}'
