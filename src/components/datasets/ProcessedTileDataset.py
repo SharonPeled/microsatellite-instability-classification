@@ -1,8 +1,9 @@
 from torch.utils.data import Dataset
 import numpy as np
-from PIL import Image
 from src.components.objects.Logger import Logger
 import torch
+from PIL import Image, ImageFile
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 
 class ProcessedTileDataset(Dataset, Logger):
@@ -15,7 +16,7 @@ class ProcessedTileDataset(Dataset, Logger):
         self.target_transform = target_transform
         self.group_size = group_size
         if self.group_size > 1:
-            # TODO: random state here
+            # deprecated - see TileGroupDataset
             self.df_labels = self.df_labels.sample(frac=1, random_state=None).reset_index(drop=True)
             self.df_labels['group_id'] = self.df_labels.groupby('slide_uuid').cumcount() // group_size
             self.df_labels = self.df_labels.groupby(['slide_uuid', 'group_id']).filter(lambda x: len(x) == group_size)
