@@ -135,6 +135,8 @@ def get_args_parser():
 
 
 def train_dino(args, configs):
+    from PIL import ImageFile
+    ImageFile.LOAD_TRUNCATED_IMAGES = True
     utils.init_distributed_mode(args)
     utils.fix_random_seeds(args.seed)
     print("git:\n  {}\n".format(utils.get_sha()))
