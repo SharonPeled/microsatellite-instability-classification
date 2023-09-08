@@ -269,7 +269,7 @@ class DINOConfigs:
     DN_TILE_SIZE = 512
     DN_EXPERIMENT_NAME = 'SC_fusion_dino'
     DN_FORMULATION = f'dgx_SQ6B12_At2Ltanh_65k'
-    DN_RUN_NAME = f"{DN_FORMULATION}_1"
+    DN_RUN_NAME = f"{DN_FORMULATION}_2"
     DN_DF_TILE_PATHS_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                          f'df_all_processed_tile_paths_dino_512.csv')
     DINO_DICT = {'FoVs_augs_amounts': (0.15, 0.15)}  # tuple of % from each FoVs to add
@@ -292,7 +292,7 @@ class DINOConfigs:
                            f'--batch_size_per_gpu {DN_BATCH_SIZE} ' + \
                            f'--epochs {DN_NUM_EPOCHS} --saveckp_freq 1 --num_workers {DN_NUM_WORKERS} ' + \
                            f'--seed {GeneralConfigs.RANDOM_SEED} ' + \
-                           f'--output_dir {GeneralConfigs.ROOT}/data/subtype_classification/{DN_RUN_NAME}_dino_checkpoints ' + \
+                           f'--output_dir {GeneralConfigs.ROOT}/models/subtype_classification/{DN_RUN_NAME}_dino_checkpoints ' + \
                            f'--warmup_teacher_temp_epochs 3 --teacher_temp 0.025 --warmup_teacher_temp 0.01  ' + \
                            f'--warmup_epochs 3 --min_lr  1e-6  --lr 0.0005  ' + \
                            f'--norm_last_layer True  ' + \
