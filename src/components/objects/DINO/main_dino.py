@@ -241,7 +241,7 @@ def train_dino(args, configs):
     # ============ preparing optimizer ... ============
     params_groups = utils.get_params_groups(student)
     if args.optimizer == "adamw":
-        optimizer = torch.optim.AdamW(params_groups)  # to use with ViTs
+        optimizer = torch.optim.AdamW(params_groups, betas=(0.9, 0.97))  # to use with ViTs
     elif args.optimizer == "sgd":
         optimizer = torch.optim.SGD(params_groups, lr=0, momentum=0.9)  # lr is set by scheduler
     elif args.optimizer == "lars":
@@ -340,7 +340,7 @@ def train_one_epoch(student, teacher, teacher_without_ddp, dino_loss, data_loade
             teacher_output = teacher(images[:2], c)  # only the 2 global views pass through the teacher
             student_output = student(images, c)
             loss = dino_loss(student_output, teacher_output, epoch)
-            if it % 10 == 0:
+            if it % 25 == 0:
                 configs.DINO_DICT['logger'].experiment.log_metric(configs.DINO_DICT['logger'].run_id, 'train_loss', loss)
 
         if not math.isfinite(loss.item()):
