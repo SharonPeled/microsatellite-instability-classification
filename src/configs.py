@@ -288,13 +288,15 @@ class DINOConfigs:
     DN_DEVICE = 'gpu'
     DN_PARTITION = 'work'
     DN_QOS = 'normal'
-    DINO_BASIC_CMD_FLAGS = f'--arch fusion_cw --out_dim {DN_OUT_DIM} --momentum_teacher 0.996 ' + \
+    DINO_BASIC_CMD_FLAGS = f'--arch fusion_cw --out_dim {DN_OUT_DIM} --momentum_teacher 0.9995 ' + \
                            f'--batch_size_per_gpu {DN_BATCH_SIZE} ' + \
                            f'--epochs {DN_NUM_EPOCHS} --saveckp_freq 1 --num_workers {DN_NUM_WORKERS} ' + \
                            f'--seed {GeneralConfigs.RANDOM_SEED} ' + \
                            f'--output_dir {GeneralConfigs.ROOT}/data/subtype_classification/{DN_RUN_NAME}_dino_checkpoints ' + \
-                           f'--norm_last_layer True --warmup_teacher_temp_epochs 2 --warmup_epochs 2 ' + \
-                           f'--local_crops_number 8  --freeze_last_layer 2 --use_fp16 False  '
+                           f'--warmup_teacher_temp_epochs 3 --teacher_temp 0.025 --warmup_teacher_temp 0.01  ' + \
+                           f'--warmup_epochs 3 --min_lr  1e-6  --lr 0.0005  ' + \
+                           f'--norm_last_layer True  ' + \
+                           f'--local_crops_number 8  --freeze_last_layer 1 --use_fp16 False  '
     DINO_SLURM_CMD_FLAGS = f'--num_gpus_per_node {DN_NUM_GPUS_PER_NODE} --nodes {DN_NUM_NODES} --cpus_per_task {DN_CPUS_PER_TASK} ' + \
                            f'--timeout {DN_TIMEOUT} --partition {DN_PARTITION} --qos {DN_QOS} --mem_per_gpu {DN_MEM_PER_GPU}'
     DINO_CMD_flags = DINO_BASIC_CMD_FLAGS if not USE_SLURM else DINO_BASIC_CMD_FLAGS + DINO_SLURM_CMD_FLAGS
