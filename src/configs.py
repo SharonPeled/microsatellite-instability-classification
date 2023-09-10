@@ -161,14 +161,14 @@ class TumorRegressionConfigs:
 
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
-    SC_EXPERIMENT_NAME = 'SC_tile_bilal_labels_MSI'
-    SC_FORMULATION = f'cwS_FV_SQ6B12_At2Ltanh_{SC_TILE_SIZE}'
-    SC_RUN_NAME = f"DINO_{SC_FORMULATION}_2"
-    SC_RUN_DESCRIPTION = f"""Label file is matched the CRC to bilal. Other cohorts is MSI or MSS according to subtype.
+    SC_EXPERIMENT_NAME = 'SC_MIL_DINO_VIT'
+    SC_FORMULATION = f'max_pool_{SC_TILE_SIZE}'
+    SC_RUN_NAME = f"{SC_FORMULATION}_1"
+    SC_RUN_DESCRIPTION = f"""Labels are by bioportal.
     """
     SC_LABEL_DF_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
-                                    # 'manifest_labeled_dx_molecular_subtype.tsv')
-                                    'df_labels_msi_slides_and_other_msi_mss.tsv')
+                                    'manifest_labeled_dx_molecular_subtype.tsv')
+                                    # 'df_labels_msi_slides_and_other_msi_mss.tsv')
                                     # 'df_labels_cin_slides_and_other_cin_gs.tsv')
                                     # 'df_labels_cin_slides_and_other_cin_gs_2.tsv')
     SC_DF_TILE_PATHS_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
@@ -195,22 +195,22 @@ class SubtypeClassificationConfigs:
     SC_CROSS_VALIDATE = True  # num folds according to test size
     SC_CONTINUE_FROM_FOLD = 0  # 0 to 1/TEST_SIZE
     SC_Y_TO_BE_STRATIFIED = 'y_to_be_stratified'
-    SC_CLASS_TO_IND = {'MSS': 0, 'MSI': 1} # {'GS': 0, 'CIN': 1} # {'MSS': 0, 'MSI': 1} #
+    SC_CLASS_TO_IND = {'GS': 0, 'CIN': 1} # {'MSS': 0, 'MSI': 1} #
     SC_CLASS_WEIGHT = None #  {'GS': 770, 'CIN': 235}
     SC_COHORT_TO_IND = {'CRC': 0, 'STAD': 1, 'ESCA': 2, 'UCEC': 3}
     SC_EXCLUDE_COHORT_AWARENESS = {'ESCA': 2}
     SC_COHORT_WEIGHT = None # {('COAD', 'CIN'): 0.75, ('COAD', 'GS'): 2.25, ('ESCA', 'CIN'): 0.25, ('ESCA', 'GS'): 0.75, ('READ', 'CIN'): 0.75, ('READ', 'GS'): 2.25, ('STAD', 'CIN'): 0.25, ('STAD', 'GS'): 0.75, ('UCEC', 'CIN'): 0.25, ('UCEC', 'GS'): 0.75}
     # SC_COHORT_TUNE = None # ['COAD', 'READ']
     SC_TEST_ONLY = None
-    SC_NUM_EPOCHS = 1
-    SC_NUM_DEVICES = [0, ]  # for slurm always 0
+    SC_NUM_EPOCHS = 10
+    SC_NUM_DEVICES = 4
     SC_NUM_NODES = 1
     SC_DEVICE = 'gpu'
-    SC_TEST_BATCH_SIZE = 512
+    SC_TEST_BATCH_SIZE = 32
     SC_SAVE_CHECKPOINT_STEP_INTERVAL = 20000
     SC_VAL_STEP_INTERVAL = 1/2  # 2 times an epoch
-    SC_TRAINING_BATCH_SIZE = 256  # accumulating gradients in MIL only
-    SC_NUM_WORKERS = 15
+    SC_TRAINING_BATCH_SIZE = 32  # accumulating gradients in MIL only
+    SC_NUM_WORKERS = 5
     SC_TEST_SIZE = 0.3333
     SC_VALID_SIZE = 0  # not used if CV=True
     SC_INIT_LR = [1e-6 * (SC_TRAINING_BATCH_SIZE/256),
@@ -218,7 +218,7 @@ class SubtypeClassificationConfigs:
     SC_TILE_SAMPLE_TRAIN = 1e10  # all tiles
     SC_TILE_SAMPLE_LAMBDA_TRAIN_TUNE = None
     SC_FROZEN_BACKBONE = False
-    SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 2000
+    SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 0
     SC_TILE_ENCODER = None  # to load dino net for future classification - VIT_PRETRAINED_DINO
     COHORT_AWARE_DICT = {'num_cohorts': 4,
                          'num_heads_per_cohort': 6,
@@ -236,7 +236,7 @@ class SubtypeClassificationConfigs:
     # separate_query - each cohort allocated a query, query of other cohorts are used but not updates (no gradients)
     SC_KW_ARGS = {'one_hot_cohort_head': False, # single layer head, overrides n_nn_head
                   'calc_proportions_class_w': False,
-                  'n_nn_head': {'num_layers': 3, 'dropout_value': 0.0},
+                  'n_nn_head': {'num_layers': 1, 'dropout_value': 0.0},
                   'sep_cohort_w_loss': True,
                   'learnable_cohort_prior_type': None, # '*', # 0.1,  # initial prior value
                   'FoVs_augs_amounts': (0.15, 0.15),  # tuple of % from each FoVs to add
@@ -246,23 +246,25 @@ class SubtypeClassificationConfigs:
                   'config_filepath': Path(__file__).resolve()
                   }
     # MIL STUFF
-    SC_IS_MIL = True
-    SC_MIL_GROUP_SIZE = 512
-    SC_MIL_VIT_MODEL_VARIANT = 'SSL_VIT_PRETRAINED'
-    SC_MIL_VIT_MODEL_PRETRAINED = True
-    SC_TILE_BASED_TRAINED_MODEL = '/home/sharonpe/microsatellite-instability-classification/models/subtype_classification/SC_resnet_tile_CIS_GS_2_20_06_2023_19_26.ckpt'
-    SC_MIL_IMAGENET_RESENT = False
-    SC_TILE_BASED_TEST_SET = '/home/sharonpe/microsatellite-instability-classification/data/subtype_classification/resnet_tile_CIS_GS_2/test/df_pred_21_06_2023_05_41.csv'
-    SC_TRAINING_PHASES = [{'num_steps': -1, 'lr': 1e-5, 'run_suffix': '_adaptors'}, ]
-    SC_CHECKPOINT = [None,
-                     None]
-    SC_DROPOUT = (0.4, 0.4, 0.4)
-    # SC_COHORT_DICT = {
-    #     'num_cohorts': len(SC_COHORT_TO_IND),
-    #     'place': {
-    #         'before_adapter': False,
-    #         'before_head': True
-    #     }}
+    SC_MIL_MODEL_NAME = 'VIT_PRETRAINED_DINO'
+    # "/home/sharonpe/microsatellite-instability-classification/data/subtype_classification/third_try_all_slides_16k_4_dino_checkpoints/checkpoint9.pth"
+    SC_MIL_MODEL_CKPT = os.path.join(GeneralConfigs.ROOT, 'models', 'subtype_classification',
+                                     'dgx_SQ6B12_At2Ltanh_65k_2_dino_checkpoints', 'checkpoint0005.pth')
+    SC_MIL_TILE_ENCODER_NAME = 'VIT_PRETRAINED_DINO'
+    # "/home/sharonpe/microsatellite-instability-classification/data/subtype_classification/third_try_all_slides_16k_4_dino_checkpoints/checkpoint9.pth"
+    SC_MIL_TILE_ENCODER_CKPT = os.path.join(GeneralConfigs.ROOT, 'models', 'subtype_classification',
+                                     'dgx_SQ6B12_At2Ltanh_65k_2_dino_checkpoints', 'checkpoint0005.pth')
+    SC_MIL_TILE_INFERENCE_BATCH_SIZE = 256
+    SC_MIL_TILE_INFERENCE_NUM_WORKERS = 5
+    SC_MIL_POOL_ARGS = ('max', 16)
+    SC_MIL_MAX_TILES = 512
+    SC_MIL_LR_DICT = {'base_value': 5e-4 * (SC_TRAINING_BATCH_SIZE * SC_NUM_NODES * SC_NUM_DEVICES) / 256.0,
+                      'final_value': 1e-6, 'warmup_epochs': 2}
+    SC_MIL_POOLING_STRATEGY = {
+        'type': 'max',
+        'kernel_size': 16
+    }
+    SC_DROPOUT = (0.0, 0.0, 0.0)
 
 
 class DINOConfigs:

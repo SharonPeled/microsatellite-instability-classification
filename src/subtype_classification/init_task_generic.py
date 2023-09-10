@@ -7,15 +7,7 @@ from src.components.models.SubtypeClassifier import SubtypeClassifier
 from torch.multiprocessing import set_start_method, set_sharing_strategy
 
 
-def init_task():
-    set_sharing_strategy('file_system')
-    set_start_method("spawn")
-
-    train_transform, test_transform = init_training_transforms()
-
-    logger, callbacks = init_training_callbacks()
-
-    Logger.log("Loading Datasets..", log_importance=1)
+def load_df_labels_merged_tiles():
     df_labels = pd.read_csv(Configs.SC_LABEL_DF_PATH, sep='\t')
     df_labels = df_labels[df_labels[Configs.SC_LABEL_COL].isin(Configs.SC_CLASS_TO_IND.keys())]
     df_labels['slide_uuid'] = df_labels.slide_path.apply(lambda p: os.path.basename(os.path.dirname(p)))
@@ -26,6 +18,20 @@ def init_task():
     # merging labels and tiles
     df_tiles = pd.read_csv(Configs.SC_DF_TILE_PATHS_PATH)
     df_labels_merged_tiles = df_labels.merge(df_tiles, how='inner', on='slide_uuid')
+    return df_labels, df_labels_merged_tiles
+
+
+def init_task():
+    set_sharing_strategy('file_system')
+    set_start_method("spawn")
+
+    train_transform, test_transform = init_training_transforms()
+
+    logger, callbacks = init_training_callbacks()
+
+    Logger.log("Loading Datasets..", log_importance=1)
+    df_labels, df_labels_merged_tiles = load_df_labels_merged_tiles()
+
 
     if Configs.SC_KW_ARGS.get('calc_proportions_class_w', None):
         Configs.SC_CLASS_WEIGHT = df_labels.groupby(

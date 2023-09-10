@@ -38,6 +38,7 @@ class TransferLearningClassifier(pl.LightningModule):
         self.test_outputs = None
         self.valid_outputs = None
         self.is_fit = False
+        self.is_training = False
         self.metrics = {}
         Logger.log(f"""TransferLearningClassifier created with loss weights: {self.class_weights}.""", log_importance=1)
 
@@ -51,12 +52,16 @@ class TransferLearningClassifier(pl.LightningModule):
         return torch.Tensor([w / sum_w for w in class_to_weight.values()])
 
     def on_train_start(self):
-        self.is_fit = True
+        self.is_training = True
         if self.other_kwargs.get('config_filepath', None):
             self.logger.experiment.log_artifact(self.logger.run_id, self.other_kwargs['config_filepath'],
                                                 artifact_path="configs")
             Logger.log(f"""TransferLearningClassifier: config file logged.""",
                        log_importance=1)
+
+    def on_train_end(self):
+        self.is_fit = True
+        self.is_training = False
 
     def forward(self, x):
         return self.model(x)

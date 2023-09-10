@@ -8,34 +8,54 @@ test:
 
 
 on hold:
-    research proposal extension
 
 
 to do:
-
-    fix the label files - do same logic for STAD/UCEC? - ask Yossi tommorow
-    symmetry ce loss, tunmor only?
-
-
-
-    log in to dgs - slurm, all size of tiles
-    mini epochs
-
-    write a summary about the innovation in CIN/GS
-    warmup the dino heads
-
-
-
     MIL / agg methods / pooling
+    write a summary about the innovation in CIN/GS
+    research proposal extension - write to moti?
     move to to other biomarks
 
-    train and test on another cohort
+
+init model
+weighted loss symmetry ce loss
+logging
+lr and decaying of stuff / warmups
+
+saving
+adaptor - on hold
+inference boostraps - on hold
+
+
+
+
+optimizer params - batch size
+teacher momentum + batch size
+teacher temp
+weight decay
+lr temp
+frozen last layer
+norm_last_layer
+DINOHead dim
+
+
+
+
+
+
+
+
+
+
+
 
 runs -
 other -
 
 
 general -
+train and test on another cohort
+Billal label files - do same logic for STAD/UCEC? - Yossi said - not makes sense
 CPTAC is publicly available
 Wang et al. trained the network using an unsupervised
 contrastive loss on data from TCGA and PAIP36 from multiple organs and provided the weights for public use. The embeddings
