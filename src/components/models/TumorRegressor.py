@@ -76,10 +76,10 @@ class TumorRegressor(pl.LightningModule):
         TumorRegressor.log_metrics(y_true, y_pred, logger=self.logger, dataset_str=dataset_str,
                                    epoch=self.current_epoch)
 
-    def validation_epoch_end(self, outputs):
+    def on_validation_epoch_end(self, outputs):
         self.log_epoch_level_metrics(outputs, dataset_str='valid')
 
-    def test_epoch_end(self, outputs):
+    def on_test_epoch_end(self, outputs):
         self.log_epoch_level_metrics(outputs, dataset_str='test')
 
     def predict_step(self, batch, batch_idx, dataloader_idx=0):

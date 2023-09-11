@@ -133,7 +133,7 @@ class TransferLearningClassifier(pl.LightningModule):
         y_true = torch.concat([out["y"] for out in outputs]).numpy()
         self.log_metrics(y_true, y_pred, logits, dataset_str=dataset_str)
 
-    def validation_epoch_end(self, outputs):
+    def on_validation_epoch_end(self, outputs):
         outputs_cpu = TransferLearningClassifier.outputs_to_cpu(outputs)
         self.log_epoch_level_metrics(outputs_cpu, dataset_str='valid')
         self.valid_outputs = outputs_cpu
@@ -143,7 +143,7 @@ class TransferLearningClassifier(pl.LightningModule):
         self.logger.experiment.log_param(self.logger.run_id, f"lr_epoch_{self.current_epoch}",
                                          self.optimizers().optimizer.defaults['lr'])
 
-    def test_epoch_end(self, outputs):
+    def on_test_epoch_end(self, outputs):
         outputs_cpu = TransferLearningClassifier.outputs_to_cpu(outputs)
         self.log_epoch_level_metrics(outputs_cpu, dataset_str='test')
         self.test_outputs = outputs_cpu

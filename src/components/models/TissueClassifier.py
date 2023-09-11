@@ -75,12 +75,12 @@ class TissueClassifier(pl.LightningModule):
         TissueClassifier.log_metrics(y_true, y_pred, logits, target_names=self.class_to_ind.keys(),
                                      logger=self.logger, dataset_str=dataset_str, epoch=self.current_epoch)
 
-    def validation_epoch_end(self, outputs):
+    def on_validation_epoch_end(self, outputs):
         self.log_epoch_level_metrics(outputs, dataset_str='valid')
         # self.logger.experiment.log_param(self.logger.run_id, f"lr_epoch_{self.current_epoch}",
         #                                  self.optimizers().optimizer.get_lr())
 
-    def test_epoch_end(self, outputs):
+    def on_test_epoch_end(self, outputs):
         self.log_epoch_level_metrics(outputs, dataset_str='test')
 
     def predict_step(self, batch, batch_idx, dataloader_idx=0):
