@@ -14,24 +14,23 @@ from torch.utils.data import DataLoader
 from src.training_utils import set_worker_sharing_strategy
 from src.components.objects.SCELoss import BSCELoss
 from src.training_utils import calc_safe_auc
+import torch.nn.functional as F
 
 
 class MIL_Fusion_VIT(PretrainedClassifier):
     def __init__(self, dataloader_df_cols, class_to_ind, cohort_to_ind, mil_model_params, tile_encoder_params,
-                 learning_rate_params, tile_encoder_inference_params, mil_pooling_strategy, pool_args,
+                 learning_rate_params, tile_encoder_inference_params, mil_pooling_strategy,
                  max_tiles_mil,
                  num_iters_warmup_wo_backbone=None, **other_kwargs):
         mil_vit = DINO_vit_small_cohort_aware(ckp_path=mil_model_params[1],
                                               cohort_aware_dict=other_kwargs['cohort_aware_dict'],
-                                              load_MIL_version=True,
-                                              **other_kwargs)
+                                              load_MIL_version=True)
         super().__init__(tile_encoder_name=None, class_to_ind=class_to_ind,
                          learning_rate=0.0, frozen_backbone=False, class_to_weight=None,
                          num_iters_warmup_wo_backbone=num_iters_warmup_wo_backbone, nn_output_size=None,
                          backbone=mil_vit, num_features=mil_vit.num_features, **other_kwargs)
         self.learning_rate_params = learning_rate_params
         self.max_tiles_mil = max_tiles_mil
-        self.pool_args = pool_args
         self.cohort_to_ind = cohort_to_ind
         self.dataloader_df_cols = dataloader_df_cols
         self.tile_encoder_inference_params = tile_encoder_inference_params
@@ -42,14 +41,15 @@ class MIL_Fusion_VIT(PretrainedClassifier):
         self.lr_list = []
         self.tile_encoder = DINO_vit_small_cohort_aware(ckp_path=tile_encoder_params[1],
                                                         cohort_aware_dict=other_kwargs['cohort_aware_dict'],
-                                                        load_MIL_version=False,
-                                                        **other_kwargs)
+                                                        load_MIL_version=False)
+        for param in self.tile_encoder.parameters():
+            param.requires_grad = False
         Logger.log(f"""MIL_Fusion_VIT {mil_model_params[0]} created with tile encoder {tile_encoder_params[0]}.""",
                    log_importance=1)
 
     def on_train_start(self):
         super(MIL_Fusion_VIT, self).on_train_start()
-        niter_per_ep = np.ceil(self.trainer.max_steps / self.trainer.max_epochs)
+        niter_per_ep = len(self.trainer.train_dataloader)
         self.lr_list = cosine_scheduler(base_value=self.learning_rate_params['base_value'],
                                         final_value=self.learning_rate_params['final_value'],
                                         niter_per_ep=niter_per_ep,
@@ -77,18 +77,20 @@ class MIL_Fusion_VIT(PretrainedClassifier):
 
     def forward(self, df_slides, num_tiles_per_slide):
         assert str(self.tile_encoder.device) != 'cpu'
-        transform = self.tile_encoder_inference_params['train_transformer'] if self.is_training else\
-            self.tile_encoder_inference_params['test_transformer']
+        transform = self.tile_encoder_inference_params['train_transform'] if self.is_training else\
+            self.tile_encoder_inference_params['test_transform']
         dataset = ProcessedTileDataset(df_labels=df_slides, transform=transform,
                                        cohort_to_index=self.cohort_to_ind, pretraining=True)
         loader = DataLoader(dataset, batch_size=self.tile_encoder_inference_params['batch_size'],
                             persistent_workers=True, num_workers=self.tile_encoder_inference_params['num_workers'],
                             worker_init_fn=set_worker_sharing_strategy)
         encoded_tiles_batches = []
-        for tiles, c in loader:
+        for i, (tiles, c) in enumerate(loader):
             tiles = tiles.to(self.tile_encoder.device)
             c = c.to(self.tile_encoder.device)
-            encoded_tiles_batches.append(self.tile_encoder(tiles, c).cpu())
+            encoded_tiles_batches.append(self.tile_encoder(tiles, c).detach().cpu())
+            if i % 50 == 0:
+                Logger.log(f'Iter [{i}/{len(loader)}]', log_importance=1)
         tile_seqs, y, slide_id, patient_id, c = [], [], [], [], []
         lower_index = 0
         for num_rows in num_tiles_per_slide:
@@ -99,27 +101,25 @@ class MIL_Fusion_VIT(PretrainedClassifier):
             y.append(tile_df.iloc[0]['y'])
             slide_id.append(tile_df.iloc[0]['slide_id'])
             patient_id.append(tile_df.iloc[0]['patient_id'])
-            c.append(tile_df.iloc[0]['cohort'])
+            c.append(self.cohort_to_ind[tile_df.iloc[0]['cohort']])
             tile_seqs.append(self.get_agg_embeddings(tile_df, encoded_tiles_cat))
             lower_index = upper_index + 1
         tile_seqs_batch = torch.stack(tile_seqs, dim=0)
-        scores = self.model(tile_seqs_batch.to(self.model.device))
-        return scores, torch.tensor(y, device=scores.device), slide_id, patient_id, torch.tensor(c)
+        c = torch.tensor(c)
+        scores = self.model(tile_seqs_batch.to(self.backbone.device), c.to(self.backbone.device))
+        return scores.squeeze(), torch.tensor(y, device=scores.device), slide_id, patient_id, c
 
     def general_loop(self, batch, batch_idx):
         # batch are tensor of dfs
-        num_tiles_per_slide = []
-        df_list = []
-        for df_t in batch:
-            df_list.append(pd.DataFrame(data=df_t.cpu(), columns=self.dataloader_df_cols))
-            num_tiles_per_slide.append(len(df_list))
-        df_slides = pd.concat(df_list, ignore_index=True)
+        df_slides = batch[0]
+        num_tiles_per_slide = batch[1]
         scores, y, slide_id, patient_id, c = self.forward(df_slides, num_tiles_per_slide)
         loss = self.loss(scores, y, c)
-        current_lr = self.lr_list[self.global_step]
-        for param_group in self.trainer.optimizers[0].param_groups:
-            param_group['lr'] = current_lr
-        return {'loss': loss.cpu(), 'scores': scores.cpu(), 'y': y.cpu(), 'slide_id': slide_id,
+        if self.is_training:
+            current_lr = self.lr_list[self.global_step]
+            for param_group in self.trainer.optimizers[0].param_groups:
+                param_group['lr'] = current_lr
+        return {'loss': loss.cpu(), 'scores': scores.cpu(), 'y': y.cpu(), 'slide_id': slide_id, 'c': c,
                 'patient_id': patient_id}
 
     def get_agg_embeddings(self, tile_df, encoded_tiles_cat):
@@ -135,6 +135,8 @@ class MIL_Fusion_VIT(PretrainedClassifier):
         if pooled_tiles.shape[0] > self.max_tiles_mil:
             indices = np.random.choice(list(range(pooled_tiles.shape[0])), size=self.max_tiles_mil, replace=False)
             pooled_tiles = pooled_tiles[indices]
+        if pooled_tiles.shape[0] < self.max_tiles_mil:
+            pooled_tiles = F.pad(pooled_tiles, (0, 0, 0, self.max_tiles_mil - pooled_tiles.shape[0]))
         return pooled_tiles
 
     def custom_convolution(self, input_tensor):
@@ -151,7 +153,7 @@ class MIL_Fusion_VIT(PretrainedClassifier):
             torch.Tensor: Output tensor after applying the custom convolution operation.
         """
         height, width, dim = input_tensor.shape
-        kernel_size = self.pool_args[1]
+        kernel_size = self.mil_pooling_strategy['kernel_size']
         # Pad the input tensor if necessary
         pad_h = kernel_size - (height % kernel_size) if height % kernel_size != 0 else 0
         pad_w = kernel_size - (width % kernel_size) if width % kernel_size != 0 else 0
@@ -160,7 +162,7 @@ class MIL_Fusion_VIT(PretrainedClassifier):
         height, width, dim = input_tensor.shape
         input_reshaped = input_tensor.reshape(height, width//kernel_size, kernel_size, dim)  # breaks the rows in kernel_size chunks
         input_reshaped = input_reshaped.permute(1, 0, 2, 3).reshape(-1, kernel_size**2, dim)
-        if self.pool_args[0] == 'max':
+        if self.mil_pooling_strategy['type'] == 'max':
             return input_reshaped.max(dim=1)[0]
         # if self.pool_args[0] == 'mean':
         #     return input_reshaped.mean(dim=1)[0]

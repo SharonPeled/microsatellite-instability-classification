@@ -247,19 +247,19 @@ class SubtypeClassificationConfigs:
                   }
     # MIL STUFF
     SC_MIL_MODEL_NAME = 'VIT_PRETRAINED_DINO'
-    # "/home/sharonpe/microsatellite-instability-classification/data/subtype_classification/third_try_all_slides_16k_4_dino_checkpoints/checkpoint9.pth"
+    # SC_MIL_MODEL_CKPT = "/home/sharonpe/microsatellite-instability-classification/data/subtype_classification/third_try_all_slides_16k_4_dino_checkpoints/checkpoint9.pth"
     SC_MIL_MODEL_CKPT = os.path.join(GeneralConfigs.ROOT, 'models', 'subtype_classification',
                                      'dgx_SQ6B12_At2Ltanh_65k_2_dino_checkpoints', 'checkpoint0005.pth')
     SC_MIL_TILE_ENCODER_NAME = 'VIT_PRETRAINED_DINO'
-    # "/home/sharonpe/microsatellite-instability-classification/data/subtype_classification/third_try_all_slides_16k_4_dino_checkpoints/checkpoint9.pth"
+    # SC_MIL_TILE_ENCODER_CKPT = "/home/sharonpe/microsatellite-instability-classification/data/subtype_classification/third_try_all_slides_16k_4_dino_checkpoints/checkpoint9.pth"
     SC_MIL_TILE_ENCODER_CKPT = os.path.join(GeneralConfigs.ROOT, 'models', 'subtype_classification',
                                      'dgx_SQ6B12_At2Ltanh_65k_2_dino_checkpoints', 'checkpoint0005.pth')
-    SC_MIL_TILE_INFERENCE_BATCH_SIZE = 256
-    SC_MIL_TILE_INFERENCE_NUM_WORKERS = 5
+    SC_MIL_TILE_INFERENCE_BATCH_SIZE = 512
+    SC_MIL_TILE_INFERENCE_NUM_WORKERS = 10
     SC_MIL_POOL_ARGS = ('max', 16)
     SC_MIL_MAX_TILES = 512
     SC_MIL_LR_DICT = {'base_value': 5e-4 * (SC_TRAINING_BATCH_SIZE * SC_NUM_NODES * SC_NUM_DEVICES) / 256.0,
-                      'final_value': 1e-6, 'warmup_epochs': 2}
+                      'final_value': 1e-6, 'warmup_epochs': 3}
     SC_MIL_POOLING_STRATEGY = {
         'type': 'max',
         'kernel_size': 16

@@ -19,9 +19,11 @@ def init_task():
     Logger.log("Loading Datasets..", log_importance=1)
     df_labels, df_labels_merged_tiles = load_df_labels_merged_tiles()
     df_labels_merged_tiles['tile_row'] = df_labels_merged_tiles.tile_path.apply(lambda p:
-                                                                                os.path.basename(p).split('_')[0])
+                                                                                int(os.path.basename(p).split('_')[0]))
     df_labels_merged_tiles['tile_col'] = df_labels_merged_tiles.tile_path.apply(lambda p:
-                                                                                os.path.basename(p).split('_')[1])
+                                                                                int(os.path.basename(p).split('_')[1]))
+    if 'cohort' not in df_labels_merged_tiles.columns and 'cohort_x' in df_labels_merged_tiles.columns:
+        df_labels_merged_tiles['cohort'] = df_labels_merged_tiles['cohort_x']
 
     model = init_model(dataloader_df_cols=df_labels_merged_tiles.columns, train_transform=train_transform,
                        test_transform=test_transform)
@@ -38,13 +40,19 @@ def init_model(dataloader_df_cols, train_transform, test_transform):
                            class_to_ind=Configs.SC_CLASS_TO_IND,
                            cohort_to_ind=Configs.SC_COHORT_TO_IND,
                            mil_model_params=(Configs.SC_MIL_MODEL_NAME, Configs.SC_MIL_MODEL_CKPT),
+                           tile_encoder_params=(Configs.SC_MIL_TILE_ENCODER_NAME, Configs.SC_MIL_TILE_ENCODER_CKPT),
                            learning_rate_params=Configs.SC_MIL_LR_DICT,
                            tile_encoder_inference_params=tile_encoder_inference_params,
-                           pool_args=Configs.SC_MIL_POOL_ARGS,
+                           mil_pooling_strategy=Configs.SC_MIL_POOLING_STRATEGY,
                            max_tiles_mil=Configs.SC_MIL_MAX_TILES,
                            num_iters_warmup_wo_backbone=None,
-                           mil_pooling_strategy=Configs.SC_MIL_POOLING_STRATEGY,
                            **Configs.SC_KW_ARGS)
     Logger.log(f"New Model successfully created!", log_importance=1)
     return model
+
+
+def custom_collate_fn(batch):
+    num_tiles_per_slide = [len(df_s) for df_s in batch]
+    return pd.concat(batch, ignore_index=True), num_tiles_per_slide
+
 

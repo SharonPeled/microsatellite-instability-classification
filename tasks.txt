@@ -21,9 +21,10 @@ init model
 weighted loss symmetry ce loss
 logging
 lr and decaying of stuff / warmups
+adaptor - used
 
-saving
-adaptor - on hold
+loading to from cuda
+
 inference boostraps - on hold
 
 

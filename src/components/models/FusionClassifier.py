@@ -113,6 +113,10 @@ class CohortAwareVisionTransformer(VisionTransformer):
                                        dim=1)
             return adj_tensor
 
+    @property
+    def device(self):
+        # Determine and return the current device
+        return next(self.parameters()).device
 
 def cohort_aware_block_fn(cohort_aware_dict):
     cohort_aware_dict['block_num'] = 0
@@ -456,4 +460,9 @@ class MIL_CohortAwareVisionTransformer(CohortAwareVisionTransformer):
 
     def pos_embed_override(self, x):
         x = torch.cat((self.cls_token.expand(x.shape[0], -1, -1), x), dim=1)
-        return x
+        return self.pos_drop(x)
+
+    @property
+    def device(self):
+        # Determine and return the current device
+        return next(self.parameters()).device
