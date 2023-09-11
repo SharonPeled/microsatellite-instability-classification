@@ -44,7 +44,7 @@ class SubtypeClassifier(PretrainedClassifier):
 
     def forward(self, x, c=None):
         if self.other_kwargs.get('tile_encoder', None) == 'SSL_VIT_PRETRAINED_COHORT_AWARE' or \
-                self.other_kwargs.get('tile_encoder', None) == 'DINO_third_try_small_vit':
+                self.other_kwargs.get('tile_encoder', None) == 'VIT_PRETRAINED_DINO':
             if self.other_kwargs.get('one_hot_cohort_head', None):
                 x = self.backbone(x, c).squeeze()
                 x = self.features_to_one_hot(x, c, num_cohorts=len(self.cohort_to_ind))

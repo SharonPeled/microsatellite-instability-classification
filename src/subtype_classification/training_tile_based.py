@@ -1,4 +1,4 @@
-from src.subtype_classification.init_task import init_task
+from src.subtype_classification.init_task_generic import init_task
 from src.training_utils import train as train_general
 
 

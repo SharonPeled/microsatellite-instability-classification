@@ -113,6 +113,10 @@ class CohortAwareVisionTransformer(VisionTransformer):
                                        dim=1)
             return adj_tensor
 
+    @property
+    def device(self):
+        # Determine and return the current device
+        return next(self.parameters()).device
 
 def cohort_aware_block_fn(cohort_aware_dict):
     cohort_aware_dict['block_num'] = 0
@@ -431,3 +435,34 @@ class CohortAwareAttention(nn.Module):
 
         x = self.proj_drop(x)
         return x
+
+
+class MIL_CohortAwareVisionTransformer(CohortAwareVisionTransformer):
+    def __init__(self, cohort_aware_dict, tile_embed_size=384, embed_dim=384,
+                 num_heads=6, num_classes=0, depth=12, dropout=(0, 0), **vit_kwargs):
+        super(MIL_CohortAwareVisionTransformer, self).__init__(cohort_aware_dict=cohort_aware_dict,
+                                                               img_size=tile_embed_size,
+                                                               patch_size=16,
+                                                               embed_dim=embed_dim,
+                                                               num_heads=num_heads,
+                                                               num_classes=num_classes,
+                                                               depth=depth,
+                                                               **vit_kwargs)
+        self.pos_embed = nn.Parameter(torch.randn(1, 197, 384)) # not used pos_embed, just similar size for load_statedict
+        self.adapter = nn.Sequential(nn.Dropout(dropout[0]),
+                                     nn.Linear(tile_embed_size, tile_embed_size),
+                                     nn.ReLU(),
+                                     nn.Dropout(dropout[0]),
+                                     nn.Linear(tile_embed_size, tile_embed_size))
+
+    def patch_embed_override(self, x):
+        return self.adapter(x)
+
+    def pos_embed_override(self, x):
+        x = torch.cat((self.cls_token.expand(x.shape[0], -1, -1), x), dim=1)
+        return self.pos_drop(x)
+
+    @property
+    def device(self):
+        # Determine and return the current device
+        return next(self.parameters()).device

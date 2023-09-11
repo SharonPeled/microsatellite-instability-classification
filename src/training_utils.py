@@ -24,13 +24,13 @@ from pytorch_lightning.plugins.environments import SLURMEnvironment
 import signal
 from PIL import Image
 from copy import deepcopy
-from src.components.models.FusionClassifier import CohortAwareVisionTransformer
+from src.components.models.FusionClassifier import CohortAwareVisionTransformer, MIL_CohortAwareVisionTransformer
 from datetime import datetime
 
 
-def train(df, train_transform, test_transform, logger, callbacks, model):
+def train(df, train_transform, test_transform, logger, callbacks, model, **kwargs):
     if Configs.joined['CROSS_VALIDATE']:
-        cross_validate(df, train_transform, test_transform, logger, model, callbacks=callbacks)
+        cross_validate(df, train_transform, test_transform, logger, model, callbacks=callbacks, **kwargs)
     else:
         df_train, df_valid, df_test = train_test_valid_split_patients_stratified(df,
                                                                                  y_col=Configs.joined['Y_TO_BE_STRATIFIED'],
@@ -38,11 +38,11 @@ def train(df, train_transform, test_transform, logger, callbacks, model):
                                                                                  valid_size=Configs.joined['VALID_SIZE'],
                                                                                  random_seed=Configs.RANDOM_SEED)
         train_single_split(df_train, df_valid, df_test, train_transform, test_transform, logger, model,
-                           callbacks=callbacks)
+                           callbacks=callbacks, **kwargs)
     Logger.log(f"Finished.", log_importance=1)
 
 
-def cross_validate(df, train_transform, test_transform, mlflow_logger, model, callbacks):
+def cross_validate(df, train_transform, test_transform, mlflow_logger, model, callbacks, **kwargs):
     split_obj = train_test_valid_split_patients_stratified(df,
                                                            y_col=Configs.joined['Y_TO_BE_STRATIFIED'],
                                                            test_size=Configs.joined['TEST_SIZE'],
@@ -58,19 +58,20 @@ def cross_validate(df, train_transform, test_transform, mlflow_logger, model, ca
         df_train = df.iloc[train_inds].reset_index(drop=True)
         df_test = df.iloc[test_inds].reset_index(drop=True)
         fitted_model = train_single_split(df_train, None, df_test, train_transform, test_transform, mlflow_logger, deepcopy(model),
-                                          callbacks=callbacks)
+                                          callbacks=callbacks, **kwargs)
         cv_metrics.append(fitted_model.metrics)
     metrics_dict = pd.DataFrame(cv_metrics).mean().add_suffix('_cv').to_dict()
     for metric_str, metric_val in metrics_dict.items():
         mlflow_logger.experiment.log_metric(mlflow_logger.run_id, metric_str, metric_val)
 
 
-def train_single_split(df_train, df_valid, df_test, train_transform, test_transform, logger, model, callbacks=()):
+def train_single_split(df_train, df_valid, df_test, train_transform, test_transform, logger, model, callbacks=(),
+                       **kwargs):
     assert not model.is_fit
     rm_tmp_files()
     df_train_sampled = df_train.groupby('slide_uuid').apply(
         lambda slide_df: slide_df.sample(n=min(Configs.joined['TILE_SAMPLE_TRAIN'], len(slide_df)),
-                                         random_state=Configs.RANDOM_SEED))
+                                         random_state=Configs.RANDOM_SEED)).reset_index(drop=True)
 
     if "is_aug" in df_train.columns:
         df_test = df_test[~df_test.is_aug]
@@ -79,7 +80,7 @@ def train_single_split(df_train, df_valid, df_test, train_transform, test_transf
 
     train_dataset, valid_dataset, test_dataset, train_loader, valid_loader, test_loader = get_loader_and_datasets(
         df_train_sampled,
-        df_valid, df_test, train_transform, test_transform)
+        df_valid, df_test, train_transform, test_transform, **kwargs)
     if hasattr(model, 'init_cohort_weight'):
         model.init_cohort_weight(train_dataset)
     Logger.log("Starting Training.", log_importance=1)
@@ -182,19 +183,25 @@ def set_worker_sharing_strategy(worker_id: int) -> None:
     set_sharing_strategy('file_system')
 
 
-def get_loader_and_datasets(df_train, df_valid, df_test, train_transform, test_transform):
-    train_dataset = ProcessedTileDataset(df_labels=df_train, transform=train_transform,
-                                         cohort_to_index=Configs.joined['COHORT_TO_IND'])
-    test_dataset = ProcessedTileDataset(df_labels=df_test, transform=test_transform,
-                                        cohort_to_index=Configs.joined['COHORT_TO_IND'])
+def get_loader_and_datasets(df_train, df_valid, df_test, train_transform, test_transform, **kwargs):
+    if kwargs.get('dataset_fn', None):
+        dataset_fn = kwargs['dataset_fn']
+    else:
+        dataset_fn = ProcessedTileDataset
+    train_dataset = dataset_fn(df_labels=df_train, transform=train_transform,
+                               cohort_to_index=Configs.joined['COHORT_TO_IND'])
+    test_dataset = dataset_fn(df_labels=df_test, transform=test_transform,
+                              cohort_to_index=Configs.joined['COHORT_TO_IND'])
 
     train_loader = DataLoader(train_dataset, batch_size=Configs.joined['TRAINING_BATCH_SIZE'],
                               shuffle=True,
                               persistent_workers=True, num_workers=Configs.joined['NUM_WORKERS'],
-                              worker_init_fn=set_worker_sharing_strategy)
+                              worker_init_fn=set_worker_sharing_strategy, 
+                              collate_fn=kwargs.get('custom_collate_fn', None))
     test_loader = DataLoader(test_dataset, batch_size=Configs.joined['TEST_BATCH_SIZE'], shuffle=False,
                              persistent_workers=True, num_workers=Configs.joined['NUM_WORKERS'],
-                             worker_init_fn=set_worker_sharing_strategy)
+                             worker_init_fn=set_worker_sharing_strategy,
+                             collate_fn=kwargs.get('custom_collate_fn', None))
     if df_valid is None:
         return train_dataset, None, test_dataset, train_loader, None, test_loader
 
@@ -202,7 +209,8 @@ def get_loader_and_datasets(df_train, df_valid, df_test, train_transform, test_t
                                          cohort_to_index=Configs.joined['COHORT_TO_IND'])
     valid_loader = DataLoader(valid_dataset, batch_size=Configs.joined['TEST_BATCH_SIZE'], shuffle=False,
                               persistent_workers=True, num_workers=Configs.joined['NUM_WORKERS'],
-                              worker_init_fn=set_worker_sharing_strategy)
+                              worker_init_fn=set_worker_sharing_strategy,
+                              collate_fn=kwargs.get('custom_collate_fn', None))
 
     return train_dataset, valid_dataset, test_dataset, train_loader, valid_loader, test_loader
 
@@ -253,18 +261,23 @@ def SLL_vit_small_cohort_aware(pretrained, progress, key, cohort_aware_dict, **v
     return model
 
 
-def DINO_vit_small_cohort_aware(ckp_path, cohort_aware_dict, **vit_kwargs):
+def DINO_vit_small_cohort_aware(ckp_path, cohort_aware_dict, load_MIL_version=False, **vit_kwargs):
     state_dict = torch.load(ckp_path, map_location="cpu")
     state_dict = state_dict['teacher']
     # remove `module.` prefix
     state_dict = {k.replace("module.", ""): v for k, v in state_dict.items()}
     # remove `backbone.` prefix induced by multicrop wrapper
     state_dict = {k.replace("backbone.", ""): v for k, v in state_dict.items()}
-    model = CohortAwareVisionTransformer(
-        cohort_aware_dict=cohort_aware_dict,
-        img_size=224, patch_size=16, embed_dim=384, num_heads=6, num_classes=0, depth=12, **vit_kwargs
-    )
-    model.fc = nn.Identity()
+    if not load_MIL_version:
+        model = CohortAwareVisionTransformer(
+            cohort_aware_dict=cohort_aware_dict,
+            img_size=224, patch_size=16, embed_dim=384, num_heads=6, num_classes=0, depth=12, **vit_kwargs
+        )
+        model.fc = nn.Identity()
+    else:
+        model = MIL_CohortAwareVisionTransformer(cohort_aware_dict=cohort_aware_dict, tile_embed_size=384,
+                                                 embed_dim=384, num_heads=6, num_classes=0,
+                                                 depth=12, dropout=(0, 0), **vit_kwargs)
     msg = model.load_state_dict(state_dict, strict=False)
     Logger.log(msg)
     return model
@@ -330,9 +343,10 @@ def load_headless_tile_encoder(tile_encoder_name, path=None, **kwargs):
         model = SLL_vit_small_cohort_aware(pretrained=True, progress=False, key="DINO_p16",
                                            cohort_aware_dict=kwargs['cohort_aware_dict'])
         return model, model.num_features
-    elif tile_encoder_name == 'DINO_third_try_small_vit':
+    elif tile_encoder_name == 'VIT_PRETRAINED_DINO':
         model = DINO_vit_small_cohort_aware(ckp_path=kwargs['pretrained_ckp_path'],
-                                            cohort_aware_dict=kwargs['cohort_aware_dict'])
+                                            cohort_aware_dict=kwargs['cohort_aware_dict'],
+                                            **kwargs)
         return model, model.num_features
 
 
