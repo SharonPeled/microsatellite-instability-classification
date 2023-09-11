@@ -89,7 +89,7 @@ class MIL_Fusion_VIT(PretrainedClassifier):
             tiles = tiles.to(self.tile_encoder.device)
             c = c.to(self.tile_encoder.device)
             encoded_tiles_batches.append(self.tile_encoder(tiles, c).detach().cpu())
-            if i % 50 == 0:
+            if i % 20 == 0:
                 Logger.log(f'Iter [{i}/{len(loader)}]', log_importance=1)
         tile_seqs, y, slide_id, patient_id, c = [], [], [], [], []
         lower_index = 0
