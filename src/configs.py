@@ -202,8 +202,8 @@ class SubtypeClassificationConfigs:
     SC_COHORT_WEIGHT = None # {('COAD', 'CIN'): 0.75, ('COAD', 'GS'): 2.25, ('ESCA', 'CIN'): 0.25, ('ESCA', 'GS'): 0.75, ('READ', 'CIN'): 0.75, ('READ', 'GS'): 2.25, ('STAD', 'CIN'): 0.25, ('STAD', 'GS'): 0.75, ('UCEC', 'CIN'): 0.25, ('UCEC', 'GS'): 0.75}
     # SC_COHORT_TUNE = None # ['COAD', 'READ']
     SC_TEST_ONLY = None
-    SC_NUM_EPOCHS = 10
-    SC_NUM_DEVICES = 2
+    SC_NUM_EPOCHS = 6
+    SC_NUM_DEVICES = 4
     SC_NUM_NODES = 2
     SC_DEVICE = 'gpu'
     SC_TEST_BATCH_SIZE = 32
@@ -254,10 +254,10 @@ class SubtypeClassificationConfigs:
     # SC_MIL_TILE_ENCODER_CKPT = "/home/sharonpe/microsatellite-instability-classification/data/subtype_classification/third_try_all_slides_16k_4_dino_checkpoints/checkpoint9.pth"
     SC_MIL_TILE_ENCODER_CKPT = os.path.join(GeneralConfigs.ROOT, 'models', 'subtype_classification',
                                      'dgx_SQ6B12_At2Ltanh_65k_2_dino_checkpoints', 'checkpoint0005.pth')
-    SC_MIL_TILE_INFERENCE_BATCH_SIZE = 1024
-    SC_MIL_TILE_INFERENCE_NUM_WORKERS = 10
+    SC_MIL_TILE_INFERENCE_BATCH_SIZE = 512
+    SC_MIL_TILE_INFERENCE_NUM_WORKERS = 5
     SC_MIL_POOL_ARGS = ('max', 16)
-    SC_MIL_MAX_TILES = 1024
+    SC_MIL_MAX_TILES = 900
     SC_MIL_LR_DICT = {'base_value': 5e-4 * (SC_TRAINING_BATCH_SIZE * SC_NUM_NODES * SC_NUM_DEVICES) / 256.0,
                       'final_value': 1e-6, 'warmup_epochs': 3}
     SC_MIL_POOLING_STRATEGY = {
