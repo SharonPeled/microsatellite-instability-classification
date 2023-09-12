@@ -204,13 +204,13 @@ class SubtypeClassificationConfigs:
     SC_TEST_ONLY = None
     SC_NUM_EPOCHS = 6
     SC_NUM_DEVICES = 4
-    SC_NUM_NODES = 2
+    SC_NUM_NODES = 1
     SC_DEVICE = 'gpu'
-    SC_TEST_BATCH_SIZE = 32
+    SC_TEST_BATCH_SIZE = 16
     SC_SAVE_CHECKPOINT_STEP_INTERVAL = 20000
     SC_VAL_STEP_INTERVAL = 1/2  # 2 times an epoch
-    SC_TRAINING_BATCH_SIZE = 32  # accumulating gradients in MIL only
-    SC_NUM_WORKERS = 1
+    SC_TRAINING_BATCH_SIZE = 2  # accumulating gradients in MIL only
+    SC_NUM_WORKERS = 2
     SC_TEST_SIZE = 0.3333
     SC_VALID_SIZE = 0  # not used if CV=True
     SC_INIT_LR = [1e-6 * (SC_TRAINING_BATCH_SIZE/256),
@@ -258,7 +258,7 @@ class SubtypeClassificationConfigs:
     SC_MIL_TILE_INFERENCE_NUM_WORKERS = 5
     SC_MIL_POOL_ARGS = ('max', 16)
     SC_MIL_MAX_TILES = 900
-    SC_MIL_LR_DICT = {'base_value': 5e-4 * (SC_TRAINING_BATCH_SIZE * SC_NUM_NODES * SC_NUM_DEVICES) / 256.0,
+    SC_MIL_LR_DICT = {'base_value': 5e-4 * (SC_TRAINING_BATCH_SIZE * SC_NUM_NODES * SC_NUM_DEVICES) / 32.0,
                       'final_value': 1e-6, 'warmup_epochs': 3}
     SC_MIL_POOLING_STRATEGY = {
         'type': 'max',
