@@ -26,6 +26,7 @@ from PIL import Image
 from copy import deepcopy
 from src.components.models.FusionClassifier import CohortAwareVisionTransformer, MIL_CohortAwareVisionTransformer
 from datetime import datetime
+from pytorch_lightning.strategies import DDPStrategy
 
 
 def train(df, train_transform, test_transform, logger, callbacks, model, **kwargs):
@@ -93,7 +94,9 @@ def train_single_split(df_train, df_valid, df_test, train_transform, test_transf
                          enable_checkpointing=True,
                          logger=logger,
                          num_sanity_val_steps=2,
-                         max_epochs=Configs.joined['NUM_EPOCHS'])
+                         max_epochs=Configs.joined['NUM_EPOCHS'],
+                         strategy=DDPStrategy(find_unused_parameters=True)
+                         )
                          # plugins=[SLURMEnvironment(requeue_signal=signal.SIGUSR1)])
                          # plugins = [SLURMEnvironment(requeue_signal=signal.SIGHUP)])
     if Configs.joined['TEST_ONLY'] is None:
