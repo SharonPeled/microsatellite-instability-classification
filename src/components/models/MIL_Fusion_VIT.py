@@ -127,7 +127,7 @@ class MIL_Fusion_VIT(PretrainedClassifier):
         num_tile_H = tile_df['tile_row'].max() + 1
         num_tile_W = tile_df['tile_col'].max() + 1
 
-        slide_tensor = torch.zeros((num_tile_H, num_tile_W, self.tile_encoder.num_features))
+        slide_tensor = torch.full((num_tile_H, num_tile_W, self.tile_encoder.num_features), torch.nan)
         row_indices = tile_df['tile_row'].values
         col_indices = tile_df['tile_col'].values
         slide_tensor[row_indices, col_indices, :] = encoded_tiles_cat
@@ -158,14 +158,17 @@ class MIL_Fusion_VIT(PretrainedClassifier):
         pad_h = kernel_size - (height % kernel_size) if height % kernel_size != 0 else 0
         pad_w = kernel_size - (width % kernel_size) if width % kernel_size != 0 else 0
         if pad_h > 0 or pad_w > 0:
-            input_tensor = torch.nn.functional.pad(input_tensor, (0, 0, 0, pad_w, 0, pad_h), value=0)
+            input_tensor = torch.nn.functional.pad(input_tensor, (0, 0, 0, pad_w, 0, pad_h), value=torch.nan)
         height, width, dim = input_tensor.shape
         input_reshaped = input_tensor.reshape(height, width//kernel_size, kernel_size, dim)  # breaks the rows in kernel_size chunks
         input_reshaped = input_reshaped.permute(1, 0, 2, 3).reshape(-1, kernel_size**2, dim)
         if self.mil_pooling_strategy['type'] == 'max':
-            return input_reshaped.max(dim=1)[0]
-        # if self.pool_args[0] == 'mean':
-        #     return input_reshaped.mean(dim=1)[0]
+            input_reshaped = torch.where(input_reshaped.isnan(), float('-inf'), input_reshaped)
+            pooled_tiles = input_reshaped.max(dim=1)[0]
+            return pooled_tiles[(~(torch.isinf(pooled_tiles) & (pooled_tiles < 0))).all(axis=-1)]
+        if self.mil_pooling_strategy['type'] == 'mean':
+            pooled_tiles = torch.nanmean(input_reshaped, dim=1)
+            return pooled_tiles[(~pooled_tiles.isnan()).all(axis=-1)]
         raise ValueError(f"pool_operation not recognize {self.pool_operation}.")
 
     def loss(self, scores, y, c):
