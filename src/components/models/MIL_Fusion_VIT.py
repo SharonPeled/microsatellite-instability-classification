@@ -175,6 +175,8 @@ class MIL_Fusion_VIT(PretrainedClassifier):
         loss_list = []
         for c_name, c_ind in self.cohort_to_ind.items():
             scores_c = scores[c == c_ind]
+            if scores_c.shape[0] == 0:
+                continue
             y_c = y[c == c_ind]
             if len(self.cohort_weight[c_name]) == 2:
                 pos_weight = self.cohort_weight[c_name][1] / \
