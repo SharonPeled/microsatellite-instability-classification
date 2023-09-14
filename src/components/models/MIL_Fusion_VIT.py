@@ -15,6 +15,7 @@ from src.training_utils import set_worker_sharing_strategy
 from src.components.objects.SCELoss import BSCELoss
 from src.training_utils import calc_safe_auc
 import torch.nn.functional as F
+import traceback
 
 
 class MIL_Fusion_VIT(PretrainedClassifier):
@@ -55,7 +56,7 @@ class MIL_Fusion_VIT(PretrainedClassifier):
                                         niter_per_ep=niter_per_ep,
                                         epochs=self.trainer.max_epochs,
                                         warmup_epochs=self.learning_rate_params['warmup_epochs'],
-                                        start_warmup_value=0)
+                                        start_warmup_value=self.learning_rate_params['start_warmup_value'])
 
     def configure_optimizers(self):
         self.set_training_warmup()
@@ -84,11 +85,12 @@ class MIL_Fusion_VIT(PretrainedClassifier):
         loader = DataLoader(dataset, batch_size=self.tile_encoder_inference_params['batch_size'],
                             persistent_workers=True, num_workers=self.tile_encoder_inference_params['num_workers'],
                             worker_init_fn=set_worker_sharing_strategy)
-        encoded_tiles_batches = []
+        Logger.log(f'Slides: {df_slides.slide_uuid.unique()}', log_importance=1)
+        encoded_tiles_batches = {}
         for i, (tiles, c) in enumerate(loader):
             tiles = tiles.to(self.tile_encoder.device)
             c = c.to(self.tile_encoder.device)
-            encoded_tiles_batches.append(self.tile_encoder(tiles, c).detach().cpu())
+            encoded_tiles_batches[i] = self.tile_encoder(tiles, c).detach().cpu()
             if i % 20 == 0:
                 Logger.log(f'Iter [{i}/{len(loader)}]', log_importance=1)
         tile_seqs, y, slide_id, patient_id, c = [], [], [], [], []
@@ -110,17 +112,20 @@ class MIL_Fusion_VIT(PretrainedClassifier):
         return scores.squeeze(), torch.tensor(y, device=scores.device), slide_id, patient_id, c
 
     def general_loop(self, batch, batch_idx):
-        # batch are tensor of dfs
-        df_slides = batch[0]
-        num_tiles_per_slide = batch[1]
-        scores, y, slide_id, patient_id, c = self.forward(df_slides, num_tiles_per_slide)
-        loss = self.loss(scores, y, c)
-        if self.is_training:
-            current_lr = self.lr_list[self.global_step]
-            for param_group in self.trainer.optimizers[0].param_groups:
-                param_group['lr'] = current_lr
-        return {'loss': loss.cpu(), 'scores': scores.cpu(), 'y': y.cpu(), 'slide_id': slide_id, 'c': c,
-                'patient_id': patient_id}
+        try:
+            # batch are tensor of dfs
+            df_slides = batch[0]
+            num_tiles_per_slide = batch[1]
+            scores, y, slide_id, patient_id, c = self.forward(df_slides, num_tiles_per_slide)
+            loss = self.loss(scores, y, c)
+            if self.is_training:
+                current_lr = self.lr_list[self.global_step]
+                for param_group in self.trainer.optimizers[0].param_groups:
+                    param_group['lr'] = current_lr
+            return {'loss': loss.cpu(), 'scores': scores.cpu(), 'y': y.cpu(), 'slide_id': slide_id, 'c': c,
+                    'patient_id': patient_id}
+        except Exception as e:
+            traceback.print_exc()
 
     def get_agg_embeddings(self, tile_df, encoded_tiles_cat):
         # should return tensor of vector directly to MIL_fustion.
@@ -250,7 +255,7 @@ def concat_embeddings_per_slide(batches, lower_index, upper_index, batch_size):
     upper_element_index = upper_index % elements_per_batch
 
     # Iterate through batches and concatenate results
-    for batch_index, batch in enumerate(batches):
+    for batch_index, batch in batches.items():
         # Check if the batch is within the specified range
         if batch_index < lower_batch_index:
             continue
