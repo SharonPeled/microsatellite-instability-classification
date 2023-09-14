@@ -70,6 +70,11 @@ def train_single_split(df_train, df_valid, df_test, train_transform, test_transf
                        **kwargs):
     assert not model.is_fit
     rm_tmp_files()
+    Logger.log(f'Single train split started with:', log_importance=1)
+    Logger.log(f'Train slides - {df_train.slide_uuid.unique()}', log_importance=1)
+    if df_valid is not None:
+        Logger.log(f'Valid slides - {df_valid.slide_uuid.unique()}', log_importance=1)
+    Logger.log(f'Test slides - {df_test.slide_uuid.unique()}', log_importance=1)
     df_train_sampled = df_train.groupby('slide_uuid').apply(
         lambda slide_df: slide_df.sample(n=min(Configs.joined['TILE_SAMPLE_TRAIN'], len(slide_df)),
                                          random_state=Configs.RANDOM_SEED)).reset_index(drop=True)
