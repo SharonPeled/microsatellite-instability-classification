@@ -40,6 +40,7 @@ class TransferLearningClassifier(pl.LightningModule):
         self.is_fit = False
         self.is_training = False
         self.metrics = {}
+        self.outputs = []
         Logger.log(f"""TransferLearningClassifier created with loss weights: {self.class_weights}.""", log_importance=1)
 
     def init_weights(self, class_to_weight):
@@ -111,6 +112,7 @@ class TransferLearningClassifier(pl.LightningModule):
             Logger.log(f"Number of training params: {num_training_params}.", log_importance=1)
         loop_dict = self.general_loop(batch, batch_idx)
         self.logger.experiment.log_metric(self.logger.run_id, "train_loss", loop_dict['loss'])
+        self.outputs.append(loop_dict)
         return {"loss": loop_dict['loss']}
 
     def validation_step(self, batch, batch_idx):
@@ -143,11 +145,11 @@ class TransferLearningClassifier(pl.LightningModule):
         self.logger.experiment.log_param(self.logger.run_id, f"lr_epoch_{self.current_epoch}",
                                          self.optimizers().optimizer.defaults['lr'])
 
-    def on_test_epoch_end(self, outputs):
-        outputs_cpu = TransferLearningClassifier.outputs_to_cpu(outputs)
+    def on_test_epoch_end(self):
+        outputs_cpu = TransferLearningClassifier.outputs_to_cpu(self.outputs)
         self.log_epoch_level_metrics(outputs_cpu, dataset_str='test')
         self.test_outputs = outputs_cpu
-        del outputs  # free from CUDA
+        self.outputs = []
 
     def predict_step(self, batch, batch_idx, dataloader_idx=0):
         return self.forward(batch)
