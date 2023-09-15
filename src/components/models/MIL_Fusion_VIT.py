@@ -180,6 +180,8 @@ class MIL_Fusion_VIT(PretrainedClassifier):
         if self.cohort_weight is None or c is None:
             return super().loss(scores, y)
         y = y.to(scores.dtype)
+        if scores.dim() == 0:
+            scores = scores.unsqueeze(dim=0)
         loss_list = []
         for c_name, c_ind in self.cohort_to_ind.items():
             scores_c = scores[c == c_ind]
