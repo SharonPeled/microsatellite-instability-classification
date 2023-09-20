@@ -276,6 +276,8 @@ def concat_embeddings_per_slide(batches, lower_index, upper_index, batch_size):
 
 
 def cosine_scheduler(base_value, final_value, epochs, niter_per_ep, warmup_epochs=0, start_warmup_value=0):
+    if warmup_epochs > epochs:
+        warmup_epochs = epochs
     warmup_schedule = np.array([])
     warmup_iters = warmup_epochs * niter_per_ep
     if warmup_epochs > 0:
