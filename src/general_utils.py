@@ -19,6 +19,17 @@ from sklearn.model_selection import StratifiedGroupKFold
 from torch import nn
 import pytorch_lightning as pl
 import subprocess
+import psutil
+
+
+def get_memory_info():
+    # Get system memory usage
+    virtual_memory = psutil.virtual_memory()
+    return {'total_memory_gb': round(virtual_memory.total / (1024 ** 3), 2),
+            'available_memory_gb': round(virtual_memory.available / (1024 ** 3), 2),
+            'used_memory_gb': round(virtual_memory.used / (1024 ** 3), 2),
+            'memory_usage_percent': round(virtual_memory.percent, 2)
+            }
 
 
 def rm_tmp_files():

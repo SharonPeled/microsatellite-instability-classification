@@ -16,6 +16,7 @@ from src.components.objects.SCELoss import BSCELoss
 from src.training_utils import calc_safe_auc
 import torch.nn.functional as F
 import traceback
+from src.general_utils import get_memory_info
 
 
 class MIL_Fusion_VIT(PretrainedClassifier):
@@ -93,6 +94,7 @@ class MIL_Fusion_VIT(PretrainedClassifier):
             encoded_tiles_batches[i] = self.tile_encoder(tiles, c).detach().cpu()
             if i % 20 == 0:
                 Logger.log(f'Iter [{i}/{len(loader)}]', log_importance=1)
+            Logger.log(str(get_memory_info()), log_importance=1)
         tile_seqs, y, slide_id, patient_id, c = [], [], [], [], []
         lower_index = 0
         for num_rows in num_tiles_per_slide:
