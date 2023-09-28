@@ -13,7 +13,6 @@ on hold:
 to do:
     MIL / agg methods / pooling
     write a summary about the innovation in CIN/GS
-    research proposal extension - write to moti?
     move to to other biomarks
 
 
@@ -22,9 +21,10 @@ weighted loss symmetry ce loss
 logging
 lr and decaying of stuff / warmups
 adaptor - used
+loading to from cuda - not required
 
-loading to from cuda
-
+pooling with zeros
+other pooling methods
 inference boostraps - on hold
 
 
