@@ -110,22 +110,22 @@ class TransferLearningClassifier(pl.LightningModule):
             Logger.log(f"Backbone unfrozen, step {batch_idx}.", log_importance=1)
             num_training_params = sum(p.numel() for p in self.model.parameters() if p.requires_grad)
             Logger.log(f"Number of training params: {num_training_params}.", log_importance=1)
-        loop_dict = self.general_loop(batch, batch_idx)
+        loss, loop_dict = self.general_loop(batch, batch_idx)
         self.logger.experiment.log_metric(self.logger.run_id, "train_loss", loop_dict['loss'])
-        self.outputs.append(loop_dict)
-        return {"loss": loop_dict['loss']}
+        return {"loss": loss}
 
     def validation_step(self, batch, batch_idx):
-        loop_dict = self.general_loop(batch, batch_idx)
+        loss, loop_dict = self.general_loop(batch, batch_idx)
         self.log("val_loss", loop_dict['loss'], on_step=False, on_epoch=True, sync_dist=True)
         self.logger.experiment.log_metric(self.logger.run_id, "val_loss", loop_dict['loss'])
         loop_dict['batch_idx'] = batch_idx
         return loop_dict
 
     def test_step(self, batch, batch_idx):
-        loop_dict = self.general_loop(batch, batch_idx)
+        loss, loop_dict = self.general_loop(batch, batch_idx)
         self.logger.experiment.log_metric(self.logger.run_id, "test_loss", loop_dict['loss'])
         loop_dict['batch_idx'] = batch_idx
+        self.outputs.append(loop_dict)
         return loop_dict
 
     def log_epoch_level_metrics(self, outputs, dataset_str):

@@ -124,10 +124,12 @@ class MIL_Fusion_VIT(PretrainedClassifier):
                 current_lr = self.lr_list[self.global_step]
                 for param_group in self.trainer.optimizers[0].param_groups:
                     param_group['lr'] = current_lr
-            return {'loss': loss.cpu(), 'scores': scores.cpu(), 'y': y.cpu(), 'slide_id': slide_id, 'c': c,
+            return loss, {'loss': loss.detach().cpu(), 'scores': scores.detach().cpu(), 'y': y.cpu(),
+                          'slide_id': slide_id, 'c': c,
                     'patient_id': patient_id}
         except Exception as e:
             traceback.print_exc()
+            raise e
 
     def get_agg_embeddings(self, tile_df, encoded_tiles_cat):
         # should return tensor of vector directly to MIL_fustion.
