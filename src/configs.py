@@ -162,7 +162,7 @@ class TumorRegressionConfigs:
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
     SC_EXPERIMENT_NAME = 'SC_MIL_DINO_VIT'
-    SC_FORMULATION = f'max_pool_{SC_TILE_SIZE}'
+    SC_FORMULATION = f'max_pool_{SC_TILE_SIZE}_DINO_TILE_BASED'
     SC_RUN_NAME = f"{SC_FORMULATION}_1"
     SC_RUN_DESCRIPTION = f"""Labels are by bioportal.
     """
@@ -202,15 +202,15 @@ class SubtypeClassificationConfigs:
     SC_COHORT_WEIGHT = None # {('COAD', 'CIN'): 0.75, ('COAD', 'GS'): 2.25, ('ESCA', 'CIN'): 0.25, ('ESCA', 'GS'): 0.75, ('READ', 'CIN'): 0.75, ('READ', 'GS'): 2.25, ('STAD', 'CIN'): 0.25, ('STAD', 'GS'): 0.75, ('UCEC', 'CIN'): 0.25, ('UCEC', 'GS'): 0.75}
     # SC_COHORT_TUNE = None # ['COAD', 'READ']
     SC_TEST_ONLY = None
-    SC_NUM_EPOCHS = 10
-    SC_NUM_DEVICES = 3
-    SC_NUM_NODES = 2
+    SC_NUM_EPOCHS = 1
+    SC_NUM_DEVICES = 1
+    SC_NUM_NODES = 1
     SC_DEVICE = 'gpu'
-    SC_TEST_BATCH_SIZE = 16
+    SC_TEST_BATCH_SIZE = 512
     SC_SAVE_CHECKPOINT_STEP_INTERVAL = 20000
     SC_VAL_STEP_INTERVAL = 1/2  # 2 times an epoch
-    SC_TRAINING_BATCH_SIZE = 10  # accumulating gradients in MIL only
-    SC_NUM_WORKERS = 2
+    SC_TRAINING_BATCH_SIZE = 256  # accumulating gradients in MIL only
+    SC_NUM_WORKERS = 30
     SC_TEST_SIZE = 0.3333
     SC_VALID_SIZE = 0  # not used if CV=True
     SC_INIT_LR = [1e-6 * (SC_TRAINING_BATCH_SIZE/256),
@@ -218,8 +218,8 @@ class SubtypeClassificationConfigs:
     SC_TILE_SAMPLE_TRAIN = 1e10  # all tiles
     SC_TILE_SAMPLE_LAMBDA_TRAIN_TUNE = None
     SC_FROZEN_BACKBONE = False
-    SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 0
-    SC_TILE_ENCODER = None  # to load dino net for future classification - VIT_PRETRAINED_DINO
+    SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 2000
+    SC_TILE_ENCODER = 'VIT_PRETRAINED_DINO'  # to load dino net for future classification - VIT_PRETRAINED_DINO
     COHORT_AWARE_DICT = {'num_cohorts': 4,
                          'num_heads_per_cohort': 6,
                          'num_blocks_per_cohort': 12,  # default is last blocks
@@ -242,7 +242,8 @@ class SubtypeClassificationConfigs:
                   'FoVs_augs_amounts': (0.15, 0.15),  # tuple of % from each FoVs to add
                   'tile_encoder': SC_TILE_ENCODER,
                   'cohort_aware_dict': COHORT_AWARE_DICT,
-                  'pretrained_ckp_path': None, #"/home/sharonpe/microsatellite-instability-classification/data/subtype_classification/third_try_all_slides_16k_4_dino_checkpoints/checkpoint9.pth",
+                  'pretrained_ckp_path': os.path.join(GeneralConfigs.ROOT, 'models', 'subtype_classification', 'dgx_SQ6B12_At2Ltanh_65k_2_dino_checkpoints', 'checkpoint0005.pth'),
+                  # 'pretrained_ckp_path': "/home/sharonpe/microsatellite-instability-classification/data/subtype_classification/third_try_all_slides_16k_4_dino_checkpoints/checkpoint9.pth",
                   'config_filepath': Path(__file__).resolve()
                   }
     # MIL STUFF
@@ -250,10 +251,10 @@ class SubtypeClassificationConfigs:
     # SC_MIL_MODEL_CKPT = "/home/sharonpe/microsatellite-instability-classification/data/subtype_classification/third_try_all_slides_16k_4_dino_checkpoints/checkpoint9.pth"
     SC_MIL_MODEL_CKPT = os.path.join(GeneralConfigs.ROOT, 'models', 'subtype_classification',
                                      'dgx_SQ6B12_At2Ltanh_65k_2_dino_checkpoints', 'checkpoint0005.pth')
-    SC_MIL_TILE_ENCODER_NAME = 'VIT_PRETRAINED_DINO'
     # SC_MIL_TILE_ENCODER_CKPT = "/home/sharonpe/microsatellite-instability-classification/data/subtype_classification/third_try_all_slides_16k_4_dino_checkpoints/checkpoint9.pth"
     SC_MIL_TILE_ENCODER_CKPT = os.path.join(GeneralConfigs.ROOT, 'models', 'subtype_classification',
                                      'dgx_SQ6B12_At2Ltanh_65k_2_dino_checkpoints', 'checkpoint0005.pth')
+    SC_MIL_TILE_ENCODER_NAME = 'VIT_PRETRAINED_DINO'
     SC_MIL_TILE_INFERENCE_BATCH_SIZE = 512
     SC_MIL_TILE_INFERENCE_NUM_WORKERS = 8
     SC_MIL_MAX_TILES = 900

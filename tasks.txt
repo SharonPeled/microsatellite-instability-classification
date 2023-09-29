@@ -11,42 +11,16 @@ on hold:
 
 
 to do:
-    MIL / agg methods / pooling
-    write a summary about the innovation in CIN/GS
-    move to to other biomarks
+    action items about variants
 
+    debug the memory in the pooling
 
-init model
-weighted loss symmetry ce loss
-logging
-lr and decaying of stuff / warmups
-adaptor - used
-loading to from cuda - not required
+    simple tile based experiment
+    run an experiment with random 512 tiles and mean agg
 
-pooling with zeros
-other pooling methods
-inference boostraps - on hold
+    save slides with tile embeddings and locations
 
-
-
-
-optimizer params - batch size
-teacher momentum + batch size
-teacher temp
-weight decay
-lr temp
-frozen last layer
-norm_last_layer
-DINOHead dim
-
-
-
-
-
-
-
-
-
+    move to other biomarks
 
 
 
@@ -85,4 +59,5 @@ comments:
     blur slides - not correlated to AUC
     slides mistakes  - looks pretty similar
     lightly?
-    slide aware network? using positional encoding?
+    slide aware network?
+    using positional encoding - not gonna work.
