@@ -79,12 +79,14 @@ class SubtypeClassifier(PretrainedClassifier):
             x, y, slide_id, patient_id = batch
             scores = self.forward(x)
             loss = self.loss(scores, y)
-            return {'loss': loss, 'scores': scores, 'y': y, 'slide_id': slide_id, 'patient_id': patient_id}
+            return loss, {'loss': loss.detach().cpu(), 'scores': scores.detach().cpu(), 'y': y.cpu(),
+                          'slide_id': slide_id, 'patient_id': patient_id}
         if len(batch) == 5:
             x, c, y, slide_id, patient_id = batch
             scores = self.forward(x, c)
             loss = self.loss(scores, y, c)
-            return {'loss': loss, 'c': c, 'scores': scores, 'y': y, 'slide_id': slide_id, 'patient_id': patient_id}
+            return loss, {'loss': loss.detach().cpu(), 'c': c.detach().cpu(),
+                          'scores': scores.detach().cpu(), 'y': y, 'slide_id': slide_id, 'patient_id': patient_id}
 
     def configure_optimizers(self):
         if not self.other_kwargs.get('learnable_cohort_prior_type', None):
@@ -103,9 +105,13 @@ class SubtypeClassifier(PretrainedClassifier):
         if self.cohort_weight is None or c is None:
             return super().loss(scores, y)
         y = y.to(scores.dtype)
+        if scores.dim() == 0:
+            scores = scores.unsqueeze(dim=0)
         loss_list = []
         for c_name, c_ind in self.cohort_to_ind.items():
             scores_c = scores[c == c_ind]
+            if scores_c.shape[0] == 0:
+                continue
             y_c = y[c == c_ind]
             if len(self.cohort_weight[c_name]) == 2:
                 pos_weight = self.cohort_weight[c_name][1] /\

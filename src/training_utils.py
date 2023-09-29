@@ -279,7 +279,7 @@ def DINO_vit_small_cohort_aware(ckp_path, cohort_aware_dict, load_MIL_version=Fa
     if not load_MIL_version:
         model = CohortAwareVisionTransformer(
             cohort_aware_dict=cohort_aware_dict,
-            img_size=224, patch_size=16, embed_dim=384, num_heads=6, num_classes=0, depth=12, **vit_kwargs
+            img_size=224, patch_size=16, embed_dim=384, num_heads=6, num_classes=0, depth=12
         )
         model.fc = nn.Identity()
     else:
@@ -353,7 +353,6 @@ def load_headless_tile_encoder(tile_encoder_name, path=None, **kwargs):
         return model, model.num_features
     elif tile_encoder_name == 'VIT_PRETRAINED_DINO':
         model = DINO_vit_small_cohort_aware(ckp_path=kwargs['pretrained_ckp_path'],
-                                            cohort_aware_dict=kwargs['cohort_aware_dict'],
                                             **kwargs)
         return model, model.num_features
 
