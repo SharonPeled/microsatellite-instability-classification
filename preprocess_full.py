@@ -58,7 +58,7 @@ def get_bash_str_preprocess(tile_size, slide_ids, num_processes, full_batch_ind)
     slides_str = ' '.join(shift_ids(slide_ids, tile_size))
     bash_str = f"""
     . /home/sharonpe/miniconda3/etc/profile.d/conda.sh
-    conda activate MSI
+    conda activate MSI2
     python -u main.py --preprocess --num-processes {num_processes} --config_filepath config_files/preprocess_{tile_size}.json --slide_ids {slides_str} >> {full_batch_ind}_main_preprocess_{tile_size}.txt 2>&1
     """
     return bash_str
