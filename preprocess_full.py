@@ -88,7 +88,7 @@ def main(args):
         print(bash_str)
         # proc2.wait()
 
-        bash_str = get_bash_str_preprocess(224, slide_ids, num_processes, full_batch_ind)
+        bash_str = get_bash_str_preprocess(256, slide_ids, num_processes, full_batch_ind)
         proc3 = subprocess.Popen([bash_str, ], stdout=subprocess.PIPE,
                                  stderr=subprocess.PIPE,
                                  text=True, shell=True)

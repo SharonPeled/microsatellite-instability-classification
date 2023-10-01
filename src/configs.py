@@ -41,7 +41,7 @@ class PreprocessingConfigs:
     SLIDES_DIR = os.path.join(GeneralConfigs.DATA_FOLDER, 'slides')
     PROCESSED_TILES_DIR = os.path.join(GeneralConfigs.DATA_FOLDER, f'processed_tiles_{PREPROCESS_RUN_NAME}')
     MANIFEST_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'slides', f'manifest_all_dx_slides_unlabeled_COAD_READ_UCEC_STAD_ESCA.tsv')
-    SAMPLE_PROCESSED_TILES = {512: 1e10, 1024: 1e10, 224: 1000}
+    SAMPLE_PROCESSED_TILES = {512: 1e10, 1024: 1000, 256: 1000}
     REDUCED_LEVEL_TO_MEMORY = [3, 2]  # attempting to load according to order
     TARGET_MAG_POWER = 20
     MAG_ATTR = 'openslide.objective-power'

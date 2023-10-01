@@ -157,7 +157,7 @@ class Slide(Image):
                             lambda p: int(p.split('/')[-1].split('_')[1]))
                         processed_tiles_inds_set = set([(row['row'], row['col']) for i, row in tile_path_list.iterrows()])
                         tiles_inds_set = set([(x, y) for i, (x, y) in enumerate(tiles_inds)])
-                        if processed_tiles_inds_set == tiles_inds_set:
+                        if processed_tiles_inds_set.issubset(tiles_inds_set) :
                             self._log(f"""Slide processed and validated: {ind + 1}/{num_slides}""", log_importance=1)
                             return
                         else:
