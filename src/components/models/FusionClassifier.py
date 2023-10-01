@@ -118,8 +118,10 @@ class CohortAwareVisionTransformer(VisionTransformer):
         # Determine and return the current device
         return next(self.parameters()).device
 
+
 def cohort_aware_block_fn(cohort_aware_dict):
     cohort_aware_dict['block_num'] = 0
+
     def block_fn(**block_kwargs):
         cohort_aware_dict['block_num'] += 1
         return CohortAwareBlock(cohort_aware_dict, **block_kwargs)
@@ -200,6 +202,7 @@ class CohortAwareAttention(nn.Module):
     ):
         super().__init__()
         self.apply_awareness = apply_awareness
+        self.block_num = cohort_aware_dict['block_num']
         self.cohort_aware_dict = cohort_aware_dict
         self.num_heads = num_heads
         self.exclude_cohorts = cohort_aware_dict['exclude_cohorts']
@@ -238,7 +241,7 @@ class CohortAwareAttention(nn.Module):
                                                             'learnable_bias_matrices', None,
                                                             'separate_attended_query_per_block'] or\
                 not self.apply_awareness:
-            self.num_shared_heads = self.num_heads - len(self.include_cohorts) * self.num_heads_per_cohort
+            self.num_shared_heads = self.num_heads - self.num_heads_per_cohort
             self.qkv_w = nn.Parameter(torch.randn(self.dim * 3, self.dim))
             self.qkv_b = nn.Parameter(torch.randn(self.dim * 3))
             if self.cohort_aware_dict['awareness_strategy'] == 'separate_attended_query_per_block' and \
@@ -309,6 +312,12 @@ class CohortAwareAttention(nn.Module):
                 sep_q = sep_q.reshape(B, N, self.num_heads_per_cohort, self.head_dim)
                 q_combined = torch.stack([shared_attn_q, sep_q], dim=-2)
                 q_scores = self.get_q_attn_scores(q_combined)
+
+                # import time
+                # timestamp_str = time.strftime("%Y%m%d%H%M%S")
+                # filename = f'/home/sharonpe/microsatellite-instability-classification/notebooks/{self.block_num}.pth'
+                # torch.save(q_scores, filename)
+
                 cohort_attended_q = (q_combined * q_scores).sum(dim=-2)
                 q = torch.cat([shared_q, cohort_attended_q], dim=-2).permute(0, 2, 1, 3)
         elif self.cohort_aware_dict['awareness_strategy'] in ['separate_query', 'separate_noisy_query',

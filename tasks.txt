@@ -8,16 +8,25 @@ test:
 
 
 on hold:
+    run again on argus - to cancel overfit, try without symmetric loss (this time with), seed
+
 
 
 to do:
+
     action items about variants
 
-    debug the memory in the pooling
+    understand the result diff (in preprocessing, in label files?)
 
-    simple tile based experiment
+    check awareness scores - per block, per head, per cohort, per entire image/patch - adjust lr to the cq, weight dino_loss
+    pretrain again, understand the params
+
+    consider pretrain using all and train only using single cohort - in that way you don't increase the number of training sample - could be very interesting
+    tune on single cohort
+
+
+    run experiment with that each epoch is reduced % tiles per slide
     run an experiment with random 512 tiles and mean agg
-
     save slides with tile embeddings and locations
 
     move to other biomarks
