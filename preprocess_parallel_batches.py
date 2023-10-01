@@ -28,7 +28,7 @@ def generate_slide_paths_from_manifest(manifest_path, slides_dir):
 def get_bash_str_preprocess(slide_ids, num_processes, full_batch_ind):
     slides_str = ' '.join(slide_ids)
     bash_str = f"""
-    . /home/sharonpe/miniconda3/etc/profile.d/conda.sh
+    bash
     conda activate MSI
     python -u preprocess_full.py --num-processes {num_processes} --slide_ids {slides_str} --slide_dir {Configs.SLIDES_DIR} --full_batch_ind {full_batch_ind} >> {full_batch_ind}_preprocess_full_{get_time()}.txt 2>&1
     """

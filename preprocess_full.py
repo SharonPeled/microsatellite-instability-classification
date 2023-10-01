@@ -13,7 +13,7 @@ def download_slides(slides_dir, slides_str, full_batch_ind):
         print('Start Downloading ..')
         os.makedirs(slides_dir, exist_ok=True)
         bash_str = f"""
-    . /home/sharonpe/miniconda3/etc/profile.d/conda.sh
+    bash
     conda activate gdc
     cd {slides_dir}
     gdc-client download {slides_str} >> {full_batch_ind}_download_log_{get_time()}.txt 2>&1
@@ -57,7 +57,7 @@ def shift_ids(ids, tile_size):
 def get_bash_str_preprocess(tile_size, slide_ids, num_processes, full_batch_ind):
     slides_str = ' '.join(shift_ids(slide_ids, tile_size))
     bash_str = f"""
-    . /home/sharonpe/miniconda3/etc/profile.d/conda.sh
+    bash
     conda activate MSI
     python -u main.py --preprocess --num-processes {num_processes} --config_filepath config_files/preprocess_{tile_size}.json --slide_ids {slides_str} >> {full_batch_ind}_main_preprocess_{tile_size}.txt 2>&1
     """
@@ -74,7 +74,9 @@ def main(args):
         download_slides(slides_dir=slides_dir, slides_str=' '.join(slide_ids), full_batch_ind=full_batch_ind)
 
         bash_str = get_bash_str_preprocess(512, slide_ids, num_processes, full_batch_ind)
-        proc1 = subprocess.Popen([bash_str, ], stdout=subprocess.PIPE,
+        proc1 = subprocess.Popen(["""bash
+        conda activate MSI 
+        python -u main.py --preprocess --num-processes 1 --config_filepath config_files/preprocess_256.json --slide_ids b740c836-c964-4fa0-b82b-f061919bebb6 b3509368-20af-405d-a87f-3efc5899799b""", ], stdout=subprocess.PIPE,
                                  stderr=subprocess.PIPE,
                                  text=True, shell=True)
         print(bash_str)
