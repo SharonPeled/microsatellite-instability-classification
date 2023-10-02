@@ -162,7 +162,7 @@ class TumorRegressionConfigs:
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
     SC_EXPERIMENT_NAME = 'SC_MIL_DINO_VIT'
-    SC_FORMULATION = f'max_pool_{SC_TILE_SIZE}_DINO_argus_tile_based_no_224'
+    SC_FORMULATION = f'max_pool_{SC_TILE_SIZE}_DINO_argus_tile_based_no_256'
     SC_RUN_NAME = f"{SC_FORMULATION}_1"
     SC_RUN_DESCRIPTION = f"""Labels are by bioportal.
     """
@@ -173,8 +173,8 @@ class SubtypeClassificationConfigs:
                                     # 'df_labels_cin_slides_and_other_cin_gs_2.tsv')
     SC_DF_TILE_PATHS_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                          f'df_processed_tile_paths_{SC_TILE_SIZE}.csv')
-    SC_DF_TILE_PATHS_PATH_224 = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
-                                             f'df_processed_tile_paths_224_reduced.csv')
+    SC_DF_TILE_PATHS_PATH_256 = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
+                                             f'df_processed_tile_paths_256_reduced.csv')
     SC_DF_TILE_PATHS_PATH_512 = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                              f'df_processed_tile_paths_512.csv')
     SC_DF_TILE_PATHS_PATH_1024 = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
