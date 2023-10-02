@@ -24,7 +24,7 @@ def download_slides(slides_dir, slides_str, full_batch_ind):
                                 shell=True)
         print(bash_str)
         proc.wait()
-        print(f"Finished Download {len(slides_str.split(' '))}.")
+        print(f"Finished Download {len(slides_str.split(' '))} slides.")
     except Exception as e:
         print(f"Main program received {e}")
         print('Stopping subprocesses...')
@@ -38,7 +38,7 @@ def delete_slides(slide_ids, slides_dir):
     for slide_id in slide_ids:
         dir_path = os.path.join(slides_dir, slide_id)
         shutil.rmtree(dir_path)
-    print(f"Finished Delete {len(slide_ids)}.")
+    print(f"Finished Delete {len(slide_ids)} slides.")
 
 
 def shift_ids(ids, tile_size):

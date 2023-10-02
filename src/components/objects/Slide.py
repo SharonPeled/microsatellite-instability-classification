@@ -145,23 +145,25 @@ class Slide(Image):
                         self._log(f"""Sampling {len(tiles_inds)} tissue tiles.""", log_importance=1)
 
                     # validation
-                    if self.get('Done preprocessing', soft=True):
-                        tile_size = self.get('tile_size')
-                        slide_uuid = self.get('slide_uuid')
-                        processed_tiles_dir = f'/home/sharonpe/work/microsatellite-instability-classification/data/processed_tiles_{tile_size}/{slide_uuid}'
-                        from glob import glob
-                        tile_path_list = pd.DataFrame({'tile_path': glob(f'{processed_tiles_dir}/*.jpg')})
-                        tile_path_list['row'] = tile_path_list.tile_path.apply(
-                            lambda p: int(p.split('/')[-1].split('_')[0]))
-                        tile_path_list['col'] = tile_path_list.tile_path.apply(
-                            lambda p: int(p.split('/')[-1].split('_')[1]))
-                        processed_tiles_inds_set = set([(row['row'], row['col']) for i, row in tile_path_list.iterrows()])
-                        tiles_inds_set = set([(x, y) for i, (x, y) in enumerate(tiles_inds)])
-                        if processed_tiles_inds_set.issubset(tiles_inds_set) :
-                            self._log(f"""Slide processed and validated: {ind + 1}/{num_slides}""", log_importance=1)
-                            return
-                        else:
-                            self._log(f"""Slide processed and but not validated!!!: {slide_uuid}""", log_importance=1)
+                    # if self.get('Done preprocessing', soft=True):
+                    tile_size = self.get('tile_size')
+                    slide_uuid = self.get('slide_uuid')
+                    processed_tiles_dir = f'/home/sharonpe/work/microsatellite-instability-classification/data/processed_tiles_{tile_size}/{slide_uuid}'
+                    from glob import glob
+                    tile_path_list = pd.DataFrame({'tile_path': glob(f'{processed_tiles_dir}/*.jpg')})
+                    tile_path_list['row'] = tile_path_list.tile_path.apply(
+                        lambda p: int(p.split('/')[-1].split('_')[0]))
+                    tile_path_list['col'] = tile_path_list.tile_path.apply(
+                        lambda p: int(p.split('/')[-1].split('_')[1]))
+                    processed_tiles_inds_set = set([(row['row'], row['col']) for i, row in tile_path_list.iterrows()])
+                    tiles_inds_set = set([(x, y) for i, (x, y) in enumerate(tiles_inds)])
+                    if processed_tiles_inds_set.issubset(tiles_inds_set) :
+                        self._log(f"""Slide processed and validated: {ind + 1}/{num_slides}""", log_importance=1)
+                        return
+                    elif len(processed_tiles_inds_set) > 0:
+                        self._log(f"""Slide processed but failed in validation!!!: {slide_uuid}""", log_importance=1)
+                    else:
+                        self._log(f"""Slide wasn't processed {slide_uuid}""", log_importance=1)
 
                     self._log(f"""Processing {len(tiles_inds)} tissue tiles of size {tile_size}.""", log_importance=1)
 
