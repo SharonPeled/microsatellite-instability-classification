@@ -1,18 +1,17 @@
 import argparse
-from src.tumor_classification.training import train as train_tumor
-from src.tumor_classification.predict import predict as predict_tumor
-from src.semantic_segmentation.OOD_validation_tumor_TCGA import OOD_validation_tumor_TCGA
-from src.semantic_segmentation.OOD_validation_ss_IRCCS import OOD_validation_ss_IRCCS
-from src.semantic_segmentation.training import train as train_semantic_seg
-from src.semantic_segmentation.predict import predict as predict_semantic_seg
-from src.tumor_distance_estimation.training import train as train_tumor_regression
-from src.general_utils import bring_files, bring_joined_log_file, delete_all_artifacts, \
-    generate_thumbnails_with_tissue_classification, load_df_pred, get_time, set_global_configs
-from src.subtype_classification.training_MIL import train as train_subtype_classification_mil
-from src.subtype_classification.training_tile_based import train as train_subtype_classification_tile
-from src.subtype_classification.pretraining_tile_based import train as pretrain_subtype_classification_tile
-from src.variant_classification.training import train as train_variant_classification
-from src.variant_classification.permutaion_test import train as permutation_variant_classification
+# from src.tumor_classification.training import train as train_tumor
+# from src.tumor_classification.predict import predict as predict_tumor
+# from src.semantic_segmentation.OOD_validation_tumor_TCGA import OOD_validation_tumor_TCGA
+# from src.semantic_segmentation.OOD_validation_ss_IRCCS import OOD_validation_ss_IRCCS
+# from src.semantic_segmentation.training import train as train_semantic_seg
+# from src.semantic_segmentation.predict import predict as predict_semantic_seg
+# from src.tumor_distance_estimation.training import train as train_tumor_regression
+from src.general_utils import get_time, set_global_configs
+# from src.subtype_classification.training_MIL import train as train_subtype_classification_mil
+# from src.subtype_classification.training_tile_based import train as train_subtype_classification_tile
+# from src.subtype_classification.pretraining_tile_based import train as pretrain_subtype_classification_tile
+# from src.variant_classification.training import train as train_variant_classification
+# from src.variant_classification.permutaion_test import train as permutation_variant_classification
 import signal
 import datetime
 from src.configs import Configs
@@ -89,74 +88,74 @@ def main():
         for sig in catchable_sigs:
             signal.signal(sig, write_to_file)
             print(f"{sig} - Suppressed.", flush=True)
-    if args.clean_all:
-        print(f"Are you sure you want to delete all generated artifacts in {Configs.ROOT} ?")
-        if input().lower() in ['y', 'yes']:
-            delete_all_artifacts(Configs)
+    # if args.clean_all:
+    #     print(f"Are you sure you want to delete all generated artifacts in {Configs.ROOT} ?")
+    #     if input().lower() in ['y', 'yes']:
+    #         delete_all_artifacts(Configs)
     if args.preprocess:
         from src.preprocessing.pipeline import execute_preprocessing_pipeline
         execute_preprocessing_pipeline(with_tiling=True, num_processes=args.num_processes, slide_ids=args.slide_ids)
     if args.thumbnails_only:
         from src.preprocessing.pipeline import execute_preprocessing_pipeline
         execute_preprocessing_pipeline(with_tiling=False, num_processes=args.num_processes, slide_ids=args.slide_ids)
-    if args.bring_slide_logs:
-        bring_joined_log_file(Configs.SLIDES_DIR, Configs.PROGRAM_LOG_FILE_ARGS[0], args.bring_slide_logs)
-    if args.train_tumor_classifier:
-        train_tumor()
-    if args.inference_tumor_tiles:
-        predict_tumor()
-    if args.train_semantic_seg:
-        train_semantic_seg()
-    if args.inference_semantic_seg:
-        predict_semantic_seg()
-    if args.train_tumor_regression:
-        train_tumor_regression()
-    if args.train_subtype_classification_tile:
-        Configs.set_task_configs('SC')
-        train_subtype_classification_tile()
-    if args.pretrain_subtype_classification_tile:
-        Configs.set_task_configs(['DN', 'SC'])
-        pretrain_subtype_classification_tile()
-    if args.train_subtype_classification_mil:
-        Configs.set_task_configs('SC')
-        train_subtype_classification_mil()
-    if args.train_variant_classification:
-        Configs.set_task_configs('VC')
-        train_variant_classification()
-    if args.permutation_variant_classification:
-        Configs.set_task_configs('VC')
-        permutation_variant_classification()
-    if args.generate_tumor_thumbnails:
-        df_pred = load_df_pred(pred_dir=Configs.TUMOR_PREDICT_OUTPUT_PATH,
-                               class_to_index=Configs.TUMOR_CLASS_TO_IND)
-        generate_thumbnails_with_tissue_classification(df_pred=df_pred,
-                                                       slides_dir=Configs.SLIDES_DIR,
-                                                       class_to_index=Configs.TUMOR_CLASS_TO_IND,
-                                                       class_to_color=Configs.TUMOR_CLASS_TO_COLOR,
-                                                       summary_df_filename=Configs.SUMMARY_DF_FILENAME,
-                                                       summary_df_pred_merged_filename=Configs.TUMOR_SUMMARY_DF_PRED_MERGED_FILENAME,
-                                                       thumbnail_filename=Configs.TUMOR_THUMBNAIL_FILENAME)
-    if args.generate_semantic_seg_thumbnails:
-        df_pred = load_df_pred(pred_dir=Configs.SS_PREDICT_OUTPUT_PATH,
-                               class_to_index=Configs.SS_CLASS_TO_IND)
-        generate_thumbnails_with_tissue_classification(df_pred=df_pred,
-                                                       slides_dir=Configs.SLIDES_DIR,
-                                                       class_to_index=Configs.SS_CLASS_TO_IND,
-                                                       class_to_color=Configs.SS_CLASS_TO_COLOR,
-                                                       summary_df_filename=Configs.SUMMARY_DF_FILENAME,
-                                                       summary_df_pred_merged_filename=Configs.SS_SUMMARY_DF_PRED_MERGED_FILENAME,
-                                                       thumbnail_filename=Configs.SS_THUMBNAIL_FILENAME)
-
-    if args.OOD_validation_tumor_TCGA:
-        OOD_validation_tumor_TCGA()
-    if args.OOD_validation_ss_IRCCS:
-        OOD_validation_ss_IRCCS()
-    if args.bring_thumbnails:
-        bring_files(Configs.SLIDES_DIR, Configs.THUMBNAIL_FILENAME, args.bring_thumbnails)
-    if args.bring_tumor_thumbnails:
-        bring_files(Configs.SLIDES_DIR, Configs.TUMOR_THUMBNAIL_FILENAME, args.bring_tumor_thumbnails)
-    if args.bring_semantic_seg_thumbnails:
-        bring_files(Configs.SLIDES_DIR, Configs.SS_THUMBNAIL_FILENAME, args.bring_semantic_seg_thumbnails)
+    # if args.bring_slide_logs:
+    #     bring_joined_log_file(Configs.SLIDES_DIR, Configs.PROGRAM_LOG_FILE_ARGS[0], args.bring_slide_logs)
+    # if args.train_tumor_classifier:
+    #     train_tumor()
+    # if args.inference_tumor_tiles:
+    #     predict_tumor()
+    # if args.train_semantic_seg:
+    #     train_semantic_seg()
+    # if args.inference_semantic_seg:
+    #     predict_semantic_seg()
+    # if args.train_tumor_regression:
+    #     train_tumor_regression()
+    # if args.train_subtype_classification_tile:
+    #     Configs.set_task_configs('SC')
+    #     train_subtype_classification_tile()
+    # if args.pretrain_subtype_classification_tile:
+    #     Configs.set_task_configs(['DN', 'SC'])
+    #     pretrain_subtype_classification_tile()
+    # if args.train_subtype_classification_mil:
+    #     Configs.set_task_configs('SC')
+    #     train_subtype_classification_mil()
+    # if args.train_variant_classification:
+    #     Configs.set_task_configs('VC')
+    #     train_variant_classification()
+    # if args.permutation_variant_classification:
+    #     Configs.set_task_configs('VC')
+    #     permutation_variant_classification()
+    # if args.generate_tumor_thumbnails:
+    #     df_pred = load_df_pred(pred_dir=Configs.TUMOR_PREDICT_OUTPUT_PATH,
+    #                            class_to_index=Configs.TUMOR_CLASS_TO_IND)
+    #     generate_thumbnails_with_tissue_classification(df_pred=df_pred,
+    #                                                    slides_dir=Configs.SLIDES_DIR,
+    #                                                    class_to_index=Configs.TUMOR_CLASS_TO_IND,
+    #                                                    class_to_color=Configs.TUMOR_CLASS_TO_COLOR,
+    #                                                    summary_df_filename=Configs.SUMMARY_DF_FILENAME,
+    #                                                    summary_df_pred_merged_filename=Configs.TUMOR_SUMMARY_DF_PRED_MERGED_FILENAME,
+    #                                                    thumbnail_filename=Configs.TUMOR_THUMBNAIL_FILENAME)
+    # if args.generate_semantic_seg_thumbnails:
+    #     df_pred = load_df_pred(pred_dir=Configs.SS_PREDICT_OUTPUT_PATH,
+    #                            class_to_index=Configs.SS_CLASS_TO_IND)
+    #     generate_thumbnails_with_tissue_classification(df_pred=df_pred,
+    #                                                    slides_dir=Configs.SLIDES_DIR,
+    #                                                    class_to_index=Configs.SS_CLASS_TO_IND,
+    #                                                    class_to_color=Configs.SS_CLASS_TO_COLOR,
+    #                                                    summary_df_filename=Configs.SUMMARY_DF_FILENAME,
+    #                                                    summary_df_pred_merged_filename=Configs.SS_SUMMARY_DF_PRED_MERGED_FILENAME,
+    #                                                    thumbnail_filename=Configs.SS_THUMBNAIL_FILENAME)
+    #
+    # if args.OOD_validation_tumor_TCGA:
+    #     OOD_validation_tumor_TCGA()
+    # if args.OOD_validation_ss_IRCCS:
+    #     OOD_validation_ss_IRCCS()
+    # if args.bring_thumbnails:
+    #     bring_files(Configs.SLIDES_DIR, Configs.THUMBNAIL_FILENAME, args.bring_thumbnails)
+    # if args.bring_tumor_thumbnails:
+    #     bring_files(Configs.SLIDES_DIR, Configs.TUMOR_THUMBNAIL_FILENAME, args.bring_tumor_thumbnails)
+    # if args.bring_semantic_seg_thumbnails:
+    #     bring_files(Configs.SLIDES_DIR, Configs.SS_THUMBNAIL_FILENAME, args.bring_semantic_seg_thumbnails)
 
 
 if __name__ == "__main__":
