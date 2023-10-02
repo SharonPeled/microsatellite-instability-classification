@@ -24,7 +24,7 @@ def download_slides(slides_dir, slides_str, full_batch_ind):
                                 shell=True)
         print(bash_str)
         proc.wait()
-        print(f"Finished Download {len(slides_str.split(' '))}.")
+        print(f"Finished Download {len(slides_str.split(' '))} slides.")
     except Exception as e:
         print(f"Main program received {e}")
         print('Stopping subprocesses...')
@@ -38,13 +38,13 @@ def delete_slides(slide_ids, slides_dir):
     for slide_id in slide_ids:
         dir_path = os.path.join(slides_dir, slide_id)
         shutil.rmtree(dir_path)
-    print(f"Finished Delete {len(slide_ids)}.")
+    print(f"Finished Delete {len(slide_ids)} slides.")
 
 
 def shift_ids(ids, tile_size):
     tile_size = int(tile_size)
     # Calculate the shift distance (one-third of the list length)
-    if tile_size == 224:
+    if tile_size == 256:
         return ids
     elif tile_size == 512:
         third_shift = len(ids) // 3
@@ -88,7 +88,7 @@ def main(args):
         print(bash_str)
         # proc2.wait()
 
-        bash_str = get_bash_str_preprocess(224, slide_ids, num_processes, full_batch_ind)
+        bash_str = get_bash_str_preprocess(256, slide_ids, num_processes, full_batch_ind)
         proc3 = subprocess.Popen([bash_str, ], stdout=subprocess.PIPE,
                                  stderr=subprocess.PIPE,
                                  text=True, shell=True)
