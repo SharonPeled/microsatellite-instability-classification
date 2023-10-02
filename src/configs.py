@@ -389,6 +389,7 @@ class ConfigsClass(GeneralConfigs, PreprocessingConfigs, TumorClassificationConf
                     continue
                 self.joined[c] = getattr(self, task_c)
                 break
+        print(f"Starting experiment: {self.joined['EXPERIMENT_NAME']}.{self.joined['RUN_NAME']}")
 
 
 Configs = ConfigsClass()
