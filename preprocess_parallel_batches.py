@@ -55,6 +55,7 @@ if __name__ == '__main__':
     processes = []
     try:
         while True:
+            # this loop sometimes never ending, need to debug
             num_running_full_processes = sum([proc.poll() is None for proc in processes])
             if full_batch_ind == len(manifest_fullprocess_batch) and num_running_full_processes == 0:
                 # finished preprocessing everything

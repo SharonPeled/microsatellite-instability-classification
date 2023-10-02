@@ -14,16 +14,20 @@ on hold:
 
 to do:
 
-    action items about variants
+    action items about variants - until next week - ready email
 
-    understand the result diff (in preprocessing, in label files?)
+    wait for the pp to finish - fix 1024 and merge join
+    create new df_tiles files
+    train again tile based with lr adjustment and new files (different versions)
+    check the awareness score of the adjusted model
 
-    check awareness scores - per block, per head, per cohort, per entire image/patch - adjust lr to the cq, weight dino_loss
+    check awareness scores - per block, per head, per cohort, per entire image/patch, diff cq - adjust lr to the cq, weight dino_loss
     pretrain again, understand the params
+
+    tune the FoVs rates
 
     consider pretrain using all and train only using single cohort - in that way you don't increase the number of training sample - could be very interesting
     tune on single cohort
-
 
     run experiment with that each epoch is reduced % tiles per slide
     run an experiment with random 512 tiles and mean agg
