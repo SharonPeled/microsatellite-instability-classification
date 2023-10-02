@@ -3,7 +3,7 @@ import pandas as pd
 import os
 
 
-tile_sizes = [224, 512, 1024]
+tile_sizes = [256, 512, 1024]
 DATA_FOLDER = '/home/sharonpe/work/microsatellite-instability-classification/data'
 ROOT = '/home/sharonpe/microsatellite-instability-classification/data'
 for tile_size in tile_sizes:
@@ -15,7 +15,7 @@ for tile_size in tile_sizes:
     df_mc = pd.read_csv(f'{ROOT}/subtype_classification/df_manifest_all_dx_cohort_combined.tsv', sep='\t')
     df_tiles_merged = df_tiles.merge(df_mc, how='inner', left_on='slide_uuid', right_on='id')
     print(f'After merge: {len(df_tiles_merged)} tiles.')
-    if tile_size != 224:
+    if tile_size == 512:
         df_tiles_merged.to_csv(f'{ROOT}/subtype_classification/df_processed_tile_paths_{tile_size}.csv')
     else:
         df_tiles_merged.to_csv(f'{ROOT}/subtype_classification/df_processed_tile_paths_{tile_size}_reduced.csv')

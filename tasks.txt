@@ -16,8 +16,6 @@ to do:
 
     action items about variants - until next week - ready email
 
-    wait for the pp to finish - fix 1024 and merge join
-    create new df_tiles files
     train again tile based with lr adjustment and new files (different versions)
     check the awareness score of the adjusted model
 
@@ -48,6 +46,9 @@ CPTAC is publicly available
 Wang et al. trained the network using an unsupervised
 contrastive loss on data from TCGA and PAIP36 from multiple organs and provided the weights for public use. The embeddings
 for each tile are stored for the subsequent training procedure
+
+understand the FoVs - some slides are big with low number of tiles (different Fovs?), does the cell oval size is the same size in all images? (or other common something)
+some of the slide has weird tiling - single tile for something that look normal.. (not in labels..)
 
 
 

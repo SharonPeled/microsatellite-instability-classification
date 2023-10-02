@@ -161,8 +161,8 @@ class TumorRegressionConfigs:
 
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
-    SC_EXPERIMENT_NAME = 'SC_MIL_DINO_VIT'
-    SC_FORMULATION = f'max_pool_{SC_TILE_SIZE}_DINO_argus_tile_based_no_256'
+    SC_EXPERIMENT_NAME = 'SC_TILE_DINO_VIT'
+    SC_FORMULATION = f'argus_rep_reg_loss'
     SC_RUN_NAME = f"{SC_FORMULATION}_1"
     SC_RUN_DESCRIPTION = f"""Labels are by bioportal.
     """
@@ -178,7 +178,7 @@ class SubtypeClassificationConfigs:
     SC_DF_TILE_PATHS_PATH_512 = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                              f'df_processed_tile_paths_512.csv')
     SC_DF_TILE_PATHS_PATH_1024 = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
-                                              f'df_processed_tile_paths_1024.csv')
+                                              f'df_processed_tile_paths_1024_reduced.csv')  # the labeled slides are full..
     SC_LABEL_COL = 'subtype'
     SC_TRAINED_MODEL_PATH = os.path.join(GeneralConfigs.ROOT, 'models', 'subtype_classification',
                                          f'SC_{SC_RUN_NAME}_' + '{time}.ckpt')
@@ -239,7 +239,7 @@ class SubtypeClassificationConfigs:
                   'n_nn_head': {'num_layers': 1, 'dropout_value': 0.0},
                   'sep_cohort_w_loss': True,
                   'learnable_cohort_prior_type': None, # '*', # 0.1,  # initial prior value
-                  'FoVs_augs_amounts': (0.0, 0.15),  # tuple of % from each FoVs to add
+                  'FoVs_augs_amounts': (0.15, 0.15),  # tuple of % from each FoVs to add
                   'tile_encoder': SC_TILE_ENCODER,
                   'cohort_aware_dict': COHORT_AWARE_DICT,
                   # 'pretrained_ckp_path': os.path.join(GeneralConfigs.ROOT, 'models', 'subtype_classification', 'dgx_SQ6B12_At2Ltanh_65k_2_dino_checkpoints', 'checkpoint0005.pth'),
