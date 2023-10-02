@@ -38,7 +38,7 @@ def init_task():
             Configs.SC_LABEL_COL).slide_uuid.nunique().to_dict()
 
     if Configs.SC_KW_ARGS.get('FoVs_augs_amounts', None):
-        tile_df_paths = [path for path in [Configs.SC_DF_TILE_PATHS_PATH_224,
+        tile_df_paths = [path for path in [Configs.SC_DF_TILE_PATHS_PATH_256,
                                            Configs.SC_DF_TILE_PATHS_PATH_512,
                                            Configs.SC_DF_TILE_PATHS_PATH_1024]
                          if path != Configs.SC_DF_TILE_PATHS_PATH]

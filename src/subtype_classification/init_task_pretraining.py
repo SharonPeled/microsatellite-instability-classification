@@ -24,7 +24,7 @@ def init_task():
     num_slides = len(df_tiles.slide_uuid.unique())
 
     if Configs.DINO_DICT.get('FoVs_augs_amounts', None):
-        tile_df_paths = [Configs.SC_DF_TILE_PATHS_PATH_224, Configs.SC_DF_TILE_PATHS_PATH_1024]
+        tile_df_paths = [Configs.SC_DF_TILE_PATHS_PATH_256, Configs.SC_DF_TILE_PATHS_PATH_1024]
         df_list = []
         for i, path in enumerate(tile_df_paths):
             if Configs.SC_KW_ARGS.get('FoVs_augs_amounts')[i] is None or Configs.SC_KW_ARGS.get('FoVs_augs_amounts')[i] == 0:
