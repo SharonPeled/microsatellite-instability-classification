@@ -84,7 +84,7 @@ class ProcessedTileDataset(Dataset, Logger):
         return torch.stack(images), cohorts[-1], labels[-1], slide_ids, patient_ids
 
     def load_single_tile(self, row):
-        img = Image.open(row['tile_path'])
+        img = self.load_image_safe(row['tile_path'])
         if self.transform:
             img = self.transform(img)
         if self.pretraining:
@@ -97,6 +97,17 @@ class ProcessedTileDataset(Dataset, Logger):
         if self.cohort_to_index is not None:
             return img, self.cohort_to_index[row['cohort']], y, slide_id, patient_id
         return img, None, y, slide_id, patient_id
+
+    def load_image_safe(self, path):
+        try:
+            # Try to open the image from the given path
+            image = Image.open(path)
+        except Exception as e:
+            # If loading the image fails, create an empty (white) image
+            image = Image.new('RGB', (224, 224), color='white')
+            self.log('-'*25 + f"Invalid image: {path}, Error: {e}"+ '-'*25,
+                     log_importance=1)
+        return image
 
     def __len__(self):
         return self.dataset_length
