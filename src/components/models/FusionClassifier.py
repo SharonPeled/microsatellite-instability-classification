@@ -311,7 +311,7 @@ class CohortAwareAttention(nn.Module):
                 sep_q = self.get_sep_q(x, c, self.cohort_q_w, self.cohort_q_b)  # B, N, num_cohort_heads*head_dim
                 sep_q = sep_q.reshape(B, N, self.num_heads_per_cohort, self.head_dim)
                 q_combined = torch.stack([shared_attn_q, sep_q], dim=-2)
-                q_scores = self.get_q_attn_scores(q_combined)
+                q_scores = self.get_q_attn_scores(q_combined, c)
 
                 # import time
                 # timestamp_str = time.strftime("%Y%m%d%H%M%S")
@@ -340,7 +340,7 @@ class CohortAwareAttention(nn.Module):
             raise NotImplementedError
         return q, k, v
 
-    def get_q_attn_scores(self, q_combined):
+    def get_q_attn_scores(self, q_combined, c):
         if self.cohort_aware_dict['q_attention_type'] == 'linear':
             q_scores_features = q_combined * self.q_attn_w.view(1, 1, self.num_heads_per_cohort, 1, 64)
             q_scores = q_scores_features.sum(dim=-1)
@@ -353,7 +353,12 @@ class CohortAwareAttention(nn.Module):
                              for i in range(self.num_heads_per_cohort)]
             q_scores = torch.stack(q_scores_list, dim=-2)
             q_scores = softmax(q_scores, dim=-1)
-            return q_scores.unsqueeze(-1)
+            q_scores = q_scores.unsqueeze(-1)
+            # making excluded cohorts with 0 attend cohort query
+            excluded_cohorts_filter = torch.isin(c, torch.tensor(self.exclude_cohorts, device=c.device))
+            q_scores[excluded_cohorts_filter, :, :, 0] = 0
+            q_scores[excluded_cohorts_filter, :, :, 1] = 1
+            return q_scores
 
     def get_sep_q(self, x, c, cohort_w, cohort_b):
         B, N, C = x.shape
