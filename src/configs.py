@@ -202,12 +202,13 @@ class SubtypeClassificationConfigs:
     SC_COHORT_WEIGHT = None # {('COAD', 'CIN'): 0.75, ('COAD', 'GS'): 2.25, ('ESCA', 'CIN'): 0.25, ('ESCA', 'GS'): 0.75, ('READ', 'CIN'): 0.75, ('READ', 'GS'): 2.25, ('STAD', 'CIN'): 0.25, ('STAD', 'GS'): 0.75, ('UCEC', 'CIN'): 0.25, ('UCEC', 'GS'): 0.75}
     # SC_COHORT_TUNE = None # ['COAD', 'READ']
     SC_TEST_ONLY = None
+    SC_SAVE_TEST = False
     SC_NUM_EPOCHS = 1
     SC_NUM_DEVICES = 1
     SC_NUM_NODES = 1
     SC_DEVICE = 'gpu'
     SC_TEST_BATCH_SIZE = 512
-    SC_SAVE_CHECKPOINT_STEP_INTERVAL = 20000
+    SC_SAVE_CHECKPOINT_STEP_INTERVAL = None
     SC_VAL_STEP_INTERVAL = 1/2  # 2 times an epoch
     SC_TRAINING_BATCH_SIZE = 256  # accumulating gradients in MIL only
     SC_NUM_WORKERS = 25
@@ -339,6 +340,7 @@ class VariantClassificationConfigs:
     VC_CROSS_VALIDATE = True
     VC_CONTINUE_FROM_FOLD = 0
     VC_TEST_ONLY = None # "/home/sharonpe/microsatellite-instability-classification/models/variant_classification/VC_SSL_VIT_cancer_fine_aug_512_15_07_2023_00_00.ckpt"
+    VC_SAVE_TEST = True
     VC_Y_TO_BE_STRATIFIED = None
     VC_CLASS_TO_IND = {'GT0': 0, 'GT1': 1, 'GT2': 2}
     VC_NUM_EPOCHS = 1
@@ -346,7 +348,7 @@ class VariantClassificationConfigs:
     VC_NUM_NODES = 1
     VC_DEVICE = 'gpu'
     VC_TEST_BATCH_SIZE = 128
-    VC_SAVE_CHECKPOINT_STEP_INTERVAL = 10000
+    VC_SAVE_CHECKPOINT_STEP_INTERVAL = None
     VC_VAL_STEP_INTERVAL = None  # 10 times an epoch
     VC_TRAINING_BATCH_SIZE = 128
     VC_NUM_WORKERS = 15
@@ -380,7 +382,7 @@ class ConfigsClass(GeneralConfigs, PreprocessingConfigs, TumorClassificationConf
                           'TRAINED_MODEL_PATH', 'CLASS_TO_IND', 'NUM_EPOCHS', 'NUM_DEVICES', 'DEVICE', 'TEST_BATCH_SIZE',
                           'SAVE_CHECKPOINT_STEP_INTERVAL', 'VAL_STEP_INTERVAL', 'TRAINING_BATCH_SIZE', 'NUM_WORKERS',
                           'TEST_SIZE', 'VALID_SIZE', 'INIT_LR', 'TILE_SAMPLE_TRAIN', 'SSL_STATISTICS',
-                          'CROSS_VALIDATE', 'Y_TO_BE_STRATIFIED', 'TEST_ONLY', 'TEST_PREDICT_OUTPUT_PATH',
+                          'CROSS_VALIDATE', 'Y_TO_BE_STRATIFIED', 'TEST_ONLY', 'SAVE_TEST', 'TEST_PREDICT_OUTPUT_PATH',
                           'VALID_PREDICT_OUTPUT_PATH', 'COHORT_TO_IND', 'CONTINUE_FROM_FOLD', 'NUM_NODES']
         for c in common_configs:
             for prefix in self.TASK_PREFIXES:

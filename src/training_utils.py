@@ -96,7 +96,7 @@ def train_single_split(df_train, df_valid, df_test, train_transform, test_transf
                          deterministic=False,
                          val_check_interval=Configs.joined['VAL_STEP_INTERVAL'],
                          callbacks=callbacks,
-                         enable_checkpointing=True,
+                         enable_checkpointing=False,
                          logger=logger,
                          num_sanity_val_steps=2,
                          max_epochs=Configs.joined['NUM_EPOCHS'],
@@ -115,7 +115,10 @@ def train_single_split(df_train, df_valid, df_test, train_transform, test_transf
     Logger.log("Starting Test.", log_importance=1)
     trainer.test(model, test_loader)
     Logger.log(f"Done Test.", log_importance=1)
-    save_results(model, test_dataset, valid_dataset)
+    if Configs.joined['SAVE_TEST']:
+        save_results(model, test_dataset, valid_dataset)
+    else:
+        Logger.log('Saving results is suppressed.', importance=1)
     return model
 
 

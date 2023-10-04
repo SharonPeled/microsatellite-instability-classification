@@ -16,11 +16,13 @@ to do:
 
     action items about variants - until next week - ready email
 
-    check the awarness of the ESCA - why is it no zero?
+    read the paper about the shared heads
+    fix mlflow and adjust the saving for quota
 
-    check awareness scores - per block, per head, per cohort, per entire image/patch, diff cq - adjust lr to the cq, weight dino_loss
+    check awareness scores (also of after ESCA change) - per block, per head, per cohort, per entire image/patch, diff cq - adjust lr to the cq, weight dino_loss
     try and check the difference across patches - if there isn't - sample from multiple image the last token
     compare the different cq
+
     pretrain again, understand the params
 
     tune the FoVs rates

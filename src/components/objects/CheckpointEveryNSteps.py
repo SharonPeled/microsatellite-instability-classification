@@ -30,6 +30,8 @@ class CheckpointEveryNSteps(pl.Callback):
 
     def on_train_batch_end(self, trainer, pl_module, outputs, batch, batch_idx, unused=0):
         """ Check if we should save a checkpoint after every train batch """
+        if self.save_step_frequency is None:
+            return
         epoch = trainer.current_epoch
         global_step = trainer.global_step
         if global_step % self.save_step_frequency == 0 and self.last_save_global_step != global_step:
