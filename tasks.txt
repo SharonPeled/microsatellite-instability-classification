@@ -16,7 +16,7 @@ to do:
 
     read the paper about the shared heads
 
-    check awareness scores (also of after ESCA change) - per block, per head, per cohort, per entire image/patch, diff cq - adjust lr to the cq, weight dino_loss
+    check awareness scores (also of after ESCA change) - per block, per head, per cohort, per entire image/patch, diff cq
     try and check the difference across patches - if there isn't - sample from multiple image the last token
     compare the different cq
 
@@ -28,6 +28,9 @@ to do:
     tune on single cohort
 
     run experiment with that each epoch is reduced % tiles per slide
+    try smooth labels - tile that are filtered out could be used as soft labels (only in positive class?)
+    negative class could have attention scores?
+
     run an experiment with random 512 tiles and mean agg
     save slides with tile embeddings and locations
 

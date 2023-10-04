@@ -118,7 +118,7 @@ def train_single_split(df_train, df_valid, df_test, train_transform, test_transf
     if Configs.joined['SAVE_TEST']:
         save_results(model, test_dataset, valid_dataset)
     else:
-        Logger.log('Saving results is suppressed.', importance=1)
+        Logger.log('Saving results is suppressed.', log_importance=1)
     return model
 
 
