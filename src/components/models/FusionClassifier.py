@@ -319,7 +319,17 @@ class CohortAwareAttention(nn.Module):
                 # torch.save(q_scores, filename)
 
                 cohort_attended_q = (q_combined * q_scores).sum(dim=-2)
-                q = torch.cat([shared_q, cohort_attended_q], dim=-2).permute(0, 2, 1, 3)
+                q_attn = torch.cat([shared_q, cohort_attended_q], dim=-2)
+
+                # masking q_attn for excluded cohorts
+                ex_mask = torch.zeros(q.shape, device=q.device)
+                excluded_cohorts_filter = torch.isin(c, torch.tensor(self.exclude_cohorts, device=c.device))
+                ex_mask[excluded_cohorts_filter] = 1
+                in_mask = 1 - ex_mask
+                q = in_mask * q_attn + ex_mask * q
+
+                q = q.permute(0, 2, 1, 3)
+
         elif self.cohort_aware_dict['awareness_strategy'] in ['separate_query', 'separate_noisy_query',
                                                               'separate_query_per_block']:
             # key, value only
@@ -354,10 +364,6 @@ class CohortAwareAttention(nn.Module):
             q_scores = torch.stack(q_scores_list, dim=-2)
             q_scores = softmax(q_scores, dim=-1)
             q_scores = q_scores.unsqueeze(-1)
-            # making excluded cohorts with 0 attend cohort query
-            excluded_cohorts_filter = torch.isin(c, torch.tensor(self.exclude_cohorts, device=c.device))
-            q_scores[excluded_cohorts_filter, :, :, 0] = 0
-            q_scores[excluded_cohorts_filter, :, :, 1] = 1
             return q_scores
 
     def get_sep_q(self, x, c, cohort_w, cohort_b):

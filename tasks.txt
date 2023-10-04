@@ -8,8 +8,6 @@ test:
 
 
 on hold:
-    run again on argus - to cancel overfit, try without symmetric loss (this time with), seed
-
 
 
 to do:
@@ -17,7 +15,6 @@ to do:
     action items about variants - until next week - ready email
 
     read the paper about the shared heads
-    fix mlflow and adjust the saving for quota
 
     check awareness scores (also of after ESCA change) - per block, per head, per cohort, per entire image/patch, diff cq - adjust lr to the cq, weight dino_loss
     try and check the difference across patches - if there isn't - sample from multiple image the last token
@@ -25,7 +22,7 @@ to do:
 
     pretrain again, understand the params
 
-    tune the FoVs rates
+    tune the FoVs rates, loss,
 
     consider pretrain using all and train only using single cohort - in that way you don't increase the number of training sample - could be very interesting
     tune on single cohort
