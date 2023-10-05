@@ -277,7 +277,7 @@ class DINOConfigs:
     DINO_DICT = {'FoVs_augs_amounts': (0.05, 0.15)}  # tuple of % from each FoVs to add
     USE_SLURM = True
     DN_OUT_DIM = 32768
-    DN_BATCH_SIZE = 128
+    DN_BATCH_SIZE = 100
     DN_NUM_WORKERS = 10
     DN_NUM_MINI_EPOCHS = 5
     DN_NUM_EPOCHS = 5 * DN_NUM_MINI_EPOCHS
