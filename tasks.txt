@@ -20,6 +20,7 @@ to do:
     try and check the difference across patches - if there isn't - sample from multiple image the last token
     compare the different cq
 
+    train tile versions - no cq (argus 5fovs), , sigmoid, dropout, tile_taken (argus/dgx 5fov)    - s_loss (dgx 5fovs)  , fovs (argus 15 1k, dgx 10)
     pretrain again, understand the params
 
     tune the FoVs rates, loss,

@@ -13,7 +13,6 @@ from src.components.objects.Logger import Logger
 
 def set_configs():
     df, logger = init_task()
-    rm_tmp_files()
     dataset = ProcessedTileDataset(df_labels=df, transform=None, cohort_to_index=Configs.joined['COHORT_TO_IND'],
                                    num_mini_epochs=Configs.DN_NUM_MINI_EPOCHS, pretraining=True)
     Configs.DINO_DICT['dataset'] = dataset

@@ -37,7 +37,8 @@ def init_task():
         Configs.SC_CLASS_WEIGHT = df_labels.groupby(
             Configs.SC_LABEL_COL).slide_uuid.nunique().to_dict()
 
-    if Configs.SC_KW_ARGS.get('FoVs_augs_amounts', None):
+    if Configs.SC_KW_ARGS.get('FoVs_augs_amounts', None) and\
+            any(fovs_rate > 0 for fovs_rate in Configs.SC_KW_ARGS['FoVs_augs_amounts']):
         tile_df_paths = [path for path in [Configs.SC_DF_TILE_PATHS_PATH_256,
                                            Configs.SC_DF_TILE_PATHS_PATH_512,
                                            Configs.SC_DF_TILE_PATHS_PATH_1024]

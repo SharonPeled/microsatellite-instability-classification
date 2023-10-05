@@ -258,7 +258,7 @@ class CohortAwareAttention(nn.Module):
                     self.q_attn = nn.ModuleList([nn.Sequential(
                         nn.Linear(self.head_dim, self.head_dim),
                         nn.Dropout(self.cohort_aware_dict['q_attention_drop']),
-                        nn.Tanh(),
+                        nn.ReLU(),
                         nn.Linear(self.head_dim, 1))
                         for _ in range(self.num_heads_per_cohort)])
 
