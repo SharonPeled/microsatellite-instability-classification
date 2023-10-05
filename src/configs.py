@@ -299,7 +299,7 @@ class DINOConfigs:
                            f'--warmup_epochs 5 --min_lr  1e-6  --lr 0.0005  ' + \
                            f'--norm_last_layer True  ' + \
                            f'--local_crops_number 8  --freeze_last_layer 1 --use_fp16 False  ' + \
-                           '--global_crops_scale (0.25, 1.)'
+                           '--global_crops_scale 0.25 1. '
     DINO_SLURM_CMD_FLAGS = f'--num_gpus_per_node {DN_NUM_GPUS_PER_NODE} --nodes {DN_NUM_NODES} --cpus_per_task {DN_CPUS_PER_TASK} ' + \
                            f'--timeout {DN_TIMEOUT} --partition {DN_PARTITION} --qos {DN_QOS} --mem_per_gpu {DN_MEM_PER_GPU}'
     DINO_CMD_flags = DINO_BASIC_CMD_FLAGS if not USE_SLURM else DINO_BASIC_CMD_FLAGS + DINO_SLURM_CMD_FLAGS
