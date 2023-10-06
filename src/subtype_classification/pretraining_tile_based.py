@@ -14,7 +14,8 @@ from src.components.objects.Logger import Logger
 def set_configs():
     df, logger = init_task()
     dataset = ProcessedTileDataset(df_labels=df, transform=None, cohort_to_index=Configs.joined['COHORT_TO_IND'],
-                                   num_mini_epochs=Configs.DN_NUM_MINI_EPOCHS, pretraining=True)
+                                   num_mini_epochs=Configs.DN_NUM_MINI_EPOCHS, pretraining=True,
+                                   mini_epoch_shuffle_seed=Configs.RANDOM_SEED)
     Configs.DINO_DICT['dataset'] = dataset
     Configs.DINO_DICT['model_fn'] = partial(SLL_vit_small_cohort_aware, pretrained=True,
                                             progress=False, key='DINO_p16',

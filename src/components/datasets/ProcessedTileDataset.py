@@ -8,7 +8,8 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 class ProcessedTileDataset(Dataset, Logger):
     def __init__(self, df_labels, cohort_to_index=None, transform=None, target_transform=None, group_size=-1,
-                 num_mini_epochs=0, pretraining=False):
+                 num_mini_epochs=0, pretraining=False, mini_epoch_shuffle_seed=None):
+        self.mini_epoch_shuffle_seed = mini_epoch_shuffle_seed
         self.pretraining = pretraining
         self.df_labels = df_labels.reset_index(drop=True)
         self.cohort_to_index = cohort_to_index
@@ -41,6 +42,8 @@ class ProcessedTileDataset(Dataset, Logger):
         if self.num_mini_epochs < 2:
             return
         self.index_shift = self.dataset_length * (epoch % self.num_mini_epochs)
+        if self.index_shift == 0 and self.pretraining:
+            self.df_labels = self.df_labels.sample(frac=1, random_state=self.mini_epoch_shuffle_seed + epoch)
         Logger.log(f"Mini epoch number {epoch}, index_shift: {self.index_shift}.")
 
     def join_metadata(self, df_pred, inds):
