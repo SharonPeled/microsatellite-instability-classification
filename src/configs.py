@@ -300,7 +300,7 @@ class DINOConfigs:
                            f'--norm_last_layer False  ' + \
                            f'--local_crops_number 10  --freeze_last_layer 0 --use_fp16 False  ' + \
                            f'--global_crops_scale 0.25 1. --local_crops_scale 0.05 0.25 ' + \
-                           f'--drop_path_rate 0.1'
+                           f'--drop_path_rate 0.1   '
     DINO_SLURM_CMD_FLAGS = f'--num_gpus_per_node {DN_NUM_GPUS_PER_NODE} --nodes {DN_NUM_NODES} --cpus_per_task {DN_CPUS_PER_TASK} ' + \
                            f'--timeout {DN_TIMEOUT} --partition {DN_PARTITION} --qos {DN_QOS} --mem_per_gpu {DN_MEM_PER_GPU}'
     DINO_CMD_flags = DINO_BASIC_CMD_FLAGS if not USE_SLURM else DINO_BASIC_CMD_FLAGS + DINO_SLURM_CMD_FLAGS
