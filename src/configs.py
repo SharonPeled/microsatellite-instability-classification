@@ -292,7 +292,7 @@ class DINOConfigs:
     DN_QOS = 'normal'
     DINO_BASIC_CMD_FLAGS = f'--arch fusion_cw --out_dim {DN_OUT_DIM} --momentum_teacher 0.999 ' + \
                            f'--batch_size_per_gpu {DN_BATCH_SIZE} ' + \
-                           f'--epochs {DN_NUM_EPOCHS} --saveckp_freq {DN_NUM_MINI_EPOCHS} --num_workers {DN_NUM_WORKERS} ' + \
+                           f'--epochs {DN_NUM_EPOCHS} --saveckp_freq 20 --num_workers {DN_NUM_WORKERS} ' + \
                            f'--seed {GeneralConfigs.RANDOM_SEED} ' + \
                            f'--output_dir {GeneralConfigs.ROOT}/models/subtype_classification/{DN_RUN_NAME}_dino_checkpoints ' + \
                            f'--warmup_teacher_temp_epochs 20 --teacher_temp 0.05 --warmup_teacher_temp 0.01  ' + \
