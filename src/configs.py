@@ -162,7 +162,7 @@ class TumorRegressionConfigs:
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
     SC_EXPERIMENT_NAME = 'SC_TILE_DINO_VIT'
-    SC_FORMULATION = f'argus_rep_reg_loss'
+    SC_FORMULATION = f'p100_512_clean_reg_loss'
     SC_RUN_NAME = f"{SC_FORMULATION}_1"
     SC_RUN_DESCRIPTION = f"""Labels are by bioportal.
     """
@@ -240,7 +240,7 @@ class SubtypeClassificationConfigs:
                   'n_nn_head': {'num_layers': 1, 'dropout_value': 0.0},
                   'sep_cohort_w_loss': True,
                   'learnable_cohort_prior_type': None, # '*', # 0.1,  # initial prior value
-                  'FoVs_augs_amounts': (0.15, 0.15),  # tuple of % from each FoVs to add
+                  'FoVs_augs_amounts': None, #(0.15, 0.15),  # tuple of % from each FoVs to add
                   'tile_encoder': SC_TILE_ENCODER,
                   'cohort_aware_dict': COHORT_AWARE_DICT,
                   # 'pretrained_ckp_path': os.path.join(GeneralConfigs.ROOT, 'models', 'subtype_classification', 'dgx_SQ6B12_At2Ltanh_65k_2_dino_checkpoints', 'checkpoint0005.pth'),
