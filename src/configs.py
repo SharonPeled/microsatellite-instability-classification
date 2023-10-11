@@ -243,8 +243,9 @@ class SubtypeClassificationConfigs:
                   'FoVs_augs_amounts': None, #(0.15, 0.15),  # tuple of % from each FoVs to add
                   'tile_encoder': SC_TILE_ENCODER,
                   'cohort_aware_dict': COHORT_AWARE_DICT,
+                  'pretrained_ckp_path': os.path.join(GeneralConfigs.ROOT, 'models', 'subtype_classification', 'dgx_SQ6B12_At2Lrelu_32k_4_dino_checkpoints', 'checkpoint.pth'),
                   # 'pretrained_ckp_path': os.path.join(GeneralConfigs.ROOT, 'models', 'subtype_classification', 'dgx_SQ6B12_At2Ltanh_65k_2_dino_checkpoints', 'checkpoint0005.pth'),
-                  'pretrained_ckp_path': "/home/sharonpe/sandox/checkpoint_argus.pth",
+                  # 'pretrained_ckp_path': "/home/sharonpe/sandox/checkpoint_argus.pth",
                   # 'pretrained_ckp_path': "/home/sharonpe/microsatellite-instability-classification/data/subtype_classification/third_try_all_slides_16k_4_dino_checkpoints/checkpoint9.pth",
                   'config_filepath': Path(__file__).resolve()
                   }
