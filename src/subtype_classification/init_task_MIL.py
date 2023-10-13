@@ -6,6 +6,14 @@ from src.training_utils import init_training_transforms, init_training_callbacks
 from torch.multiprocessing import set_start_method, set_sharing_strategy
 from src.subtype_classification.init_task_generic import load_df_labels_merged_tiles
 from src.components.models.MIL_Fusion_VIT import MIL_Fusion_VIT
+from src.training_utils import train as train_general
+from src.components.datasets.TileGroupDataset import TileGroupDataset
+
+
+def train():
+    df, train_transform, test_transform, logger, callbacks, model = init_task()
+    train_general(df, train_transform, test_transform, logger, callbacks, model, dataset_fn=TileGroupDataset,
+                  custom_collate_fn=custom_collate_fn)
 
 
 def init_task():

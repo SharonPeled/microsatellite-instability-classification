@@ -1,10 +1,42 @@
-from src.configs import Configs
-from src.components.objects.Logger import Logger
 import pandas as pd
-import os
 from src.training_utils import init_training_transforms, init_training_callbacks
-from src.components.models.SubtypeClassifier import SubtypeClassifier
 from torch.multiprocessing import set_start_method, set_sharing_strategy
+from src.components.datasets.ProcessedTileDataset import ProcessedTileDataset
+from src.configs import Configs
+from functools import partial
+from src.training_utils import SLL_vit_small_cohort_aware
+from src.components.objects.DINO.main_dino import train_dino, get_args_parser
+from src.components.objects.DINO.run_with_submitit import main, parse_args
+import argparse
+from pathlib import Path
+from src.components.objects.Logger import Logger
+
+
+def set_configs():
+    df, logger = init_task()
+    dataset = ProcessedTileDataset(df_labels=df, transform=None, cohort_to_index=Configs.joined['COHORT_TO_IND'],
+                                   num_mini_epochs=Configs.DN_NUM_MINI_EPOCHS, pretraining=True,
+                                   mini_epoch_shuffle_seed=Configs.RANDOM_SEED)
+    Configs.DINO_DICT['dataset'] = dataset
+    Configs.DINO_DICT['model_fn'] = partial(SLL_vit_small_cohort_aware, pretrained=True,
+                                            progress=False, key='DINO_p16',
+                                            cohort_aware_dict=Configs.SC_KW_ARGS['cohort_aware_dict'])
+    Configs.DINO_DICT['logger'] = logger
+    Logger.log(f"Dino CMD: {Configs.DINO_CMD_flags}")
+
+
+def train():
+    set_configs()
+    if Configs.USE_SLURM:
+        parser = argparse.ArgumentParser("Submitit for DINO", parents=[get_args_parser(), parse_args()])
+        args = parser.parse_args(Configs.DINO_CMD_flags.split())
+        Path(args.output_dir).mkdir(parents=True, exist_ok=True)
+        main(args)
+    else:
+        parser = argparse.ArgumentParser('DINO', parents=[get_args_parser()])
+        args = parser.parse_args(Configs.DINO_CMD_flags.split())
+        Path(args.output_dir).mkdir(parents=True, exist_ok=True)
+        train_dino(args, configs=Configs)
 
 
 def init_task():

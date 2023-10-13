@@ -1,0 +1,33 @@
+from src.components.models.SubtypeClassifier import SubtypeClassifier
+from src.components.objects.Logger import Logger
+from tqdm import tqdm
+import torch
+import numpy as np
+
+
+class SubtypeIterativeClassifier(SubtypeClassifier):
+    def __init__(self, iter_args, tile_encoder_name,
+                 class_to_ind, learning_rate, frozen_backbone, class_to_weight=None,
+                 num_iters_warmup_wo_backbone=None, cohort_to_ind=None, cohort_weight=None, nn_output_size=None,
+                 **other_kwargs):
+        super(SubtypeIterativeClassifier, self).__init__(tile_encoder_name, class_to_ind, learning_rate,
+                                                         frozen_backbone, class_to_weight,
+                                                         num_iters_warmup_wo_backbone, cohort_to_ind,
+                                                         cohort_weight, nn_output_size,
+                                                         **other_kwargs)
+        self.iter_args = iter_args
+        self.train_loader = None
+        Logger.log(f"""SubtypeIterativeClassifier created.""", log_importance=1)
+
+    def on_train_epoch_end(self) -> None:
+        assert self.train_loader is not None
+        Logger.log(f"""Starting train inference.""", log_importance=1)
+        with torch.no_grad():
+            scores = []
+            for i, b in tqdm(enumerate(self.train_loader), total=len(self.train_loader)):
+                b = [elem.to(self.device) if isinstance(elem, torch.Tensor) else elem for elem in b]
+                b_scores = self.general_loop(b, i)
+                scores.append(b_scores[1]['scores'].numpy())
+            self.train_loader.dataset.df_labels['epoch_score'] = np.concatenate(scores)
+        self.train_loader.dataset.apply_dataset_reduction(self.iter_args)
+        Logger.log(f"""Dataset reduced to size {len(self.train_loader.dataset)}""", log_importance=1)

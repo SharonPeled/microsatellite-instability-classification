@@ -102,8 +102,7 @@ def train_single_split(df_train, df_valid, df_test, train_transform, test_transf
                          max_epochs=Configs.joined['NUM_EPOCHS'],
                          strategy=DDPStrategy(find_unused_parameters=True)
                          )
-                         # plugins=[SLURMEnvironment(requeue_signal=signal.SIGUSR1)])
-                         # plugins = [SLURMEnvironment(requeue_signal=signal.SIGHUP)])
+    model.train_loader = train_loader
     if Configs.joined['TEST_ONLY'] is None:
         if valid_loader is None:
             trainer.fit(model, train_loader, ckpt_path=None)
@@ -205,7 +204,7 @@ def get_loader_and_datasets(df_train, df_valid, df_test, train_transform, test_t
                               cohort_to_index=Configs.joined['COHORT_TO_IND'])
 
     train_loader = DataLoader(train_dataset, batch_size=Configs.joined['TRAINING_BATCH_SIZE'],
-                              shuffle=True,
+                              shuffle=kwargs.get('shuffle_train', True),
                               persistent_workers=True, num_workers=Configs.joined['NUM_WORKERS'],
                               worker_init_fn=set_worker_sharing_strategy, 
                               collate_fn=kwargs.get('custom_collate_fn', None))

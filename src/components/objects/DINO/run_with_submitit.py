@@ -66,7 +66,7 @@ class Trainer(object):
 
     def __call__(self):
         import src.components.objects.DINO.main_dino as main_dino
-        from src.subtype_classification.pretraining_tile_based import set_configs
+        from src.subtype_classification.init_task_pretraining import set_configs
         from src.configs import Configs
         Configs.set_task_configs(['DN', 'SC'])
         set_configs()

@@ -8,9 +8,10 @@ from src.semantic_segmentation.predict import predict as predict_semantic_seg
 from src.tumor_distance_estimation.training import train as train_tumor_regression
 from src.general_utils import bring_files, bring_joined_log_file, delete_all_artifacts, \
     generate_thumbnails_with_tissue_classification, load_df_pred, get_time, set_global_configs
-from src.subtype_classification.training_MIL import train as train_subtype_classification_mil
-from src.subtype_classification.training_tile_based import train as train_subtype_classification_tile
-from src.subtype_classification.pretraining_tile_based import train as pretrain_subtype_classification_tile
+from src.subtype_classification.init_task_MIL import train as train_subtype_classification_mil
+from src.subtype_classification.init_task_generic import train as train_subtype_classification_tile
+from src.subtype_classification.init_task_iterative_tile import train as train_subtype_classification_iterative_tile
+from src.subtype_classification.init_task_pretraining import train as pretrain_subtype_classification_tile
 from src.variant_classification.training import train as train_variant_classification
 from src.variant_classification.permutaion_test import train as permutation_variant_classification
 import signal
@@ -61,6 +62,7 @@ def main():
     parser.add_argument('--train-semantic-seg', action='store_true')
     parser.add_argument('--train-tumor-regression', action='store_true')
     parser.add_argument('--train-subtype-classification-tile', action='store_true')
+    parser.add_argument('--train-subtype-classification-iterative-tile', action='store_true')
     parser.add_argument('--pretrain-subtype-classification-tile', action='store_true')
     parser.add_argument('--train-subtype-classification-mil', action='store_true')
     parser.add_argument('--train-variant-classification', action='store_true')
@@ -114,6 +116,9 @@ def main():
     if args.train_subtype_classification_tile:
         Configs.set_task_configs('SC')
         train_subtype_classification_tile()
+    if args.train_subtype_classification_iterative_tile:
+        Configs.set_task_configs('SC')
+        train_subtype_classification_iterative_tile()
     if args.pretrain_subtype_classification_tile:
         Configs.set_task_configs(['DN', 'SC'])
         pretrain_subtype_classification_tile()

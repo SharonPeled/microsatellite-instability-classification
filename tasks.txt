@@ -11,19 +11,15 @@ on hold:
 
 
 to do:
+    implement the iterative filter
+    different filters schedulers
+    adjust lr, adjust tiles per slide
+    soft labels
+    different FoVs
+    different cohorts
 
-    action items about variants - until next week - ready email
 
-    read the paper about the shared heads
 
-    check awareness scores (also of after ESCA change) - per block, per head, per cohort, per entire image/patch, diff cq
-    try and check the difference across patches - if there isn't - sample from multiple image the last token
-    compare the different cq
-
-    train tile versions - no cq (argus 5fovs), , sigmoid, dropout, tile_taken (argus/dgx 5fov)    - s_loss (dgx 5fovs)  , fovs (argus 15 1k, dgx 10)
-    pretrain again, understand the params
-
-    tune the FoVs rates, loss,
 
     consider pretrain using all and train only using single cohort - in that way you don't increase the number of training sample - could be very interesting
     tune on single cohort

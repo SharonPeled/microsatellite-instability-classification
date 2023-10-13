@@ -161,8 +161,8 @@ class TumorRegressionConfigs:
 
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
-    SC_EXPERIMENT_NAME = 'SC_TILE_DINO_VIT'
-    SC_FORMULATION = f'p100_512_clean_reg_loss'
+    SC_EXPERIMENT_NAME = 'SC_ITERATIVE_TILE'
+    SC_FORMULATION = f'p100_512_clean'
     SC_RUN_NAME = f"{SC_FORMULATION}_1"
     SC_RUN_DESCRIPTION = f"""Labels are by bioportal.
     """
@@ -203,7 +203,7 @@ class SubtypeClassificationConfigs:
     # SC_COHORT_TUNE = None # ['COAD', 'READ']
     SC_TEST_ONLY = None
     SC_SAVE_TEST = False
-    SC_NUM_EPOCHS = 1
+    SC_NUM_EPOCHS = 6
     SC_NUM_DEVICES = 1
     SC_NUM_NODES = 1
     SC_DEVICE = 'gpu'
@@ -249,6 +249,11 @@ class SubtypeClassificationConfigs:
                   # 'pretrained_ckp_path': "/home/sharonpe/microsatellite-instability-classification/data/subtype_classification/third_try_all_slides_16k_4_dino_checkpoints/checkpoint9.pth",
                   'config_filepath': Path(__file__).resolve()
                   }
+    # iterative_stuff
+    SC_ITER_ARGS = {
+        'schedule_type': 'step',
+        'reduction_factor': 0.8
+    }
     # MIL STUFF
     SC_MIL_MODEL_NAME = 'VIT_PRETRAINED_DINO'
     # SC_MIL_MODEL_CKPT = "/home/sharonpe/microsatellite-instability-classification/data/subtype_classification/third_try_all_slides_16k_4_dino_checkpoints/checkpoint9.pth"

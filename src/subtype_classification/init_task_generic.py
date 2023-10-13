@@ -5,6 +5,12 @@ import os
 from src.training_utils import init_training_transforms, init_training_callbacks
 from src.components.models.SubtypeClassifier import SubtypeClassifier
 from torch.multiprocessing import set_start_method, set_sharing_strategy
+from src.training_utils import train as train_general
+
+
+def train():
+    df, train_transform, test_transform, logger, callbacks, model = init_task()
+    train_general(df, train_transform, test_transform, logger, callbacks, model)
 
 
 def load_df_labels_merged_tiles():
@@ -22,12 +28,16 @@ def load_df_labels_merged_tiles():
 
 
 def init_task():
+    model = init_model()
+    train_transform, test_transform = init_training_transforms()
+    logger, callbacks = init_training_callbacks()
+    df_labels_merged_tiles = init_data()
+    return df_labels_merged_tiles, train_transform, test_transform, logger, callbacks, model
+
+
+def init_data():
     set_sharing_strategy('file_system')
     set_start_method("spawn")
-
-    train_transform, test_transform = init_training_transforms()
-
-    logger, callbacks = init_training_callbacks()
 
     Logger.log("Loading Datasets..", log_importance=1)
     df_labels, df_labels_merged_tiles = load_df_labels_merged_tiles()
@@ -66,9 +76,7 @@ def init_task():
     if 'patient_id' not in df_labels_merged_tiles.columns and 'patient_id_x' in df_labels_merged_tiles.columns:
         df_labels_merged_tiles['patient_id'] = df_labels_merged_tiles['patient_id_x']
 
-    model = init_model()
-
-    return df_labels_merged_tiles, train_transform, test_transform, logger, callbacks, model
+    return df_labels_merged_tiles
 
 
 def init_model():
