@@ -100,9 +100,9 @@ def train_single_split(df_train, df_valid, df_test, train_transform, test_transf
                          logger=logger,
                          num_sanity_val_steps=2,
                          max_epochs=Configs.joined['NUM_EPOCHS'],
-                         strategy=DDPStrategy(find_unused_parameters=True)
+                         strategy=DDPStrategy(find_unused_parameters=True),
+                         reload_dataloaders_every_n_epochs=1
                          )
-    model.train_loader = train_loader
     if Configs.joined['TEST_ONLY'] is None:
         if valid_loader is None:
             trainer.fit(model, train_loader, ckpt_path=None)
@@ -187,6 +187,20 @@ def init_training_transforms():
                              [0.229, 0.224, 0.225])
     ])
     return train_transform, test_transform
+
+
+def lr_scheduler_linspace_steps(lr_pairs, tot_iters):
+    left_iters = tot_iters - sum([num_iters for _, num_iters in lr_pairs[:-1] if num_iters > 1])
+    lr_array = []
+    for (lr, iters), (next_lr, _) in zip(lr_pairs, lr_pairs[1:]):
+        if iters == -1:
+            lr_array.append(np.linspace(lr, next_lr, int(left_iters)))
+        elif iters < 1:
+            lr_array.append(np.linspace(lr, next_lr, int(left_iters*iters)))
+            left_iters -= int(left_iters*iters)
+        else:
+            lr_array.append(np.linspace(lr, next_lr, iters))
+    return np.concatenate(lr_array)
 
 
 def set_worker_sharing_strategy(worker_id: int) -> None:

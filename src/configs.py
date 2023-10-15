@@ -162,8 +162,8 @@ class TumorRegressionConfigs:
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
     SC_EXPERIMENT_NAME = 'SC_ITERATIVE_TILE'
-    SC_FORMULATION = f'p100_512_clean'
-    SC_RUN_NAME = f"{SC_FORMULATION}_1"
+    SC_FORMULATION = f'p100_512_lr'
+    SC_RUN_NAME = f"{SC_FORMULATION}_2"
     SC_RUN_DESCRIPTION = f"""Labels are by bioportal.
     """
     SC_LABEL_DF_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
@@ -219,7 +219,7 @@ class SubtypeClassificationConfigs:
     SC_TILE_SAMPLE_TRAIN = 1e10  # all tiles
     SC_TILE_SAMPLE_LAMBDA_TRAIN_TUNE = None
     SC_FROZEN_BACKBONE = False
-    SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 2000
+    SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 3000
     SC_TILE_ENCODER = 'VIT_PRETRAINED_DINO'  # to load dino net for future classification - VIT_PRETRAINED_DINO
     COHORT_AWARE_DICT = {'num_cohorts': 4,
                          'num_heads_per_cohort': 6,
@@ -254,7 +254,8 @@ class SubtypeClassificationConfigs:
         'schedule_type': 'step',
         'reduction_factor': 0.8,
         'save_path': os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
-                                  f'{SC_RUN_NAME}_pred', 'train')
+                                  f'{SC_RUN_NAME}_pred', 'train'),
+        'lr_pairs': [(1e-6, 1000), (1e-4, 1000), (1e-6, 1000), (1e-6, 0.1), (1e-4, -1), (1e-6, None)]
     }
     # MIL STUFF
     SC_MIL_MODEL_NAME = 'VIT_PRETRAINED_DINO'

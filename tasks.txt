@@ -21,8 +21,8 @@ to do:
 
     different filters schedulers
 
-    error analysis - infastructure of filter acorss epochs
-
+lr: small, bigger, bigger, small, small
+backbone: frozen, unfrozen..
 
 
 
