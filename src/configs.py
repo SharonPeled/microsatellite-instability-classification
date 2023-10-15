@@ -252,7 +252,9 @@ class SubtypeClassificationConfigs:
     # iterative_stuff
     SC_ITER_ARGS = {
         'schedule_type': 'step',
-        'reduction_factor': 0.8
+        'reduction_factor': 0.8,
+        'save_path': os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
+                                  f'{SC_RUN_NAME}_pred', 'train')
     }
     # MIL STUFF
     SC_MIL_MODEL_NAME = 'VIT_PRETRAINED_DINO'

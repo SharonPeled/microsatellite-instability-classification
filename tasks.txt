@@ -12,11 +12,16 @@ on hold:
 
 to do:
     implement the iterative filter
-    different filters schedulers
+
+
     adjust lr, adjust tiles per slide
     soft labels
     different FoVs
     different cohorts
+
+    different filters schedulers
+
+    error analysis - infastructure of filter acorss epochs
 
 
 

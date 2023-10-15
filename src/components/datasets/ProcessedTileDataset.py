@@ -112,10 +112,12 @@ class ProcessedTileDataset(Dataset, Logger):
                      log_importance=1)
         return image
 
-    def apply_dataset_reduction(self, iter_args):
+    def apply_dataset_reduction(self, iter_args, scores):
+        self.df_labels['epoch_score'] = scores
         if iter_args['schedule_type'] == 'step':
             self.df_labels = self.df_labels.groupby('slide_uuid', as_index=False).apply(
                 lambda d: d.sort_values('epoch_score', ascending=False)[:int(len(d) * iter_args['reduction_factor'])])
+            self.df_labels.reset_index(drop=True, inplace=True)
             self.dataset_length = len(self.df_labels)
 
     def __len__(self):
