@@ -6,6 +6,7 @@ import numpy as np
 import os
 import datetime
 from src.training_utils import lr_scheduler_linspace_steps
+from src.components.datasets.ProcessedTileDataset import ProcessedTileDataset
 
 
 class SubtypeIterativeClassifier(SubtypeClassifier):
@@ -41,7 +42,9 @@ class SubtypeIterativeClassifier(SubtypeClassifier):
 
     def on_train_epoch_end(self) -> None:
         loader = self.trainer.train_dataloader
-        dataset = loader.dataset.datasets
+        dataset = loader.dataset
+        if not isinstance(dataset, ProcessedTileDataset):
+            dataset = dataset.datasets
         if self.full_df is None:
             self.full_df = dataset.df_labels.copy(deep=True)
             self.full_df.index = self.full_df.tile_path
