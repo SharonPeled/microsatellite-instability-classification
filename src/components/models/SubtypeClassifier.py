@@ -127,8 +127,9 @@ class SubtypeClassifier(PretrainedClassifier):
             loss_list.append(loss_c * y_c.shape[0])
         return sum(loss_list) / y.shape[0]
 
-    def log_epoch_level_metrics(self, outputs, dataset_str):
+    def _get_df_for_metric_logging(self, outputs):
         scores = torch.concat([out["scores"] for out in outputs])
+        scores = torch.sigmoid(scores)
         if len(scores.shape) == 1:
             cin_scores = scores
         else:
@@ -144,7 +145,10 @@ class SubtypeClassifier(PretrainedClassifier):
             "patient_id": patient_id,
             "CIN_score": cin_scores
         })
+        return df
 
+    def log_epoch_level_metrics(self, outputs, dataset_str):
+        df = self._get_df_for_metric_logging(outputs)
         tile_cin_auc = calc_safe_auc(df.y_true, df.CIN_score)
         self.logger.experiment.log_metric(self.logger.run_id, f"{dataset_str}_tile_CIN_AUC",
                                           tile_cin_auc)

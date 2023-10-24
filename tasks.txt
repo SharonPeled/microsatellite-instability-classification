@@ -11,6 +11,8 @@ on hold:
 
 
 to do:
+    logits on scores!!
+    delete quota
     why is train auc 0.5? lr update?
 
     adjust tiles per slide

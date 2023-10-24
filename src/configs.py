@@ -162,7 +162,7 @@ class TumorRegressionConfigs:
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
     SC_EXPERIMENT_NAME = 'SC_ITERATIVE_TILE'
-    SC_FORMULATION = f'p100_512_lr'
+    SC_FORMULATION = f'p100_512_lr_sig_rinf'
     SC_RUN_NAME = f"{SC_FORMULATION}_2"
     SC_RUN_DESCRIPTION = f"""Labels are by bioportal.
     """

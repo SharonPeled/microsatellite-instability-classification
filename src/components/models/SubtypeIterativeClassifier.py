@@ -60,6 +60,7 @@ class SubtypeIterativeClassifier(SubtypeClassifier):
             if scores[-1].ndim == 0:
                 scores[-1] = np.array(scores[-1], ndmin=1)
             scores = np.concatenate(scores)
+            scores = torch.sigmoid(torch.from_numpy(scores)).numpy()
             tile_paths = np.concatenate(tile_paths)
             self.full_df.loc[tile_paths, f'score{self.current_epoch}'] = scores
         dataset.apply_dataset_reduction(self.iter_args, scores)
@@ -73,3 +74,12 @@ class SubtypeIterativeClassifier(SubtypeClassifier):
 
     def on_train_end(self):
         pass
+
+    def _get_df_for_metric_logging(self, outputs):
+        df = super(SubtypeIterativeClassifier, self)._get_df_for_metric_logging(outputs)
+        if self.iter_args['schedule_type'] == 'step':
+            total_reduction_factor = self.iter_args['reduction_factor'] ** (self.trainer.max_epochs-1)
+            df = df.groupby('slide_id', as_index=False).apply(
+                lambda d: d.sort_values('CIN_score', ascending=False)[:int(len(d) * total_reduction_factor)])
+            df.reset_index(drop=True, inplace=True)
+            return df
