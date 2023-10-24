@@ -202,7 +202,7 @@ class SubtypeClassificationConfigs:
     SC_COHORT_WEIGHT = None # {('COAD', 'CIN'): 0.75, ('COAD', 'GS'): 2.25, ('ESCA', 'CIN'): 0.25, ('ESCA', 'GS'): 0.75, ('READ', 'CIN'): 0.75, ('READ', 'GS'): 2.25, ('STAD', 'CIN'): 0.25, ('STAD', 'GS'): 0.75, ('UCEC', 'CIN'): 0.25, ('UCEC', 'GS'): 0.75}
     # SC_COHORT_TUNE = None # ['COAD', 'READ']
     SC_TEST_ONLY = None
-    SC_SAVE_TEST = False
+    SC_SAVE_TEST = True
     SC_NUM_EPOCHS = 6
     SC_NUM_DEVICES = 1
     SC_NUM_NODES = 1
@@ -255,7 +255,11 @@ class SubtypeClassificationConfigs:
         'reduction_factor': 0.8,
         'save_path': os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                   f'{SC_RUN_NAME}_pred', 'train'),
-        'lr_pairs': [(1e-6, 1000), (1e-4, 1000), (1e-6, 1000), (1e-6, 0.1), (1e-4, -1), (1e-6, None)]
+        'lr_pairs': [
+            (1e-6, 1000), (1e-4, 1000), (1e-6, 1000),  # warmup fc
+            (1e-6, 0.1),  # warmup + train all
+            (1e-4, -1), (1e-6, None)  # training + end decaying
+        ]
     }
     # MIL STUFF
     SC_MIL_MODEL_NAME = 'VIT_PRETRAINED_DINO'

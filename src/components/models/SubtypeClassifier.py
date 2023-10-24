@@ -73,6 +73,8 @@ class SubtypeClassifier(PretrainedClassifier):
         return x
 
     def general_loop(self, batch, batch_idx):
+        lr = self.trainer.lr_scheduler_configs[0].scheduler.optimizer.param_groups[0]["lr"]
+        self.logger.experiment.log_metric(self.logger.run_id, f"lr", lr)
         if isinstance(batch, list) and len(batch) == 1:
             batch = batch[0]
         if len(batch) == 4:
@@ -81,8 +83,8 @@ class SubtypeClassifier(PretrainedClassifier):
             loss = self.loss(scores, y)
             return loss, {'loss': loss.detach().cpu(), 'scores': scores.detach().cpu(), 'y': y.cpu(),
                           'slide_id': slide_id, 'patient_id': patient_id}
-        if len(batch) == 5:
-            x, c, y, slide_id, patient_id = batch
+        if len(batch) >= 5:
+            x, c, y, slide_id, patient_id = batch[:5]
             scores = self.forward(x, c)
             loss = self.loss(scores, y, c)
             return loss, {'loss': loss.detach().cpu(), 'c': c.detach().cpu(),

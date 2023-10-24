@@ -51,20 +51,24 @@ class SubtypeIterativeClassifier(SubtypeClassifier):
         Logger.log(f"""Starting train inference.""", log_importance=1)
         with torch.no_grad():
             scores = []
+            tile_paths = []
             for i, b in tqdm(enumerate(loader), total=len(loader)):
                 b = [elem.to(self.device) if isinstance(elem, torch.Tensor) else elem for elem in b]
                 b_scores = self.general_loop(b, i)
                 scores.append(b_scores[1]['scores'].numpy())
+                tile_paths.append(b[-1])
             if scores[-1].ndim == 0:
                 scores[-1] = np.array(scores[-1], ndmin=1)
             scores = np.concatenate(scores)
-            self.full_df.loc[dataset.df_labels.tile_path.values,
-                             f'score{self.current_epoch}'] = scores
+            tile_paths = np.concatenate(tile_paths)
+            self.full_df.loc[tile_paths, f'score{self.current_epoch}'] = scores
         dataset.apply_dataset_reduction(self.iter_args, scores)
         if self.iter_args.get('save_path', None) is not None and self.trainer.max_epochs-1 == self.current_epoch:
             time_str = datetime.datetime.now().strftime('%d_%m_%Y_%H_%M')
-            os.makedirs(os.path.join(self.iter_args['save_path']))
-            self.full_df.to_csv(os.path.join(self.iter_args['save_path'], f"df_tile_with_scores_{time_str}.csv"), index=False)
+            os.makedirs(os.path.join(self.iter_args['save_path']), exist_ok=True)
+            path = os.path.join(self.iter_args['save_path'], f"df_tile_with_scores_{time_str}.csv")
+            self.full_df.to_csv(path, index=False)
+            Logger.log(f"df_iter_with_scores saved in: {path}", log_importance=1)
         Logger.log(f"""Dataset reduced to size {len(dataset)}""", log_importance=1)
 
     def on_train_end(self):

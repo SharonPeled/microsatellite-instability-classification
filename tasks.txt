@@ -11,18 +11,17 @@ on hold:
 
 
 to do:
-    implement the iterative filter
+    why is train auc 0.5? lr update?
 
+    adjust tiles per slide
 
-    adjust lr, adjust tiles per slide
     soft labels
+
     different FoVs
     different cohorts
 
     different filters schedulers
 
-lr: small, bigger, bigger, small, small
-backbone: frozen, unfrozen..
 
 
 

@@ -58,12 +58,7 @@ class ProcessedTileDataset(Dataset, Logger):
         # TODO: index can be a slice
         if self.group_size == -1:
             row = self.df_labels.loc[index]
-            if self.pretraining:
-                return self.load_single_tile(row)
-            img, cohort, y, slide_id, patient_id = self.load_single_tile(row)
-            if self.cohort_to_index is not None:
-                return img, cohort, y, slide_id, patient_id
-            return img, y, slide_id, patient_id
+            return self.load_single_tile(row)
         else:
             imgs, cohort, y, slide_id, patient_id = self.load_group_tiles(index)
             if self.cohort_to_index is not None:
@@ -98,8 +93,8 @@ class ProcessedTileDataset(Dataset, Logger):
         if self.target_transform:
             y = self.target_transform(y)
         if self.cohort_to_index is not None:
-            return img, self.cohort_to_index[row['cohort']], y, slide_id, patient_id
-        return img, None, y, slide_id, patient_id
+            return img, self.cohort_to_index[row['cohort']], y, slide_id, patient_id, row['tile_path']
+        return img, None, y, slide_id, patient_id, row['tile_path']
 
     def load_image_safe(self, path):
         try:
