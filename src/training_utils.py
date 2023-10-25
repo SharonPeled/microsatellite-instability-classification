@@ -121,17 +121,17 @@ def train_single_split(df_train, df_valid, df_test, train_transform, test_transf
     return model
 
 
-def save_results(model, test_dataset, valid_dataset):
+def save_results(model, test_dataset, valid_dataset, saving_raw=True):
     Logger.log(f"Saving test results...", log_importance=1)
     # since shuffle=False in test we can infer the batch_indices from batch_inx
     _, df_pred_path = save_pred_outputs(model.test_outputs, test_dataset, Configs.joined['TEST_BATCH_SIZE'],
                                         save_path=Configs.joined['TEST_PREDICT_OUTPUT_PATH'],
-                                        class_to_ind=Configs.joined['CLASS_TO_IND'])
+                                        class_to_ind=Configs.joined['CLASS_TO_IND'], saving_raw=saving_raw)
     # Logger.log(f"""Saved Test df_pred: {df_pred_path}""", log_importance=1)
     if valid_dataset is not None and model.valid_outputs is not None:
         _, df_pred_path = save_pred_outputs(model.valid_outputs, valid_dataset, Configs.joined['TEST_BATCH_SIZE'],
                                             save_path=Configs.joined['VALID_PREDICT_OUTPUT_PATH'],
-                                            class_to_ind=Configs.joined['CLASS_TO_IND'], suffix='')
+                                            class_to_ind=Configs.joined['CLASS_TO_IND'], suffix='', saving_raw=saving_raw)
         # Logger.log(f"""Saved valid df_pred: {df_pred_path}""", log_importance=1)
 
 

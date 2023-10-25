@@ -8,10 +8,10 @@ test:
 
 
 on hold:
-
+patient/slide CIN AUC higher than each dataset on its on - why? different training and eval?
 
 to do:
-    logits on scores!!
+    replicate the same inference as training!
     delete quota
     why is train auc 0.5? lr update?
 
