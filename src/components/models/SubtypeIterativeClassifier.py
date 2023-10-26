@@ -7,6 +7,7 @@ import os
 import datetime
 from src.training_utils import lr_scheduler_linspace_steps
 from src.components.datasets.ProcessedTileDataset import ProcessedTileDataset
+from torch.utils.data import DataLoader
 
 
 class SubtypeIterativeClassifier(SubtypeClassifier):
@@ -102,7 +103,9 @@ class SubtypeIterativeClassifier(SubtypeClassifier):
         return None
 
     def on_test_epoch_end(self):
-        loader = self.trainer.test_dataloaders[0]
+        loader = self.trainer.test_dataloaders
+        if not isinstance(loader, DataLoader):
+            loader = loader[0]
         dataset = loader.dataset
         if not isinstance(dataset, ProcessedTileDataset):
             dataset = dataset.datasets
