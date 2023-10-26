@@ -247,7 +247,7 @@ class SubtypeClassificationConfigs:
                   # 'pretrained_ckp_path': os.path.join(GeneralConfigs.ROOT, 'models', 'subtype_classification', 'dgx_SQ6B12_At2Ltanh_65k_2_dino_checkpoints', 'checkpoint0005.pth'),
                   # 'pretrained_ckp_path': "/home/sharonpe/sandox/checkpoint_argus.pth",
                   # 'pretrained_ckp_path': "/home/sharonpe/microsatellite-instability-classification/data/subtype_classification/third_try_all_slides_16k_4_dino_checkpoints/checkpoint9.pth",
-                  'config_filepath': Path(__file__).resolve()
+                  'config_filepath': str(Path(__file__).resolve())
                   }
     # iterative_stuff
     SC_ITER_ARGS = {
