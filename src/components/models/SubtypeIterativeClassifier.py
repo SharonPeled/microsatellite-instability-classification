@@ -117,10 +117,11 @@ class SubtypeIterativeClassifier(SubtypeClassifier):
             path = os.path.join(self.iter_args['save_path'], f"model_iter{epoch}.ckpt")
             iter_model = SubtypeIterativeClassifier.load_from_checkpoint(path)
             iter_model = iter_model.to(device)
-            Logger.log(f"""Model iter{self.current_epoch} loaded.""", log_importance=1)
+            Logger.log(f"""Model iter{epoch} loaded.""", log_importance=1)
             scores, tile_paths = self._apply_iter_model(loader, iter_model)
             self.test_df.loc[tile_paths, f'score{epoch}'] = scores
             # dataset.apply_dataset_reduction(self.iter_args, scores)
+        Logger.log(f"""test_df saved in {os.path.join(self.iter_args['save_path'], f"test_df.csv")}""", log_importance=1)
         self.test_df.to_csv(os.path.join(self.iter_args['save_path'], f"test_df.csv")) # TODO: change this
         self.log_epoch_level_metrics(self.test_df, dataset_str='test')
 
