@@ -13,7 +13,8 @@ from src.configs_utils import *
 
 class SubtypeIterativeClassifier(SubtypeClassifier):
     REDUCTION_FUNCS = {
-        'reduction_with_limit': reduction_with_limit
+        'reduction_with_limit': reduction_with_limit,
+        'reduction_to_target': reduction_to_target
     }
 
     def __init__(self, iter_args, tile_encoder_name,
