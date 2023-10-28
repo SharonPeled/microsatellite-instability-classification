@@ -97,7 +97,8 @@ class SubtypeIterativeClassifier(SubtypeClassifier):
         Logger.log(f"""Dataset reduced to size {len(dataset)}""", log_importance=1)
         del iter_model
         self = self.to(device)
-    
+        self.init_cohort_weight(dataset)
+
     def _apply_iter_model(self, loader, iter_model):
         with torch.no_grad():
             scores = []

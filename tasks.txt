@@ -11,34 +11,30 @@ on hold:
 patient/slide CIN AUC higher than each dataset on its on - why? different training and eval?
 
 to do:
-    number of tiles per slides
-    loss weights should be update too!
 
-    replicate the same inference as training!
+
+
+    reduction target - test just randomly 1000?
+
+    think again about lr - it worked well on high
+    loss weights should be update too! -
+
     delete quota
-    why is train auc 0.5? lr update?
 
-    adjust tiles per slide
 
+
+    different filters schedulers
+    rethink only positive class
     soft labels
-
     different FoVs
     different cohorts
 
-    different filters schedulers
 
 
 
 
     consider pretrain using all and train only using single cohort - in that way you don't increase the number of training sample - could be very interesting
     tune on single cohort
-
-    run experiment with that each epoch is reduced % tiles per slide
-    try smooth labels - tile that are filtered out could be used as soft labels (only in positive class?)
-    negative class could have attention scores?
-
-    run an experiment with random 512 tiles and mean agg
-    save slides with tile embeddings and locations
 
     move to other biomarks
 
