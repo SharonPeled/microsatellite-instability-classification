@@ -48,7 +48,7 @@ class SubtypeIterativeClassifier(SubtypeClassifier):
         if not isinstance(dataset, ProcessedTileDataset):
             dataset = dataset.datasets
         df_labels = dataset.df_labels.copy(deep=True)
-        df_labels['tmp_score'] = 1
+        df_labels['tmp_score'] = 1.0
         tot_imgs = 0
         for i in range(self.trainer.max_epochs):
             tot_imgs += len(df_labels)
