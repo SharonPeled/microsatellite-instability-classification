@@ -11,6 +11,9 @@ on hold:
 patient/slide CIN AUC higher than each dataset on its on - why? different training and eval?
 
 to do:
+    number of tiles per slides
+    loss weights should be update too!
+
     replicate the same inference as training!
     delete quota
     why is train auc 0.5? lr update?

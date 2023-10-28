@@ -106,6 +106,8 @@ def train_single_split(df_train, df_valid, df_test, train_transform, test_transf
                          strategy=DDPStrategy(find_unused_parameters=True),
                          reload_dataloaders_every_n_epochs=1
                          )
+    model.train_loader = train_loader
+    model.test_loader = test_loader
     if Configs.joined['TEST_ONLY'] is None:
         if valid_loader is None:
             trainer.fit(model, train_loader, ckpt_path=None)

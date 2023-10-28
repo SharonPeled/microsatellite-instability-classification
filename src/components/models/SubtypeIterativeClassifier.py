@@ -8,9 +8,14 @@ import datetime
 from src.training_utils import lr_scheduler_linspace_steps
 from src.components.datasets.ProcessedTileDataset import ProcessedTileDataset
 from torch.utils.data import DataLoader
+from src.configs_utils import *
 
 
 class SubtypeIterativeClassifier(SubtypeClassifier):
+    REDUCTION_FUNCS = {
+        'reduction_with_limit': reduction_with_limit
+    }
+
     def __init__(self, iter_args, tile_encoder_name,
                  class_to_ind, learning_rate, frozen_backbone, class_to_weight=None,
                  num_iters_warmup_wo_backbone=None, cohort_to_ind=None, cohort_weight=None, nn_output_size=None,
@@ -37,9 +42,20 @@ class SubtypeIterativeClassifier(SubtypeClassifier):
 
     def on_train_start(self):
         super(SubtypeIterativeClassifier, self).on_train_start()
-        reduction_factor = self.iter_args['reduction_factor']
-        tot_iters = sum([np.ceil(len(self.trainer.train_dataloader)*(reduction_factor**i))
-                     for i in range(self.trainer.max_epochs)])
+        reduction_func = SubtypeIterativeClassifier.REDUCTION_FUNCS[self.iter_args['reduction_func']]
+        loader = self.trainer.train_dataloader
+        dataset = loader.dataset
+        if not isinstance(dataset, ProcessedTileDataset):
+            dataset = dataset.datasets
+        df_labels = dataset.df_labels.copy(deep=True)
+        df_labels['tmp_score'] = 1
+        tot_imgs = 0
+        for i in range(self.trainer.max_epochs):
+            tot_imgs += len(df_labels)
+            df_labels = df_labels.groupby('slide_uuid', as_index=False).apply(lambda d: reduction_func(d,
+                                                                                                       col='tmp_score'))
+        batch_size = len(dataset) // len(loader)
+        tot_iters = (tot_imgs // batch_size) + self.trainer.max_epochs*3
         self.lr_list = lr_scheduler_linspace_steps(lr_pairs=self.iter_args['lr_pairs'],
                                                    tot_iters=tot_iters)
         self.global_iter = 0
@@ -51,6 +67,7 @@ class SubtypeIterativeClassifier(SubtypeClassifier):
         self.global_iter += 1
 
     def on_train_epoch_end(self) -> None:
+        # loader = self.train_loader
         loader = self.trainer.train_dataloader
         dataset = loader.dataset
         if not isinstance(dataset, ProcessedTileDataset):
@@ -69,7 +86,7 @@ class SubtypeIterativeClassifier(SubtypeClassifier):
         Logger.log(f"""Starting train inference.""", log_importance=1)
         scores, tile_paths = self._apply_iter_model(loader, iter_model)
         self.full_df.loc[tile_paths, f'score{self.current_epoch}'] = scores
-        dataset.apply_dataset_reduction(self.iter_args, scores)
+        dataset.apply_dataset_reduction(SubtypeIterativeClassifier.REDUCTION_FUNCS[self.iter_args['reduction_func']], scores)
         if self.iter_args.get('save_path', None) is not None and self.trainer.max_epochs-1 == self.current_epoch:
             time_str = datetime.datetime.now().strftime('%d_%m_%Y_%H_%M')
             os.makedirs(os.path.join(self.iter_args['save_path']), exist_ok=True)
@@ -129,10 +146,8 @@ class SubtypeIterativeClassifier(SubtypeClassifier):
         outputs = outputs.copy(deep=True)
         outputs['y_true'] = outputs.subtype.apply(lambda s: self.class_to_ind[s])
         outputs['cohort'] = outputs.cohort.apply(lambda c: self.cohort_to_ind[c])
-        if self.iter_args['schedule_type'] == 'step':
-            for epoch in range(self.trainer.max_epochs - 1):
-                outputs = outputs.groupby('slide_uuid', as_index=False).apply(
-                    lambda d: d.sort_values(f'score{epoch}', ascending=False)[
-                              :int(len(d) * self.iter_args['reduction_factor'])]).reset_index(drop=True)
-            outputs['CIN_score'] = outputs[f'score{self.trainer.max_epochs-1}']
-            return outputs
+        reduction_func = SubtypeIterativeClassifier.REDUCTION_FUNCS[self.iter_args['reduction_func']]
+        for epoch in range(self.trainer.max_epochs - 1):
+            outputs = outputs.groupby('slide_uuid', as_index=False).apply(lambda d: reduction_func(d, col=f'score{epoch}')).reset_index(drop=True)
+        outputs['CIN_score'] = outputs[f'score{self.trainer.max_epochs-1}']
+        return outputs
