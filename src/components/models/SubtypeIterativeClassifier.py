@@ -15,7 +15,8 @@ class SubtypeIterativeClassifier(SubtypeClassifier):
     REDUCTION_FUNCS = {
         'reduction_with_limit': reduction_with_limit,
         'reduction_to_target': reduction_to_target,
-        'reduction_to_target_per_class': reduction_to_target_per_class
+        'reduction_to_target_per_class': reduction_to_target_per_class,
+        'reduction_to_target_per_end': reduction_to_target_per_end
     }
 
     def __init__(self, iter_args, tile_encoder_name,
