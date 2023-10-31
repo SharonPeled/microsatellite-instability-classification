@@ -162,7 +162,7 @@ class TumorRegressionConfigs:
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
     SC_EXPERIMENT_NAME = 'SC_ITERATIVE_TILE'
-    SC_FORMULATION = f'p100_512_si_target_100_adjusted'
+    SC_FORMULATION = f'p100_512_full_inference_target_1000_per_cls'
     SC_RUN_NAME = f"{SC_FORMULATION}_4"
     SC_RUN_DESCRIPTION = f"""Labels are by bioportal.
     """
@@ -203,7 +203,7 @@ class SubtypeClassificationConfigs:
     # SC_COHORT_TUNE = None # ['COAD', 'READ']
     SC_TEST_ONLY = None
     SC_SAVE_TEST = True
-    SC_NUM_EPOCHS = 6
+    SC_NUM_EPOCHS = 3
     SC_NUM_DEVICES = 1
     SC_NUM_NODES = 1
     SC_DEVICE = 'gpu'
@@ -251,7 +251,7 @@ class SubtypeClassificationConfigs:
                   }
     # iterative_stuff
     SC_ITER_ARGS = {
-        'reduction_func': 'reduction_to_target',
+        'reduction_func': 'reduction_to_target_per_class',
         'save_path': os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                   f'{SC_RUN_NAME}_pred', 'train'),
         'lr_pairs': [
@@ -272,8 +272,8 @@ class SubtypeClassificationConfigs:
     SC_MIL_TILE_INFERENCE_BATCH_SIZE = 512
     SC_MIL_TILE_INFERENCE_NUM_WORKERS = 8
     SC_MIL_MAX_TILES = 900
-    SC_MIL_LR_DICT = {'base_value': 1e-3 * (SC_TRAINING_BATCH_SIZE * SC_NUM_NODES * SC_NUM_DEVICES) / 64.0,
-                      'final_value': 1e-6, 'warmup_epochs': 2, 'start_warmup_value': 1e-6}
+    # SC_MIL_LR_DICT = {'base_value': 1e-3 * (SC_TRAINING_BATCH_SIZE * SC_NUM_NODES * SC_NUM_DEVICES) / 64.0,
+    #                   'final_value': 1e-6, 'warmup_epochs': 2, 'start_warmup_value': 1e-6}
     SC_MIL_POOLING_STRATEGY = {
         'type': 'max',
         'kernel_size': 4

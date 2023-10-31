@@ -14,7 +14,8 @@ from src.configs_utils import *
 class SubtypeIterativeClassifier(SubtypeClassifier):
     REDUCTION_FUNCS = {
         'reduction_with_limit': reduction_with_limit,
-        'reduction_to_target': reduction_to_target
+        'reduction_to_target': reduction_to_target,
+        'reduction_to_target_per_class': reduction_to_target_per_class
     }
 
     def __init__(self, iter_args, tile_encoder_name,
@@ -118,38 +119,38 @@ class SubtypeIterativeClassifier(SubtypeClassifier):
     def on_train_end(self):
         pass
 
-    def test_step(self, batch, batch_idx):
-        return None
+    # def test_step(self, batch, batch_idx):
+    #     return None
+    #
+    # def on_test_epoch_end(self):
+    #     loader = self.trainer.test_dataloaders
+    #     if not isinstance(loader, DataLoader):
+    #         loader = loader[0]
+    #     dataset = loader.dataset
+    #     if not isinstance(dataset, ProcessedTileDataset):
+    #         dataset = dataset.datasets
+    #     self.test_df = dataset.df_labels.copy(deep=True)
+    #     self.test_df.index = self.test_df.tile_path
+    #     device = self.device
+    #     self = self.to('cpu')
+    #     for epoch in range(self.trainer.max_epochs):
+    #         path = os.path.join(self.iter_args['save_path'], f"model_iter{epoch}.ckpt")
+    #         iter_model = SubtypeIterativeClassifier.load_from_checkpoint(path)
+    #         iter_model = iter_model.to(device)
+    #         Logger.log(f"""Model iter{epoch} loaded.""", log_importance=1)
+    #         scores, tile_paths = self._apply_iter_model(loader, iter_model)
+    #         self.test_df.loc[tile_paths, f'score{epoch}'] = scores
+    #         # dataset.apply_dataset_reduction(self.iter_args, scores)
+    #     Logger.log(f"""test_df saved in {os.path.join(self.iter_args['save_path'], f"test_df.csv")}""", log_importance=1)
+    #     self.test_df.to_csv(os.path.join(self.iter_args['save_path'], f"test_df.csv")) # TODO: change this
+    #     self.log_epoch_level_metrics(self.test_df, dataset_str='test')
 
-    def on_test_epoch_end(self):
-        loader = self.trainer.test_dataloaders
-        if not isinstance(loader, DataLoader):
-            loader = loader[0]
-        dataset = loader.dataset
-        if not isinstance(dataset, ProcessedTileDataset):
-            dataset = dataset.datasets
-        self.test_df = dataset.df_labels.copy(deep=True)
-        self.test_df.index = self.test_df.tile_path
-        device = self.device
-        self = self.to('cpu')
-        for epoch in range(self.trainer.max_epochs):
-            path = os.path.join(self.iter_args['save_path'], f"model_iter{epoch}.ckpt")
-            iter_model = SubtypeIterativeClassifier.load_from_checkpoint(path)
-            iter_model = iter_model.to(device)
-            Logger.log(f"""Model iter{epoch} loaded.""", log_importance=1)
-            scores, tile_paths = self._apply_iter_model(loader, iter_model)
-            self.test_df.loc[tile_paths, f'score{epoch}'] = scores
-            # dataset.apply_dataset_reduction(self.iter_args, scores)
-        Logger.log(f"""test_df saved in {os.path.join(self.iter_args['save_path'], f"test_df.csv")}""", log_importance=1)
-        self.test_df.to_csv(os.path.join(self.iter_args['save_path'], f"test_df.csv")) # TODO: change this
-        self.log_epoch_level_metrics(self.test_df, dataset_str='test')
-
-    def _get_df_for_metric_logging(self, outputs):
-        outputs = outputs.copy(deep=True)
-        outputs['y_true'] = outputs.subtype.apply(lambda s: self.class_to_ind[s])
-        outputs['cohort'] = outputs.cohort.apply(lambda c: self.cohort_to_ind[c])
-        reduction_func = SubtypeIterativeClassifier.REDUCTION_FUNCS[self.iter_args['reduction_func']]
-        for epoch in range(self.trainer.max_epochs - 1):
-            outputs = outputs.groupby('slide_uuid', as_index=False).apply(lambda d: reduction_func(d, col=f'score{epoch}')).reset_index(drop=True)
-        outputs['CIN_score'] = outputs[f'score{self.trainer.max_epochs-1}']
-        return outputs
+    # def _get_df_for_metric_logging(self, outputs):
+    #     outputs = outputs.copy(deep=True)
+    #     outputs['y_true'] = outputs.subtype.apply(lambda s: self.class_to_ind[s])
+    #     outputs['cohort'] = outputs.cohort.apply(lambda c: self.cohort_to_ind[c])
+    #     reduction_func = SubtypeIterativeClassifier.REDUCTION_FUNCS[self.iter_args['reduction_func']]
+    #     for epoch in range(self.trainer.max_epochs - 1):
+    #         outputs = outputs.groupby('slide_uuid', as_index=False).apply(lambda d: reduction_func(d, col=f'score{epoch}')).reset_index(drop=True)
+    #     outputs['CIN_score'] = outputs[f'score{self.trainer.max_epochs-1}']
+    #     return outputs

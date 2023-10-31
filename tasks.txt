@@ -12,7 +12,11 @@ patient/slide CIN AUC higher than each dataset on its on - why? different traini
 
 to do:
 
+    model might be overfit on the slide level - possible check - if it accurately classify tiles from train slide that wasnt in training (also on patient level..)
+    # rotating validation sets - train test reduce ect
 
+    think of choosing out of all dataset with slide limits
+    think of reducing number fo epochs - not seem to really have a big effect
 
     reduction target - test just randomly 1000?
 
