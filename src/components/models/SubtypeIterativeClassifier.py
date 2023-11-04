@@ -9,6 +9,8 @@ from src.training_utils import lr_scheduler_linspace_steps
 from src.components.datasets.ProcessedTileDataset import ProcessedTileDataset
 from torch.utils.data import DataLoader
 from src.configs_utils import *
+from copy import deepcopy
+from src.general_utils import MultiInputSequential
 
 
 class SubtypeIterativeClassifier(SubtypeClassifier):
@@ -30,6 +32,7 @@ class SubtypeIterativeClassifier(SubtypeClassifier):
                                                          num_iters_warmup_wo_backbone, cohort_to_ind,
                                                          cohort_weight, nn_output_size,
                                                          **other_kwargs)
+        self.init_backbone = deepcopy(self.backbone).to('cpu')
         self.iter_args = iter_args
         self.full_df = None
         self.test_df = None 
@@ -76,13 +79,13 @@ class SubtypeIterativeClassifier(SubtypeClassifier):
         path = os.path.join(self.iter_args['save_path'], f"model_iter{self.current_epoch}.ckpt")
         self.trainer.save_checkpoint(path)
         Logger.log(f"""Model iter{self.current_epoch} saved in {path}""", log_importance=1)
-        iter_model = SubtypeIterativeClassifier.load_from_checkpoint(path)
-        device = self.device
-        self = self.to('cpu')
-        iter_model = iter_model.to(device)
+        # iter_model = SubtypeIterativeClassifier.load_from_checkpoint(path)
+        # device = self.device
+        # self = self.to('cpu')
+        # iter_model = iter_model.to(device)
         Logger.log(f"""Model iter{self.current_epoch} loaded.""", log_importance=1)
         Logger.log(f"""Starting train inference.""", log_importance=1)
-        scores, tile_paths = self._apply_iter_model(loader, iter_model)
+        scores, tile_paths = self._apply_iter_model(loader, self)
         self.full_df.loc[tile_paths, f'score{self.current_epoch}'] = scores
         dataset.apply_dataset_reduction(self.reduction_object.apply_reduction, scores)
         if self.iter_args.get('save_path', None) is not None and self.trainer.max_epochs-1 == self.current_epoch:
@@ -92,9 +95,19 @@ class SubtypeIterativeClassifier(SubtypeClassifier):
             self.full_df.to_csv(path, index=False)
             Logger.log(f"df_iter_with_scores saved in: {path}", log_importance=1)
         Logger.log(f"""Dataset reduced to size {len(dataset)}""", log_importance=1)
-        del iter_model
-        self = self.to(device)
+        # del iter_model
+        # self = self.to(device)
         self.init_cohort_weight(dataset)
+        self.init_model_new_epoch()
+
+    def init_model_new_epoch(self):
+        if self.iter_args['tune_model_each_time']:
+            backbone_device = self.backbone.device
+            self.backbone.to('cpu')
+            self.backbone = deepcopy(self.init_backbone).to(backbone_device)
+            self.model = MultiInputSequential(self.backbone, self.head)
+            Logger.log(f'New model loaded!', log_importance=1)
+            self.set_training_warmup()
 
     def _apply_iter_model(self, loader, iter_model):
         with torch.no_grad():
