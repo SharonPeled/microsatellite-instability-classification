@@ -12,18 +12,12 @@ from src.configs_utils import *
 
 
 class SubtypeIterativeClassifier(SubtypeClassifier):
-    REDUCTION_FUNCS = {
-        'reduction_with_limit': reduction_with_limit,
-        'reduction_to_target': reduction_to_target,
-        'reduction_to_target_per_class': reduction_to_target_per_class,
-        'reduction_to_target_per_end': reduction_to_target_per_end
-    }
-
     def __init__(self, iter_args, tile_encoder_name,
                  class_to_ind, learning_rate, frozen_backbone, class_to_weight=None,
                  num_iters_warmup_wo_backbone=None, cohort_to_ind=None, cohort_weight=None, nn_output_size=None,
                  other_kwargs=None):
         self.save_hyperparameters()
+        self.reduction_object = None
         # mlflow log_parameter bug patch
         iter_args = eval(iter_args)
         class_to_ind = eval(class_to_ind)
@@ -45,17 +39,18 @@ class SubtypeIterativeClassifier(SubtypeClassifier):
 
     def on_train_start(self):
         super(SubtypeIterativeClassifier, self).on_train_start()
-        reduction_func = SubtypeIterativeClassifier.REDUCTION_FUNCS[self.iter_args['reduction_func']]
         loader = self.trainer.train_dataloader
         dataset = loader.dataset
         if not isinstance(dataset, ProcessedTileDataset):
             dataset = dataset.datasets
         df_labels = dataset.df_labels.copy(deep=True)
+        self.reduction_object = ReductionObject(df_labels)
         df_labels['tmp_score'] = 1.0
         tot_imgs = 0
         for i in range(self.trainer.max_epochs):
             tot_imgs += len(df_labels)
-            df_labels = df_labels.groupby('slide_uuid', as_index=False).apply(lambda d: reduction_func(d,
+            df_labels = df_labels.groupby('slide_uuid', as_index=False).apply(lambda d:
+                                                                              self.reduction_object.apply_reduction(d,
                                                                                                        col='tmp_score'))
         batch_size = len(dataset) // len(loader)
         tot_iters = (tot_imgs // batch_size) + self.trainer.max_epochs*3
@@ -89,7 +84,7 @@ class SubtypeIterativeClassifier(SubtypeClassifier):
         Logger.log(f"""Starting train inference.""", log_importance=1)
         scores, tile_paths = self._apply_iter_model(loader, iter_model)
         self.full_df.loc[tile_paths, f'score{self.current_epoch}'] = scores
-        dataset.apply_dataset_reduction(SubtypeIterativeClassifier.REDUCTION_FUNCS[self.iter_args['reduction_func']], scores)
+        dataset.apply_dataset_reduction(self.reduction_object.apply_reduction, scores)
         if self.iter_args.get('save_path', None) is not None and self.trainer.max_epochs-1 == self.current_epoch:
             time_str = datetime.datetime.now().strftime('%d_%m_%Y_%H_%M')
             os.makedirs(os.path.join(self.iter_args['save_path']), exist_ok=True)

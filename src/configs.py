@@ -162,7 +162,7 @@ class TumorRegressionConfigs:
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
     SC_EXPERIMENT_NAME = 'SC_ITERATIVE_TILE'
-    SC_FORMULATION = f'p100_512_full_inference_target_750_per_end'
+    SC_FORMULATION = f'p100_512_fi_balanced_05'
     SC_RUN_NAME = f"{SC_FORMULATION}_4"
     SC_RUN_DESCRIPTION = f"""Labels are by bioportal.
     """
@@ -244,14 +244,14 @@ class SubtypeClassificationConfigs:
                   'tile_encoder': SC_TILE_ENCODER,
                   'cohort_aware_dict': COHORT_AWARE_DICT,
                   'pretrained_ckp_path': os.path.join(GeneralConfigs.ROOT, 'models', 'subtype_classification', 'dgx_SQ6B12_At2Lrelu_32k_4_dino_checkpoints', 'checkpoint.pth'),
-                  # 'pretrained_ckp_path': os.path.join(GeneralConfigs.ROOT, 'models', 'subtype_classification', 'dgx_SQ6B12_At2Ltanh_65k_2_dino_checkpoints', 'checkpoint0005.pth'),
-                  # 'pretrained_ckp_path': "/home/sharonpe/sandox/checkpoint_argus.pth",
                   # 'pretrained_ckp_path': "/home/sharonpe/microsatellite-instability-classification/data/subtype_classification/third_try_all_slides_16k_4_dino_checkpoints/checkpoint9.pth",
+                  # 'pretrained_ckp_path': "/home/sharonpe/sandox/checkpoint_argus.pth",
                   'config_filepath': str(Path(__file__).resolve())
                   }
     # iterative_stuff
     SC_ITER_ARGS = {
-        'reduction_func': 'reduction_to_target_per_end',
+        'final_reduction': 0.5,
+        'balanced_cohorts': ['CRC', 'STAD', 'UCEC'],
         'save_path': os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                   f'{SC_RUN_NAME}_pred', 'train'),
         'lr_pairs': [
