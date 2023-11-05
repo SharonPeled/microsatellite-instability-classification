@@ -162,7 +162,7 @@ class TumorRegressionConfigs:
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
     SC_EXPERIMENT_NAME = 'SC_ITERATIVE_TILE'
-    SC_FORMULATION = f'p100_512_fi_balanced_03'
+    SC_FORMULATION = f'p100_512_fi_new_1e4_b03'
     SC_RUN_NAME = f"{SC_FORMULATION}_4"
     SC_RUN_DESCRIPTION = f"""Labels are by bioportal.
     """
@@ -255,11 +255,12 @@ class SubtypeClassificationConfigs:
         'save_path': os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                   f'{SC_RUN_NAME}_pred', 'train'),
         'lr_pairs': [
-            (1e-4, 2000), (1e-4, 1),  # warmup fc
-            (1e-6, 1000), (1e-4, 0.4),  # warmup + train all
-            (1e-4, -1), (1e-6, None)  # end decaying
+            (1e-4, 2000), (1e-4, -1),
+            # (1e-4, 2000), (1e-4, 1),  # warmup fc
+            # (1e-6, 1000), (1e-4, 0.4),  # warmup + train all
+            # (1e-4, -1), (1e-6, None)  # end decaying
         ],
-        'tune_model_each_time': False
+        'tune_model_each_time': True
     }
     # MIL STUFF
     SC_MIL_MODEL_NAME = 'VIT_PRETRAINED_DINO'

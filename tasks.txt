@@ -12,20 +12,21 @@ on hold:
 
 to do:
     tune each cohort on its on
+    different FoVs
+    lr
 
 
     model might be overfit on the slide level - possible check - if it accurately classify tiles from train slide that wasnt in training (also on patient level..)
     # rotating validation sets - train test reduce ect
 
 
-    think again about lr - it worked well on high
+
+
 
 
     different filters schedulers
     rethink only positive class
     soft labels
-    different FoVs
-    different cohorts
 
 
 
