@@ -255,7 +255,7 @@ class SubtypeClassificationConfigs:
         'save_path': os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                   f'{SC_RUN_NAME}_pred', 'train'),
         'lr_pairs': [
-            (1e-6, 2000), (1e-6, -1),
+            (1e-6, 2000), (1e-6, -1), (1e-6, None)
             # (1e-4, 2000), (1e-4, 1),  # warmup fc
             # (1e-6, 1000), (1e-4, 0.4),  # warmup + train all
             # (1e-4, -1), (1e-6, None)  # end decaying
