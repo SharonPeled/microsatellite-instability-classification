@@ -11,8 +11,7 @@ on hold:
 
 
 to do:
-    balanced over class, slides and cohorts
-    new model training each time?
+    tune each cohort on its on
 
 
     model might be overfit on the slide level - possible check - if it accurately classify tiles from train slide that wasnt in training (also on patient level..)

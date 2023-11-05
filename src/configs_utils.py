@@ -99,9 +99,9 @@ def get_number_of_balanced_tiles_per_class_cohort(df, target_per_cohort_per_clas
         else:
             sum_res_cls = num_tile_cls.res.sum()
             while sum_res_cls > 0:
-                num_tiles_per_boosted_c = sum_res_cls // (num_tile_cls.remain > 0).sum()
+                num_tiles_per_boosted_c = max(1, sum_res_cls // (num_tile_cls.remain > 0).sum())
                 for i, row in num_tile_cls.iterrows():
-                    if row['remain'] > 0:
+                    if row['remain'] > 0 and sum_res_cls > 0:
                         sum_res_cls -= min(num_tile_cls.iloc[i]['remain'], num_tiles_per_boosted_c)
                         num_tile_cls['num_tiles_using'].iloc[i] += min(num_tile_cls.iloc[i]['remain'],
                                                                        num_tiles_per_boosted_c)
