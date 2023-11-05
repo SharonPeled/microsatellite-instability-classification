@@ -162,7 +162,7 @@ class TumorRegressionConfigs:
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
     SC_EXPERIMENT_NAME = 'SC_ITERATIVE_TILE'
-    SC_FORMULATION = f'p100_512_fi_new_1e6_b03_fove15'
+    SC_FORMULATION = f'p100_512_fi_new_1e4_b03_fove10'
     SC_RUN_NAME = f"{SC_FORMULATION}_4"
     SC_RUN_DESCRIPTION = f"""Labels are by bioportal.
     """
@@ -240,7 +240,7 @@ class SubtypeClassificationConfigs:
                   'n_nn_head': {'num_layers': 1, 'dropout_value': 0.0},
                   'sep_cohort_w_loss': True,
                   'learnable_cohort_prior_type': None, # '*', # 0.1,  # initial prior value
-                  'FoVs_augs_amounts': (0.15, 0.15),  # tuple of % from each FoVs to add
+                  'FoVs_augs_amounts': (0.05, 0.10),  # tuple of % from each FoVs to add
                   'tile_encoder': SC_TILE_ENCODER,
                   'cohort_aware_dict': COHORT_AWARE_DICT,
                   'pretrained_ckp_path': os.path.join(GeneralConfigs.ROOT, 'models', 'subtype_classification', 'dgx_SQ6B12_At2Lrelu_32k_4_dino_checkpoints', 'checkpoint.pth'),
@@ -255,7 +255,7 @@ class SubtypeClassificationConfigs:
         'save_path': os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                   f'{SC_RUN_NAME}_pred', 'train'),
         'lr_pairs': [
-            (1e-6, 2000), (1e-6, -1),
+            (1e-4, 2000), (1e-4, -1),
             # (1e-4, 2000), (1e-4, 1),  # warmup fc
             # (1e-6, 1000), (1e-4, 0.4),  # warmup + train all
             # (1e-4, -1), (1e-6, None)  # end decaying
