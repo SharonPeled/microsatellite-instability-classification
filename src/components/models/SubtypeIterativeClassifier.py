@@ -98,16 +98,21 @@ class SubtypeIterativeClassifier(SubtypeClassifier):
         # del iter_model
         # self = self.to(device)
         self.init_cohort_weight(dataset)
-        self.init_model_new_epoch()
+        self.init_model_new_epoch(warmup_p=self.iter_args['warmup_p'],
+                                  num_iters=len(dataset)//self.iter_args['train_batch_size'])
 
-    def init_model_new_epoch(self):
+    def init_model_new_epoch(self, warmup_p, num_iters):
         if self.iter_args['tune_model_each_time']:
             backbone_device = self.backbone.device
             self.backbone.to('cpu')
             self.backbone = deepcopy(self.init_backbone).to(backbone_device)
             self.model = MultiInputSequential(self.backbone, self.head)
             Logger.log(f'New model loaded!', log_importance=1)
-            self.set_training_warmup()
+            if warmup_p > 0:
+                self.num_iters_warmup_wo_backbone = int(warmup_p*num_iters)
+                self.set_training_warmup()
+            else:
+                Logger.log('No warmup!', log_importance=1)
 
     def _apply_iter_model(self, loader, iter_model):
         with torch.no_grad():
