@@ -76,14 +76,14 @@ class SubtypeIterativeClassifier(SubtypeClassifier):
         if self.full_df is None:
             self.full_df = dataset.df_labels.copy(deep=True)
             self.full_df.index = self.full_df.tile_path
-        path = os.path.join(self.iter_args['save_path'], f"model_iter{self.current_epoch}.ckpt")
-        self.trainer.save_checkpoint(path)
-        Logger.log(f"""Model iter{self.current_epoch} saved in {path}""", log_importance=1)
+        # path = os.path.join(self.iter_args['save_path'], f"model_iter{self.current_epoch}.ckpt")
+        # self.trainer.save_checkpoint(path)
+        # Logger.log(f"""Model iter{self.current_epoch} saved in {path}""", log_importance=1)
         # iter_model = SubtypeIterativeClassifier.load_from_checkpoint(path)
         # device = self.device
         # self = self.to('cpu')
         # iter_model = iter_model.to(device)
-        Logger.log(f"""Model iter{self.current_epoch} loaded.""", log_importance=1)
+        # Logger.log(f"""Model iter{self.current_epoch} loaded.""", log_importance=1)
         Logger.log(f"""Starting train inference.""", log_importance=1)
         scores, tile_paths = self._apply_iter_model(loader, self)
         self.full_df.loc[tile_paths, f'score{self.current_epoch}'] = scores
