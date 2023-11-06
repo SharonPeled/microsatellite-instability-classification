@@ -163,7 +163,7 @@ class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
     SC_EXPERIMENT_NAME = 'SC_ITERATIVE_TILE'
     SC_FORMULATION = f'p100_512_fi_new_1e4_b03_wm0'
-    SC_RUN_NAME = f"{SC_FORMULATION}_4"
+    SC_RUN_NAME = f"{SC_FORMULATION}"
     SC_RUN_DESCRIPTION = f"""Labels are by bioportal.
     """
     SC_LABEL_DF_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
