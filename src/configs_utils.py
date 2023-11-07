@@ -66,35 +66,23 @@ def reduction_to_target_per_end(df, col, target=750):
     return df.loc[index]
 
 
-def print_balance_details(df, target_per_class, target_per_cohort_per_class, balanced_cohorts):
-    print(f'Number of tiles per class: {target_per_class}')
-    num_tile_y = df.groupby(['y']).tile_path.count()
-    print(num_tile_y.to_dict())
-    if ((num_tile_y - target_per_class) < 0).any():
-        print(f'Warninig - Classes are not balanced!')
-    else:
-        print('Classes are balanced.')
-    print(f'Number of tiles per class per cohort: {target_per_cohort_per_class}')
-    num_tile_y_c = df.groupby(['y', 'cohort']).tile_path.count()
-    print(num_tile_y_c.to_dict())
-    if ((num_tile_y_c - target_per_cohort_per_class) < 0).any():
-        print(f'Warninig - Cohorts are not balanced!')
-    else:
-        print('Cohorts are balanced.')
-
-
-def get_number_of_balanced_tiles_per_class_cohort(df, target_per_cohort_per_class, target_per_class):
+def get_number_of_balanced_tiles_per_class_cohort(df, target_per_cohort_per_class, target_per_class,
+                                                  num_used_tiles_per_cls, balanced_cohorts):
     num_tile_y = df.groupby(['y']).tile_path.count()
     num_tile_y_c = df.groupby(['y', 'cohort']).agg({'tile_path': 'count', 'slide_uuid': 'nunique'}).reset_index()
-    num_tile_y_c['num_tiles_using'] = num_tile_y_c.tile_path.apply(lambda t: min(t, target_per_cohort_per_class))
-    num_tile_y_c['remain'] = num_tile_y_c.tile_path.apply(lambda t: max(0, t - target_per_cohort_per_class))
-    num_tile_y_c['res'] = num_tile_y_c.tile_path.apply(lambda t: max(0, target_per_cohort_per_class - t))
     df_cls_list = []
     for cls in [0, 1]:
         num_tile_cls = num_tile_y_c[num_tile_y_c.y == cls].reset_index(drop=True)
         if num_tile_cls.empty:
             continue
-        if num_tile_y.loc[cls] - target_per_class < 0:
+        used_tiles_per_c = (num_used_tiles_per_cls.loc[cls] // len(balanced_cohorts))
+        num_tile_cls['num_tiles_using'] = num_tile_cls.tile_path.apply(
+            lambda t: min(t, target_per_cohort_per_class - used_tiles_per_c))
+        num_tile_cls['remain'] = num_tile_cls.tile_path.apply(
+            lambda t: max(0, t - (target_per_cohort_per_class - used_tiles_per_c)))
+        num_tile_cls['res'] = num_tile_cls.tile_path.apply(
+            lambda t: max(0, target_per_cohort_per_class - used_tiles_per_c - t))
+        if num_tile_y.loc[cls] - (target_per_class - num_used_tiles_per_cls.loc[cls]) < 0:
             print(f'All cohorts are maxed out for y={cls}.')
         else:
             sum_res_cls = num_tile_cls.res.sum()
@@ -108,7 +96,8 @@ def get_number_of_balanced_tiles_per_class_cohort(df, target_per_cohort_per_clas
                         num_tile_cls['remain'].iloc[i] = max(0,
                                                              num_tile_cls.iloc[i]['remain'] - num_tiles_per_boosted_c)
         df_cls_list.append(num_tile_cls)
-    return pd.concat(df_cls_list, ignore_index=True).drop(columns=['remain', 'res', 'tile_path']).rename(columns={'slide_uuid': 'num_slides'})
+    return pd.concat(df_cls_list, ignore_index=True).drop(columns=['remain', 'res', 'tile_path']).rename(
+        columns={'slide_uuid': 'num_slides'})
 
 
 def get_number_of_balanced_tiles_per_class_cohort_slide(df, num_tile_per_class_per_cohort, balanced_cohorts):
@@ -145,21 +134,59 @@ def get_number_of_balanced_tiles_per_class_cohort_slide(df, num_tile_per_class_p
     return pd.concat(df_cls_list, ignore_index=True)
 
 
-def get_balanced_tiles(df, fp, balanced_cohorts):
-    target_all = int(len(df) * fp)
+def get_num_tiles_y_full(df_f, target_all_full, full_cohort):
+    print(f'target_all_full: {target_all_full}')
+    if df_f.empty:
+        return pd.DataFrame()
+    target_per_class = target_all_full // 2
+    num_tiles_y = df_f.groupby('y').agg({'tile_path': 'count', 'slide_uuid': 'nunique'})
+    num_tiles_y['num_tiles_using'] = target_per_class
+    if num_tiles_y.tile_path.loc[0] > target_per_class and num_tiles_y.tile_path.loc[1] < target_per_class:
+        res = target_per_class - num_tiles_y.tile_path.loc[1]
+        num_tiles_y.num_tiles_using.loc[0] = min(target_per_class + res, num_tiles_y.tile_path.loc[0])
+    else:
+        res = target_per_class - num_tiles_y.tile_path.loc[0]
+        num_tiles_y.num_tiles_using.loc[1] = min(target_per_class + res, num_tiles_y.tile_path.loc[1])
+    num_tiles_y.num_tiles_using = num_tiles_y.apply(
+        lambda row: row['num_tiles_using'] if row['tile_path'] > target_per_class else row['tile_path'], axis=1)
+    num_tiles_y_c = num_tiles_y.reset_index()
+
+    num_tiles_y_c['cohort'] = full_cohort
+    num_tiles_y_c = num_tiles_y_c.drop(columns=['tile_path']).rename(columns={'slide_uuid': 'num_slides'})
+    num_tiles_y_c = num_tiles_y_c[['y', 'cohort', 'num_slides', 'num_tiles_using']]
+    return num_tiles_y_c
+
+
+def get_balanced_tiles(df, fp_f, fp_all, full_cohort, balanced_cohorts):
+    print(f'Total size: {len(df)}')
+    print(f'Full cohort: {full_cohort}, balanced cohorts: {balanced_cohorts}.')
+    print(f'Per cohort and class statistics:')
+    print(df.groupby(['y', 'cohort'], as_index=False).agg({'tile_path': 'count', 'slide_uuid': 'nunique'}))
+
+    df_f = df[df.cohort == full_cohort]
+    df_b = df[df.cohort.isin(balanced_cohorts)]
+
+    num_tile_per_class_per_cohort_full = get_num_tiles_y_full(df_f, int(len(df) * fp_f), full_cohort)
+    num_tile_y_full = num_tile_per_class_per_cohort_full.groupby('y').num_tiles_using.sum()
+
+    target_all = int(len(df) * fp_all)
     target_per_class = target_all // 2
     target_per_cohort_per_class = target_per_class // len(balanced_cohorts)
-    print_balance_details(df, target_per_class, target_per_cohort_per_class, balanced_cohorts)
-    num_tile_per_class_per_cohort = get_number_of_balanced_tiles_per_class_cohort(df, target_per_cohort_per_class,
-                                                                                  target_per_class)
+    num_tile_per_class_per_cohort = get_number_of_balanced_tiles_per_class_cohort(df_b, target_per_cohort_per_class,
+                                                                                  target_per_class, num_tile_y_full,
+                                                                                  balanced_cohorts)
+    num_tile_per_class_per_cohort = pd.concat([num_tile_per_class_per_cohort, num_tile_per_class_per_cohort_full],
+                                              ignore_index=True)
+    print(num_tile_per_class_per_cohort)
+
     num_tile_per_class_per_cohort_per_slide = get_number_of_balanced_tiles_per_class_cohort_slide(df,
                                                                                                   num_tile_per_class_per_cohort,
-                                                                                                  balanced_cohorts)
+                                                                                                  balanced_cohorts + [
+                                                                                                      full_cohort, ])
     return num_tile_per_class_per_cohort_per_slide
 
 
-# df_balanced_tiles = get_balanced_tiles(df_train[df_train.cohort != 'ESCA'], fp=0.5,
-#                                        balanced_cohorts=['CRC', 'STAD', 'UCEC'])
+# df_balanced_tiles = get_balanced_tiles(df_train_b, fp_f=0.15, fp_all=0.35, full_cohort='CRC', balanced_cohorts=['STAD', 'UCEC'])
 
 
 def calc_reduction_factor(total, target, num_epochs_with_reduction):
@@ -172,9 +199,11 @@ def calc_reduction_factor(total, target, num_epochs_with_reduction):
 class ReductionObject:
     def __init__(self, df):
         self.df = df
-        self.fp = Configs.SC_ITER_ARGS['final_reduction']
         self.balanced_cohorts = Configs.SC_ITER_ARGS['balanced_cohorts']
-        self.num_tile_per_slide = get_balanced_tiles(df, self.fp, self.balanced_cohorts)
+        self.num_tile_per_slide = get_balanced_tiles(df, fp_all=Configs.SC_ITER_ARGS['final_reduction_all'],
+                                                     fp_f=Configs.SC_ITER_ARGS['final_reduction_tuned'],
+                                                     full_cohort=Configs.SC_ITER_ARGS['tune_cohort'],
+                                                     balanced_cohorts=self.balanced_cohorts)
         self.num_tile_per_slide['reduction_per_epoch'] = self.num_tile_per_slide.num_tiles_using
 
     def reduction_to_target_per_class(self, df, col):

@@ -12,10 +12,21 @@ on hold:
 
 to do:
     tune each cohort on its on
-    different FoVs
-    lr
-    ESCA
-    fp
+    check the folds
+
+
+    different FoVs - no
+    lr - 1e4 ++
+    ESCA - no
+    fp - 03 --
+    warmup - 0.25
+
+    cohort aware - 2 streams
+
+
+
+
+
 
 
     model might be overfit on the slide level - possible check - if it accurately classify tiles from train slide that wasnt in training (also on patient level..)
