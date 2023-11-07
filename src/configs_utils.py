@@ -144,7 +144,7 @@ def get_num_tiles_y_full(df_f, target_all_full, full_cohort):
     if num_tiles_y.tile_path.loc[0] > target_per_class and num_tiles_y.tile_path.loc[1] < target_per_class:
         res = target_per_class - num_tiles_y.tile_path.loc[1]
         num_tiles_y.num_tiles_using.loc[0] = min(target_per_class + res, num_tiles_y.tile_path.loc[0])
-    else:
+    if num_tiles_y.tile_path.loc[1] > target_per_class and num_tiles_y.tile_path.loc[0] < target_per_class:
         res = target_per_class - num_tiles_y.tile_path.loc[0]
         num_tiles_y.num_tiles_using.loc[1] = min(target_per_class + res, num_tiles_y.tile_path.loc[1])
     num_tiles_y.num_tiles_using = num_tiles_y.apply(

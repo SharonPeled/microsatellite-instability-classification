@@ -162,7 +162,7 @@ class TumorRegressionConfigs:
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
     SC_EXPERIMENT_NAME = 'SC_ITERATIVE_TILE'
-    SC_FORMULATION = f'p100_512_fi_new_1e4_b03_wm3_crc'
+    SC_FORMULATION = f'p100_512_fi_new_1e4_b03_wm3_ucec'
     SC_RUN_NAME = f"{SC_FORMULATION}"
     SC_RUN_DESCRIPTION = f"""Labels are by bioportal.
     """
@@ -250,10 +250,10 @@ class SubtypeClassificationConfigs:
                   }
     # iterative_stuff
     SC_ITER_ARGS = {
-        'final_reduction_all': 0.3,
-        'final_reduction_tuned': 0.15,
-        'tune_cohort': 'CRC',
-        'balanced_cohorts': ['STAD', 'UCEC'],
+        'final_reduction_all': 0.4,
+        'final_reduction_tuned': 0.25,
+        'tune_cohort': 'UCEC',
+        'balanced_cohorts': ['STAD', 'CRC'],
         'save_path': os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                   f'{SC_RUN_NAME}_pred', 'train'),
         'lr_pairs': [
