@@ -30,6 +30,20 @@ from pytorch_lightning.strategies import DDPStrategy
 import os
 
 
+def adjust_split_patients(df_train, df_test):
+    df_p = df_train.groupby('patient_id', as_index=False).agg({'slide_uuid': 'nunique'})
+    df_p = df_p[df_p.slide_uuid > 1]
+    df_p = df_train.merge(df_p, on='patient_id', how='inner', suffixes=('', '_x'))
+    slide_ids = df_p.groupby('patient_id').slide_uuid.apply(lambda s: list(s.unique()))
+    if slide_ids.empty:
+        return df_train, df_test
+    test_slides = np.concatenate(slide_ids.apply(lambda l: l[:len(l)//2]).values)
+    df_train_split_slides = df_train[df_train.slide_uuid.isin(test_slides)]
+    df_train = df_train[~df_train.tile_path.isin(df_train_split_slides.tile_path)].reset_index(drop=True)
+    df_test = pd.concat([df_test, df_train_split_slides], ignore_index=False)
+    return df_train, df_test
+
+
 def adjust_split_tile_location(df_train, df_test):
     df_train['row'] = df_train.tile_path.apply(lambda t: int(t.split('/')[-1].split('_')[0]))
     df_train_row_medians = df_train.groupby('slide_uuid', as_index=False).row.median()
@@ -105,7 +119,7 @@ def train_single_split(df_train, df_valid, df_test, train_transform, test_transf
         if df_valid is not None:
             df_valid = df_valid[~df_valid.is_aug]
 
-    df_train, df_test = adjust_split_tile_location(df_train, df_test)
+    df_train, df_test = adjust_split_patients(df_train, df_test)
     train_dataset, valid_dataset, test_dataset, train_loader, valid_loader, test_loader = get_loader_and_datasets(
         df_train_sampled,
         df_valid, df_test, train_transform, test_transform, **kwargs)
