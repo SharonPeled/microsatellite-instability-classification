@@ -11,6 +11,14 @@ on hold:
 
 
 to do:
+    model might be overfit on the slide level, training slides all get super high AUC, check where the overfit in happenning
+    possible splits:
+    patient level - 2 slides of same patient - one in test, one in train
+    slide level - random split of tiles of same slide - some in train and some in test
+    location in slide level - split spatially the slide - 1 in test and the other in train
+
+
+
     tune each cohort on its on
     different FoVs
     lr
@@ -18,7 +26,6 @@ to do:
     fp
 
 
-    model might be overfit on the slide level - possible check - if it accurately classify tiles from train slide that wasnt in training (also on patient level..)
     # rotating validation sets - train test reduce ect
 
 

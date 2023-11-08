@@ -30,6 +30,13 @@ from pytorch_lightning.strategies import DDPStrategy
 import os
 
 
+def adjust_split_random_tiles(df_train, df_test):
+    df_train_random_tiles = df_train.groupby('slide_uuid').sample(frac=0.1)
+    df_train = df_train[~df_train.tile_path.isin(df_train_random_tiles.tile_path)].reset_index(drop=True)
+    df_test = pd.concat([df_test, df_train_random_tiles], ignore_index=False)
+    return df_train, df_test
+
+
 def train(df, train_transform, test_transform, logger, callbacks, model, **kwargs):
     if Configs.joined['CROSS_VALIDATE']:
         cross_validate(df, train_transform, test_transform, logger, model, callbacks=callbacks, **kwargs)
@@ -60,7 +67,7 @@ def cross_validate(df, train_transform, test_transform, mlflow_logger, model, ca
         df_train = df.iloc[train_inds].reset_index(drop=True)
         df_test = df.iloc[test_inds].reset_index(drop=True)
         model.fold = i
-        model.iter_args['save_path'] = os.path.join(model.iter_args['save_path'], str(i))
+        # model.iter_args['save_path'] = os.path.join(model.iter_args['save_path'], str(i))
         fitted_model = train_single_split(df_train, None, df_test, train_transform, test_transform, mlflow_logger, deepcopy(model),
                                           callbacks=callbacks, **kwargs)
         cv_metrics.append(fitted_model.metrics)
@@ -87,6 +94,7 @@ def train_single_split(df_train, df_valid, df_test, train_transform, test_transf
         if df_valid is not None:
             df_valid = df_valid[~df_valid.is_aug]
 
+    df_train, df_test = adjust_split_random_tiles(df_train, df_test)
     train_dataset, valid_dataset, test_dataset, train_loader, valid_loader, test_loader = get_loader_and_datasets(
         df_train_sampled,
         df_valid, df_test, train_transform, test_transform, **kwargs)
