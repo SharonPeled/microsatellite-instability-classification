@@ -30,6 +30,17 @@ from pytorch_lightning.strategies import DDPStrategy
 import os
 
 
+def adjust_split_tile_location(df_train, df_test):
+    df_train['row'] = df_train.tile_path.apply(lambda t: int(t.split('/')[-1].split('_')[0]))
+    df_train_row_medians = df_train.groupby('slide_uuid', as_index=False).row.median()
+    df_train = df_train.merge(df_train_row_medians, on='slide_uuid', how='inner', suffixes=('', '_median'))
+    df_train_single_size_tiles = df_train[df_train.row<df_train.row_median]
+    print(len(df_train_single_size_tiles))
+    df_train = df_train[~df_train.tile_path.isin(df_train_single_size_tiles.tile_path)].reset_index(drop=True)
+    df_test = pd.concat([df_test, df_train_single_size_tiles], ignore_index=False)
+    return df_train, df_test
+
+
 def adjust_split_random_tiles(df_train, df_test):
     df_train_random_tiles = df_train.groupby('slide_uuid').sample(frac=0.1)
     df_train = df_train[~df_train.tile_path.isin(df_train_random_tiles.tile_path)].reset_index(drop=True)
@@ -94,7 +105,7 @@ def train_single_split(df_train, df_valid, df_test, train_transform, test_transf
         if df_valid is not None:
             df_valid = df_valid[~df_valid.is_aug]
 
-    df_train, df_test = adjust_split_random_tiles(df_train, df_test)
+    df_train, df_test = adjust_split_tile_location(df_train, df_test)
     train_dataset, valid_dataset, test_dataset, train_loader, valid_loader, test_loader = get_loader_and_datasets(
         df_train_sampled,
         df_valid, df_test, train_transform, test_transform, **kwargs)

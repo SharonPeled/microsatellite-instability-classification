@@ -37,7 +37,7 @@ to do:
     rethink only positive class
     soft labels
 
-
+    pretrain using 2 streams and without ESCA
 
 
 
