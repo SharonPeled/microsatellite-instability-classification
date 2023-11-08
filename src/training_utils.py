@@ -42,7 +42,7 @@ def adjust_split_tile_location(df_train, df_test):
 
 
 def adjust_split_random_tiles(df_train, df_test):
-    df_train_random_tiles = df_train.groupby('slide_uuid').sample(frac=0.1)
+    df_train_random_tiles = df_train.groupby('slide_uuid').sample(frac=0.5)
     df_train = df_train[~df_train.tile_path.isin(df_train_random_tiles.tile_path)].reset_index(drop=True)
     df_test = pd.concat([df_test, df_train_random_tiles], ignore_index=False)
     return df_train, df_test
