@@ -119,7 +119,7 @@ def train_single_split(df_train, df_valid, df_test, train_transform, test_transf
         if df_valid is not None:
             df_valid = df_valid[~df_valid.is_aug]
 
-    df_train, df_test = adjust_split_tile_location(df_train, df_test)
+    df_train, df_test = adjust_split_random_tiles(df_train, df_test)
     train_dataset, valid_dataset, test_dataset, train_loader, valid_loader, test_loader = get_loader_and_datasets(
         df_train_sampled,
         df_valid, df_test, train_transform, test_transform, **kwargs)
