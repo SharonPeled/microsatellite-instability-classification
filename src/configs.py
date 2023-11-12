@@ -162,7 +162,7 @@ class TumorRegressionConfigs:
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
     SC_EXPERIMENT_NAME = 'SC_ITERATIVE_TILE'
-    SC_FORMULATION = f'p100_512_fi_new_1e4_b03_wm0'
+    SC_FORMULATION = f'p100_512_fi_new_1e4_b03_wm03_5f'
     SC_RUN_NAME = f"{SC_FORMULATION}"
     SC_RUN_DESCRIPTION = f"""Labels are by bioportal.
     """
@@ -212,7 +212,7 @@ class SubtypeClassificationConfigs:
     SC_VAL_STEP_INTERVAL = 1/2  # 2 times an epoch
     SC_TRAINING_BATCH_SIZE = 256  # accumulating gradients in MIL only
     SC_NUM_WORKERS = 25
-    SC_TEST_SIZE = 0.3333
+    SC_TEST_SIZE = 0.2
     SC_VALID_SIZE = 0  # not used if CV=True
     SC_INIT_LR = [1e-6 * (SC_TRAINING_BATCH_SIZE/256),
                   1e-4 * (SC_TRAINING_BATCH_SIZE/256)]  # per part of the network, in order of the actual nn
@@ -261,7 +261,7 @@ class SubtypeClassificationConfigs:
             # (1e-4, -1), (1e-6, None)  # end decaying
         ],
         'tune_model_each_time': True,
-        'warmup_p': 0.0,
+        'warmup_p': 0.3,
         'train_batch_size': SC_TRAINING_BATCH_SIZE
     }
     # MIL STUFF
