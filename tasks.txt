@@ -8,18 +8,28 @@ test:
 
 
 on hold:
+    look at the folds? - 5 folds
 
 
 to do:
-    model might be overfit on the slide level, training slides all get super high AUC, check where the overfit in happenning
-    possible splits:
-    patient level - 2 slides of same patient - one in test, one in train
-    slide level - random split of tiles of same slide - some in train and some in test
-    location in slide level - split spatially the slide - 1 in test and the other in train
+    analyze the overfit:
+        see from example - search for a systematic way to compare the results
+        see results on the iterative tile
+
+    spatial adjacent tile variance of a slide:
+        in terms of model's scores - difference between overfit and not, cohorts, overall score of slide (is lower variance implies better prediction?)
+        in terms of tile similarity - cohorts, overall score of slide
+        combining the 2 - does similar tiles get similar score, does similar clusters get close scores among the tiles?
 
 
-    look at the score
-    look at the folds? - 5 folds
+
+    similarity between tiles!
+
+
+
+
+
+    2 streams? rethinking cohort awareness
 
     tune each cohort on its on
     different FoVs
@@ -39,7 +49,7 @@ to do:
     rethink only positive class
     soft labels
 
-    pretrain using 2 streams and without ESCA
+    pretrain using 2 streams and without ESCA and balanced?
 
 
 
