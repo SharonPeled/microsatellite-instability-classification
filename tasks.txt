@@ -12,6 +12,8 @@ on hold:
 
 
 to do:
+    clean and clean exp
+
     analyze the overfit:
         see from example - search for a systematic way to compare the results
         see results on the iterative tile

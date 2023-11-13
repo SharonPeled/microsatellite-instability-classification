@@ -254,8 +254,7 @@ class SubtypeClassificationConfigs:
         'final_reduction_tuned': 0.0,
         'tune_cohort': None,
         'balanced_cohorts': ['CRC', 'STAD', 'UCEC'],
-        'save_path': os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
-                                  f'{SC_RUN_NAME}_pred', 'train'),
+        'save_path': None,
         'lr_pairs': [
             (1e-4, 10), (1e-4, -1), (1e-4, None)
             # (1e-4, 2000), (1e-4, 1),  # warmup fc
