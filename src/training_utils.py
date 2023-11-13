@@ -59,8 +59,8 @@ def cross_validate(df, train_transform, test_transform, mlflow_logger, model, ca
         Logger.log(f"Fold {i}", log_importance=1)
         df_train = df.iloc[train_inds].reset_index(drop=True)
         df_test = df.iloc[test_inds].reset_index(drop=True)
-        model.fold = i
-        model.iter_args['save_path'] = os.path.join(model.iter_args['save_path'], str(i))
+        # model.fold = i
+        # model.iter_args['save_path'] = os.path.join(model.iter_args['save_path'], str(i))
         fitted_model = train_single_split(df_train, None, df_test, train_transform, test_transform, mlflow_logger, deepcopy(model),
                                           callbacks=callbacks, **kwargs)
         cv_metrics.append(fitted_model.metrics)
@@ -225,7 +225,7 @@ def get_loader_and_datasets(df_train, df_valid, df_test, train_transform, test_t
     train_loader = DataLoader(train_dataset, batch_size=Configs.joined['TRAINING_BATCH_SIZE'],
                               shuffle=kwargs.get('shuffle_train', True),
                               persistent_workers=True, num_workers=Configs.joined['NUM_WORKERS'],
-                              worker_init_fn=set_worker_sharing_strategy, 
+                              worker_init_fn=set_worker_sharing_strategy,
                               collate_fn=kwargs.get('custom_collate_fn', None))
     test_loader = DataLoader(test_dataset, batch_size=Configs.joined['TEST_BATCH_SIZE'], shuffle=False,
                              persistent_workers=True, num_workers=Configs.joined['NUM_WORKERS'],
