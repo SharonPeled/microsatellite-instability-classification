@@ -135,7 +135,6 @@ def get_number_of_balanced_tiles_per_class_cohort_slide(df, num_tile_per_class_p
 
 
 def get_num_tiles_y_full(df_f, target_all_full, full_cohort):
-    print(f'target_all_full: {target_all_full}')
     if df_f.empty:
         return pd.DataFrame()
     target_per_class = target_all_full // 2
@@ -166,8 +165,12 @@ def get_balanced_tiles(df, fp_f, fp_all, full_cohort, balanced_cohorts):
     df_f = df[df.cohort == full_cohort]
     df_b = df[df.cohort.isin(balanced_cohorts)]
 
-    num_tile_per_class_per_cohort_full = get_num_tiles_y_full(df_f, int(len(df) * fp_f), full_cohort)
-    num_tile_y_full = num_tile_per_class_per_cohort_full.groupby('y').num_tiles_using.sum()
+    target_full = int(len(df) * fp_f)
+    num_tile_per_class_per_cohort_full = get_num_tiles_y_full(df_f, target_full, full_cohort)
+    if num_tile_per_class_per_cohort_full.empty:
+        num_tile_y_full = pd.Series(index=[0, 1], data=[0, 0])
+    else:
+        num_tile_y_full = num_tile_per_class_per_cohort_full.groupby('y').num_tiles_using.sum()
 
     target_all = int(len(df) * fp_all)
     target_per_class = target_all // 2
@@ -177,6 +180,10 @@ def get_balanced_tiles(df, fp_f, fp_all, full_cohort, balanced_cohorts):
                                                                                   balanced_cohorts)
     num_tile_per_class_per_cohort = pd.concat([num_tile_per_class_per_cohort, num_tile_per_class_per_cohort_full],
                                               ignore_index=True)
+
+    print({'Target All Tile': target_all, 'Target Full Cohorts': target_full,
+           'Target Balanced Cohorts (rest)': target_all - target_full})
+    print('Target number of tiles per y per cohort:')
     print(num_tile_per_class_per_cohort)
 
     num_tile_per_class_per_cohort_per_slide = get_number_of_balanced_tiles_per_class_cohort_slide(df,
@@ -184,10 +191,6 @@ def get_balanced_tiles(df, fp_f, fp_all, full_cohort, balanced_cohorts):
                                                                                                   balanced_cohorts + [
                                                                                                       full_cohort, ])
     return num_tile_per_class_per_cohort_per_slide
-
-
-# df_balanced_tiles = get_balanced_tiles(df_train_b, fp_f=0.15, fp_all=0.35, full_cohort='CRC', balanced_cohorts=['STAD', 'UCEC'])
-
 
 def calc_reduction_factor(total, target, num_epochs_with_reduction):
     if total <= target:

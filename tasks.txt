@@ -8,28 +8,36 @@ test:
 
 
 on hold:
+    look at the folds? - 5 folds
 
 
 to do:
+    analyze the overfit:
+        see from example - search for a systematic way to compare the results
+        see results on the iterative tile
+
+    spatial adjacent tile variance of a slide:
+        in terms of model's scores - difference between overfit and not, cohorts, overall score of slide (is lower variance implies better prediction?)
+        in terms of tile similarity - cohorts, overall score of slide
+        combining the 2 - does similar tiles get similar score, does similar clusters get close scores among the tiles?
+
+
+
+    similarity between tiles!
+
+
+
+
+
+    2 streams? rethinking cohort awareness
+
     tune each cohort on its on
-    check the folds
+    different FoVs
+    lr
+    ESCA
+    fp
 
 
-    different FoVs - no
-    lr - 1e4 ++
-    ESCA - no
-    fp - 03 --
-    warmup - 0.25
-
-    cohort aware - 2 streams
-
-
-
-
-
-
-
-    model might be overfit on the slide level - possible check - if it accurately classify tiles from train slide that wasnt in training (also on patient level..)
     # rotating validation sets - train test reduce ect
 
 
@@ -41,7 +49,7 @@ to do:
     rethink only positive class
     soft labels
 
-
+    pretrain using 2 streams and without ESCA and balanced?
 
 
 

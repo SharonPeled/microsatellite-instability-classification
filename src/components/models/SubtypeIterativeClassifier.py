@@ -62,6 +62,14 @@ class SubtypeIterativeClassifier(SubtypeClassifier):
         self.global_iter = 0
         Logger.log(f'Total steps: {tot_iters}', log_importance=1)
 
+    def on_train_epoch_start(self) -> None:
+        loader = self.trainer.train_dataloader
+        dataset = loader.dataset
+        if not isinstance(dataset, ProcessedTileDataset):
+            dataset = dataset.datasets
+        res_dict = dataset.df_labels.groupby(['y', 'cohort']).tile_path.count().to_dict()
+        Logger.log(res_dict, log_importance=1)
+
     def on_train_batch_end(self, outputs, batch, batch_idx):
         for param_group in self.trainer.optimizers[0].param_groups:
             param_group['lr'] = self.lr_list[self.global_iter]
@@ -103,7 +111,7 @@ class SubtypeIterativeClassifier(SubtypeClassifier):
 
     def init_model_new_epoch(self, warmup_p, num_iters):
         if self.iter_args['tune_model_each_time']:
-            backbone_device = self.backbone.device
+            backbone_device = next(self.backbone.parameters()).device
             self.backbone.to('cpu')
             self.backbone = deepcopy(self.init_backbone).to(backbone_device)
             self.model = MultiInputSequential(self.backbone, self.head)
