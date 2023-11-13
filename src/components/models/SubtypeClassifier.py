@@ -33,13 +33,28 @@ class SubtypeClassifier(PretrainedClassifier):
         if not self.other_kwargs.get('sep_cohort_w_loss', None):
             return
         df_tiles = train_dataset.df_labels
+        # t = df_tiles[:100].copy(deep=True)
+        # t['y'] = 0
+        # df_tiles = pd.concat([df_tiles, t], ignore_index=True)
         tiles_per_cohort_subtype = df_tiles.groupby(['y', 'cohort'], as_index=False).tile_path.count()
-        tiles_per_cohort = tiles_per_cohort_subtype.groupby('cohort')['tile_path'].sum()
-        tiles_per_cohort_subtype['prop'] = tiles_per_cohort_subtype['tile_path'] / tiles_per_cohort_subtype[
-            'cohort'].map(tiles_per_cohort)
-        tiles_per_cohort_subtype['weight'] = 1 - tiles_per_cohort_subtype['prop']
-        self.cohort_weight = tiles_per_cohort_subtype.groupby('cohort').apply(lambda df_c:
-                                                                              df_c.sort_values(by='y').weight.values).to_dict()
+        tiles_per_cohort_subtype['weight'] = 0.0
+        tiles_per_subtype = tiles_per_cohort_subtype.groupby('y')['tile_path'].sum().to_frame()
+        tiles_per_subtype['prop'] = tiles_per_subtype.tile_path / tiles_per_subtype.tile_path.sum()
+        tiles_per_subtype['weight'] = 1 / tiles_per_subtype['prop']
+        tiles_per_subtype['weight'] = tiles_per_subtype['weight'] / tiles_per_subtype['weight'].sum()
+        self.cohort_weight = {row['cohort']: tiles_per_subtype.loc[[0,1]].weight.values for i, row in tiles_per_cohort_subtype.iterrows()}
+
+        # for i, row in tiles_per_cohort_subtype.iterrows():
+        #     y = tiles_per_cohort_subtype.y.iloc[i]
+        #     tiles_per_cohort_subtype.weight.iloc[i] = tiles_per_cohort_subtype.tile_path.iloc[i] / tiles_per_subtype.loc[y]
+
+
+        # tiles_per_cohort = tiles_per_cohort_subtype.groupby('cohort')['tile_path'].sum()
+        # tiles_per_cohort_subtype['prop'] = tiles_per_cohort_subtype['tile_path'] / tiles_per_cohort_subtype[
+        #     'cohort'].map(tiles_per_cohort)
+        # tiles_per_cohort_subtype['weight'] = 1 - tiles_per_cohort_subtype['prop']
+        # self.cohort_weight = tiles_per_cohort_subtype.groupby('cohort').apply(lambda df_c:
+        #                                                                       df_c.sort_values(by='y').weight.values).to_dict()
         Logger.log(f"""SubtypeClassifier update cohort weights: {self.cohort_weight}.""", log_importance=1)
 
     def forward(self, x, c=None):
