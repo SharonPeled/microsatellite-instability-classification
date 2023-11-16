@@ -8,11 +8,10 @@ test:
 
 
 on hold:
-    look at the folds? - 5 folds
 
 
 to do:
-    clean and clean exp
+    think of MIL/other stuff
 
     analyze the overfit:
         see from example - search for a systematic way to compare the results
