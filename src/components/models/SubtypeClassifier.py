@@ -30,17 +30,18 @@ class SubtypeClassifier(PretrainedClassifier):
         Logger.log(f"""SubtypeClassifier created with cohort weights: {self.cohort_weight}.""", log_importance=1)
 
     def init_cohort_weight(self, train_dataset):
-        if not self.other_kwargs.get('sep_cohort_w_loss', None):
-            return
         df_tiles = train_dataset.df_labels
-        tiles_per_cohort_subtype = df_tiles.groupby(['y', 'cohort'], as_index=False).tile_path.count()
-        tiles_per_cohort = tiles_per_cohort_subtype.groupby('cohort')['tile_path'].sum()
-        tiles_per_cohort_subtype['prop'] = tiles_per_cohort_subtype['tile_path'] / tiles_per_cohort_subtype[
-            'cohort'].map(tiles_per_cohort)
-        tiles_per_cohort_subtype['weight'] = 1 - tiles_per_cohort_subtype['prop']
-        self.cohort_weight = tiles_per_cohort_subtype.groupby('cohort').apply(lambda df_c:
-                                                                              df_c.sort_values(by='y').weight.values).to_dict()
-        Logger.log(f"""SubtypeClassifier update cohort weights: {self.cohort_weight}.""", log_importance=1)
+        w_per_y_per_cohort = 1 / (df_tiles.y.nunique() * df_tiles.cohort.nunique())
+        tile_counts = df_tiles.groupby(['y', 'cohort', 'slide_uuid'], as_index=False).tile_path.count()
+        slide_counts = tile_counts.groupby(['y', 'cohort'], as_index=False).slide_uuid.nunique().rename(
+            columns={'slide_uuid': 'num_slides_per_y_per_cohort'})
+        tile_counts = tile_counts.merge(slide_counts, on=['y', 'cohort'], how='inner')
+        tile_counts['slide_w'] = w_per_y_per_cohort / tile_counts.num_slides_per_y_per_cohort
+        tile_counts['tile_w'] = tile_counts.slide_w / tile_counts.tile_path
+        self.tile_weight = df_tiles.merge(tile_counts, on='slide_uuid', how='inner', suffixes=('', '__y'))
+        # self.tile_weight.set_index('tile_path', inplace=True)
+        self.tile_weight.set_index(self.tile_weight.tile_path.values, inplace=True)
+        Logger.log(f"""SubtypeClassifier update tile weights {len(self.tile_weight)}.""", log_importance=1)
 
     def forward(self, x, c=None):
         if self.other_kwargs.get('tile_encoder', None) == 'SSL_VIT_PRETRAINED_COHORT_AWARE' or \
@@ -89,7 +90,7 @@ class SubtypeClassifier(PretrainedClassifier):
         if len(batch) >= 5:
             x, c, y, slide_id, patient_id, tile_path = batch
             scores = self.forward(x, c)
-            loss = self.loss(scores, y, c)
+            loss = self.loss(scores, y, c, tile_path)
             return loss, {'loss': loss.detach().cpu(), 'c': c.detach().cpu(),
                           'scores': scores.detach().cpu(), 'y': y, 'slide_id': slide_id, 'patient_id': patient_id,
                           'tile_path': tile_path}
@@ -107,29 +108,14 @@ class SubtypeClassifier(PretrainedClassifier):
         optimizer_dict['lr_scheduler'] = self.create_lr_scheduler(optimizer_dict['optimizer'])
         return optimizer_dict
 
-    def loss(self, scores, y, c=None):
-        if self.cohort_weight is None or c is None:
-            return super().loss(scores, y)
+    def loss(self, scores, y, c=None, tile_path=None):
         y = y.to(scores.dtype)
         if scores.dim() == 0:
             scores = scores.unsqueeze(dim=0)
-        loss_list = []
-        for c_name, c_ind in self.cohort_to_ind.items():
-            scores_c = scores[c == c_ind]
-            if scores_c.shape[0] == 0:
-                continue
-            y_c = y[c == c_ind]
-            if len(self.cohort_weight[c_name]) == 2:
-                pos_weight = self.cohort_weight[c_name][1] /\
-                             self.cohort_weight[c_name][0]
-            else:
-                pos_weight = 1
-            loss_c = F.binary_cross_entropy_with_logits(scores_c, y_c, reduction='mean',
-                                                        pos_weight=torch.tensor(pos_weight))
-            # loss_c = BSCELoss.functional(scores_c, y_c, pos_weight=torch.tensor(pos_weight),
-            #                              alpha=2, beta=3)
-            loss_list.append(loss_c * y_c.shape[0])
-        return sum(loss_list) / y.shape[0]
+        tile_w = torch.Tensor(self.tile_weight.loc(axis=0)[tile_path].tile_w.values).to(scores.device).to(scores.dtype)
+        tile_w = tile_w / tile_w.sum()
+        loss_unreduced = F.binary_cross_entropy_with_logits(scores, y, reduction='none')
+        return torch.dot(loss_unreduced, tile_w)
 
     def _get_df_for_metric_logging(self, outputs):
         scores = torch.concat([out["scores"] for out in outputs])
