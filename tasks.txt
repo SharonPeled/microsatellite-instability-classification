@@ -8,7 +8,7 @@ test:
 
 
 on hold:
-    look at the folds? - 5 folds
+    2 fixes - iter args in single_training and slide_uuid index in Reductionobject
 
 
 to do:

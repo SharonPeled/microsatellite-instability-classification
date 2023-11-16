@@ -208,6 +208,7 @@ class ReductionObject:
                                                      full_cohort=Configs.SC_ITER_ARGS['tune_cohort'],
                                                      balanced_cohorts=self.balanced_cohorts)
         self.num_tile_per_slide['reduction_per_epoch'] = self.num_tile_per_slide.num_tiles_using
+        self.num_tile_per_slide.set_index(self.num_tile_per_slide.slide_uuid.values, inplace=True)
 
     def reduction_to_target_per_class(self, df, col):
         slide_uuid = df.slide_uuid.iloc[0]

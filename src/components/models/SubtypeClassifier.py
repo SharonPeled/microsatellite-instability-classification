@@ -9,7 +9,7 @@ from src.training_utils import calc_safe_auc
 import numpy as np
 from src.general_utils import MultiInputSequential
 from src.components.objects.SCELoss import BSCELoss
-
+from src.configs_utils import ReductionObject
 
 class SubtypeClassifier(PretrainedClassifier):
     def __init__(self, tile_encoder_name, class_to_ind, learning_rate, frozen_backbone, class_to_weight=None,
@@ -30,6 +30,15 @@ class SubtypeClassifier(PretrainedClassifier):
         Logger.log(f"""SubtypeClassifier created with cohort weights: {self.cohort_weight}.""", log_importance=1)
 
     def init_cohort_weight(self, train_dataset):
+        df_labels = train_dataset.df_labels
+        reduction_object = ReductionObject(df_labels)
+        df_list = []
+        for slide_uuid, df_s in df_labels.groupby('slide_uuid'):
+            df_list.append(df_s.sample(reduction_object.num_tile_per_slide.loc[slide_uuid]['num_tiles_using']))
+        df_labels = pd.concat(df_list, ignore_index=True)
+        train_dataset.df_labels = df_labels
+        train_dataset.dataset_length = len(df_labels)
+        Logger.log(f"Dataset randomly sampled to {len(df_labels)}", log_importance=1)
         if not self.other_kwargs.get('sep_cohort_w_loss', None):
             return
         df_tiles = train_dataset.df_labels
