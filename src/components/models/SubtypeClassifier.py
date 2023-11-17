@@ -112,6 +112,8 @@ class SubtypeClassifier(PretrainedClassifier):
         y = y.to(scores.dtype)
         if scores.dim() == 0:
             scores = scores.unsqueeze(dim=0)
+        if self.tile_weight.index.isin(tile_path).sum() != len(tile_path):
+            return torch.tensor(-1)
         tile_w = torch.Tensor(self.tile_weight.loc(axis=0)[tile_path].tile_w.values).to(scores.device).to(scores.dtype)
         tile_w = tile_w / tile_w.sum()
         loss_unreduced = F.binary_cross_entropy_with_logits(scores, y, reduction='none')
