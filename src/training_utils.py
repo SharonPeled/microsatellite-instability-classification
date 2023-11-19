@@ -73,7 +73,7 @@ def cross_validate(df, train_transform, test_transform, mlflow_logger, model, ca
         df_test = df[~df.slide_uuid.isin(t[i]['train_slide_uuids'])].reset_index(drop=True)
         from src.components.models.SubtypeClassifier import SubtypeClassifier
         Configs.SC_TEST_ONLY = t[i]['trained_model_path']
-        model = SubtypeClassifier.load_from_checkpoint(Configs.SC_TEST_ONLY, tile_encoder_name=Configs.SC_TILE_ENCODER,
+        model = SubtypeClassifier.load_from_checkpoint(Configs.SC_TEST_ONLY, strict=False, tile_encoder_name=Configs.SC_TILE_ENCODER,
                                                        class_to_ind=Configs.SC_CLASS_TO_IND,
                                                        learning_rate=Configs.SC_INIT_LR,
                                                        frozen_backbone=Configs.SC_FROZEN_BACKBONE,
