@@ -109,14 +109,14 @@ class SubtypeClassifier(PretrainedClassifier):
         return optimizer_dict
 
     def loss(self, scores, y, c=None, tile_path=None):
-        y = y.to(scores.dtype)
-        if scores.dim() == 0:
-            scores = scores.unsqueeze(dim=0)
+        # y = y.to(scores.dtype)
+        # if scores.dim() == 0:
+        #     scores = scores.unsqueeze(dim=0)
         if not tile_path[0] in self.train_tile_paths:
             return torch.tensor(-1)
         tile_w = torch.Tensor(self.tile_weight.loc(axis=0)[tile_path].tile_w.values).to(scores.device).to(scores.dtype)
         tile_w = tile_w / tile_w.sum()
-        loss_unreduced = F.binary_cross_entropy_with_logits(scores, y, reduction='none')
+        loss_unreduced = F.cross_entropy(scores.float(), y.long(), reduction='none')
         return torch.dot(loss_unreduced, tile_w)
 
     def _get_df_for_metric_logging(self, outputs):
@@ -163,6 +163,5 @@ class SubtypeClassifier(PretrainedClassifier):
             self.logger.experiment.log_metric(self.logger.run_id, f"{dataset_str}_patient_{cohort}_CIN_AUC",
                                               auc)
             self.metrics[f"{dataset_str}_C{cohort}_AUC"] = auc
-
 
 

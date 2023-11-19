@@ -161,7 +161,7 @@ class TumorRegressionConfigs:
 
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
-    SC_EXPERIMENT_NAME = 'SC_ITERATIVE_TILE'
+    SC_EXPERIMENT_NAME = 'SC_COHORT_PREDICTION'
     SC_FORMULATION = f'p100_512_single_epoch_balanced_tiles'
     SC_RUN_NAME = f"{SC_FORMULATION}"
     SC_RUN_DESCRIPTION = f"""Labels are by bioportal.
@@ -179,7 +179,7 @@ class SubtypeClassificationConfigs:
                                              f'df_processed_tile_paths_512.csv')
     SC_DF_TILE_PATHS_PATH_1024 = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                               f'df_processed_tile_paths_1024_reduced.csv')  # the labeled slides are full..
-    SC_LABEL_COL = 'subtype'
+    SC_LABEL_COL = 'cohort'
     SC_TRAINED_MODEL_PATH = os.path.join(GeneralConfigs.ROOT, 'models', 'subtype_classification',
                                          f'SC_{SC_RUN_NAME}_' + '{time}.ckpt')
     SC_TEST_PREDICT_OUTPUT_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
@@ -195,7 +195,7 @@ class SubtypeClassificationConfigs:
     SC_CROSS_VALIDATE = True  # num folds according to test size
     SC_CONTINUE_FROM_FOLD = 0  # 0 to 1/TEST_SIZE
     SC_Y_TO_BE_STRATIFIED = 'y_to_be_stratified'
-    SC_CLASS_TO_IND = {'GS': 0, 'CIN': 1} # {'MSS': 0, 'MSI': 1} #
+    SC_CLASS_TO_IND = {'CRC': 0, 'STAD': 1, 'UCEC': 2} # {'MSS': 0, 'MSI': 1} #
     SC_CLASS_WEIGHT = None #  {'GS': 770, 'CIN': 235}
     SC_COHORT_TO_IND = {'CRC': 0, 'STAD': 1, 'UCEC': 3}  # {'CRC': 0, 'STAD': 1, 'ESCA': 2, 'UCEC': 3}
     SC_EXCLUDE_COHORT_AWARENESS = {'ESCA': 2}
@@ -211,14 +211,14 @@ class SubtypeClassificationConfigs:
     SC_SAVE_CHECKPOINT_STEP_INTERVAL = None
     SC_VAL_STEP_INTERVAL = 1/2  # 2 times an epoch
     SC_TRAINING_BATCH_SIZE = 256  # accumulating gradients in MIL only
-    SC_NUM_WORKERS = 25
+    SC_NUM_WORKERS = 10
     SC_TEST_SIZE = 0.3333
     SC_VALID_SIZE = 0  # not used if CV=True
     SC_INIT_LR = [1e-6 * (SC_TRAINING_BATCH_SIZE/256),
                   1e-4 * (SC_TRAINING_BATCH_SIZE/256)]  # per part of the network, in order of the actual nn
     SC_TILE_SAMPLE_TRAIN = 1e10  # all tiles
     SC_TILE_SAMPLE_LAMBDA_TRAIN_TUNE = None
-    SC_FROZEN_BACKBONE = False
+    SC_FROZEN_BACKBONE = True
     SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 2000
     SC_TILE_ENCODER = 'VIT_PRETRAINED_DINO'  # to load dino net for future classification - VIT_PRETRAINED_DINO
     COHORT_AWARE_DICT = {'num_cohorts': 4,
@@ -235,9 +235,9 @@ class SubtypeClassificationConfigs:
                          }
     # separate_head - each cohort allocated a head, head of other cohorts are zeroed
     # separate_query - each cohort allocated a query, query of other cohorts are used but not updates (no gradients)
-    SC_KW_ARGS = {'one_hot_cohort_head': False, # single layer head, overrides n_nn_head
+    SC_KW_ARGS = {'one_hot_cohort_head': False,  # single layer head, overrides n_nn_head
                   'calc_proportions_class_w': False,
-                  'n_nn_head': {'num_layers': 1, 'dropout_value': 0.0},
+                  'n_nn_head': {'num_layers': 3, 'dropout_value': 0.0},
                   'sep_cohort_w_loss': True,
                   'learnable_cohort_prior_type': None, # '*', # 0.1,  # initial prior value
                   'FoVs_augs_amounts': None,  # (0.15, 0.15),  # tuple of % from each FoVs to add
