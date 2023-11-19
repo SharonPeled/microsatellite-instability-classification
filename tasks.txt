@@ -8,24 +8,16 @@ test:
 
 
 on hold:
-    look at the folds? - 5 folds
 
 
 to do:
-    clean and clean exp
+    slide/cohort identificaiton
+    cohort - easy, regular framework
+    slide -
 
-    analyze the overfit:
-        see from example - search for a systematic way to compare the results
-        see results on the iterative tile
-
-    spatial adjacent tile variance of a slide:
-        in terms of model's scores - difference between overfit and not, cohorts, overall score of slide (is lower variance implies better prediction?)
-        in terms of tile similarity - cohorts, overall score of slide
-        combining the 2 - does similar tiles get similar score, does similar clusters get close scores among the tiles?
-
-
-
-    similarity between tiles!
+    add argument to loss about slide prediction
+    save both train and test scores
+    plot again and see diff in the heatmaps
 
 
 

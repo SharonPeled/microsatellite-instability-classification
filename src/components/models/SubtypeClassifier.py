@@ -29,7 +29,7 @@ class SubtypeClassifier(PretrainedClassifier):
             self.learnable_priors = nn.Parameter(torch.full((len(self.cohort_to_ind),), 0.1)).float()  # random init val
         Logger.log(f"""SubtypeClassifier created with cohort weights: {self.cohort_weight}.""", log_importance=1)
 
-    def init_cohort_weight(self, train_dataset):
+    def init_tile_weight(self, train_dataset):
         df_tiles = train_dataset.df_labels
         w_per_y_per_cohort = 1 / (df_tiles.y.nunique() * df_tiles.cohort.nunique())
         tile_counts = df_tiles.groupby(['y', 'cohort', 'slide_uuid'], as_index=False).tile_path.count()
@@ -39,8 +39,8 @@ class SubtypeClassifier(PretrainedClassifier):
         tile_counts['slide_w'] = w_per_y_per_cohort / tile_counts.num_slides_per_y_per_cohort
         tile_counts['tile_w'] = tile_counts.slide_w / tile_counts.tile_path
         self.tile_weight = df_tiles.merge(tile_counts, on='slide_uuid', how='inner', suffixes=('', '__y'))
-        # self.tile_weight.set_index('tile_path', inplace=True)
         self.tile_weight.set_index(self.tile_weight.tile_path.values, inplace=True)
+        self.train_tile_paths = set(self.tile_weight.tile_path.values)
         Logger.log(f"""SubtypeClassifier update tile weights {len(self.tile_weight)}.""", log_importance=1)
 
     def forward(self, x, c=None):
@@ -112,7 +112,7 @@ class SubtypeClassifier(PretrainedClassifier):
         y = y.to(scores.dtype)
         if scores.dim() == 0:
             scores = scores.unsqueeze(dim=0)
-        if self.tile_weight.index.isin(tile_path).sum() != len(tile_path):
+        if not tile_path[0] in self.train_tile_paths:
             return torch.tensor(-1)
         tile_w = torch.Tensor(self.tile_weight.loc(axis=0)[tile_path].tile_w.values).to(scores.device).to(scores.dtype)
         tile_w = tile_w / tile_w.sum()
