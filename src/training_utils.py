@@ -71,6 +71,7 @@ def cross_validate(df, train_transform, test_transform, mlflow_logger, model, ca
         # assert set(df_train.slide_uuid.unqiue()) == set(t[i]['train_slide_uuids'])
         df_train = df[df.slide_uuid.isin(t[i]['train_slide_uuids'])].reset_index(drop=True)
         df_test = df[~(df.slide_uuid.isin(t[i]['train_slide_uuids']))].reset_index(drop=True)
+        assert df_train.slide_uuid.isin(df_test.slide_uuid.unique()).sum() == 0
         from src.components.models.SubtypeClassifier import SubtypeClassifier
         Configs.SC_TEST_ONLY = t[i]['trained_model_path']
         model = SubtypeClassifier.load_from_checkpoint(Configs.SC_TEST_ONLY, strict=False, tile_encoder_name=Configs.SC_TILE_ENCODER,
