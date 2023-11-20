@@ -121,11 +121,12 @@ class SubtypeClassifier(PretrainedClassifier):
 
     def _get_df_for_metric_logging(self, outputs):
         scores = torch.concat([out["scores"] for out in outputs])
-        scores = torch.sigmoid(scores)
         if len(scores.shape) == 1:
-            cin_scores = scores
+            scores = torch.sigmoid(scores)
         else:
-            cin_scores = scores[:, 1]
+            scores = F.softmax(scores, dim=1)
+        if len(scores.shape) == 2 and scores.shape[1] == 2:
+            scores = scores[:, 1]
         y_true = torch.concat([out["y"] for out in outputs]).numpy()
         cohort = torch.concat([out["c"] for out in outputs]).numpy()
         slide_id = np.concatenate([out["slide_id"] for out in outputs])
@@ -135,33 +136,41 @@ class SubtypeClassifier(PretrainedClassifier):
             "cohort": cohort,
             "slide_id": slide_id,
             "patient_id": patient_id,
-            "CIN_score": cin_scores
         })
-        return df
+        if len(scores.shape) == 1:
+            df['score_0'] = scores
+        else:
+            for dim in range(scores.shape[1]):
+                df[f'score_{dim}'] = scores[:, dim]
+        return df, 1 if len(scores.shape) == 1 else scores.shape[1]
 
     def log_epoch_level_metrics(self, outputs, dataset_str):
-        df = self._get_df_for_metric_logging(outputs)
-        tile_cin_auc = calc_safe_auc(df.y_true, df.CIN_score)
-        self.logger.experiment.log_metric(self.logger.run_id, f"{dataset_str}_tile_CIN_AUC",
-                                          tile_cin_auc)
-        self.metrics[f"{dataset_str}_tile_CIN_AUC"] = tile_cin_auc
+        df, num_classes = self._get_df_for_metric_logging(outputs)
+        for cls in range(num_classes):
+            df['y_binary'] = (df.y_true == cls).astype(int)
+            df['score'] = df[f'score_{cls}']
+            tile_cin_auc = calc_safe_auc(df.y_binary, df.score)
+            self.logger.experiment.log_metric(self.logger.run_id, f"{dataset_str}_tile_CIN_AUC_{cls}",
+                                              tile_cin_auc)
+            self.metrics[f"{dataset_str}_tile_CIN_AUC_{cls}"] = tile_cin_auc
 
-        df_slide = df.groupby(['patient_id', 'cohort'], as_index=False).agg({
-            'y_true': 'max',
-            'CIN_score': 'mean'
-        })
-        slide_cin_auc = calc_safe_auc(df_slide.y_true, df_slide.CIN_score)
-        self.logger.experiment.log_metric(self.logger.run_id, f"{dataset_str}_patient_CIN_AUC",
-                                          slide_cin_auc)
-        self.metrics[f"{dataset_str}_patient_CIN_AUC"] = slide_cin_auc
+            df_slide = df.groupby(['patient_id', 'cohort'], as_index=False).agg({
+                'y_binary': 'max',
+                'score': 'mean'
+            })
+            slide_cin_auc = calc_safe_auc(df_slide.y_binary, df_slide.score)
+            self.logger.experiment.log_metric(self.logger.run_id, f"{dataset_str}_patient_CIN_AUC_{cls}",
+                                              slide_cin_auc)
+            self.metrics[f"{dataset_str}_patient_CIN_AUC_{cls}"] = slide_cin_auc
+
+            df_slide_cohort = df_slide.groupby('cohort').apply(lambda df_group:
+                                                               calc_safe_auc(df_group.y_binary,
+                                                                             df_group.score))
+            for cohort, auc in df_slide_cohort.iteritems():
+                self.logger.experiment.log_metric(self.logger.run_id, f"{dataset_str}_patient_{cohort}_CIN_AUC_{cls}",
+                                                  auc)
+                self.metrics[f"{dataset_str}_C{cohort}_AUC_{cls}"] = auc
 
 
-        df_slide_cohort = df_slide.groupby('cohort').apply(lambda df_group:
-                                                           calc_safe_auc(df_group.y_true,
-                                                                         df_group.CIN_score))
-        for cohort, auc in df_slide_cohort.iteritems():
-            self.logger.experiment.log_metric(self.logger.run_id, f"{dataset_str}_patient_{cohort}_CIN_AUC",
-                                              auc)
-            self.metrics[f"{dataset_str}_C{cohort}_AUC"] = auc
 
 
