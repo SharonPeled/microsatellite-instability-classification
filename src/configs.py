@@ -161,8 +161,8 @@ class TumorRegressionConfigs:
 
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
-    SC_EXPERIMENT_NAME = 'SC_COHORT_PREDICTION'
-    SC_FORMULATION = f'untrained_p100_cohort_detection'
+    SC_EXPERIMENT_NAME = 'SC_SLIDE_DETECTION'
+    SC_FORMULATION = f'is_same_slide_p100_balanced_trained'
     SC_RUN_NAME = f"{SC_FORMULATION}"
     SC_RUN_DESCRIPTION = f"""Labels are by bioportal.
     """
@@ -211,7 +211,7 @@ class SubtypeClassificationConfigs:
     SC_SAVE_CHECKPOINT_STEP_INTERVAL = None
     SC_VAL_STEP_INTERVAL = 1/2  # 2 times an epoch
     SC_TRAINING_BATCH_SIZE = 256  # accumulating gradients in MIL only
-    SC_NUM_WORKERS = 10
+    SC_NUM_WORKERS = 25
     SC_TEST_SIZE = 0.3333
     SC_VALID_SIZE = 0  # not used if CV=True
     SC_INIT_LR = [1e-6 * (SC_TRAINING_BATCH_SIZE/256),
@@ -246,7 +246,8 @@ class SubtypeClassificationConfigs:
                   'pretrained_ckp_path': os.path.join(GeneralConfigs.ROOT, 'models', 'subtype_classification', 'dgx_SQ6B12_At2Lrelu_32k_4_dino_checkpoints', 'checkpoint.pth'),
                   # 'pretrained_ckp_path': "/home/sharonpe/microsatellite-instability-classification/data/subtype_classification/third_try_all_slides_16k_4_dino_checkpoints/checkpoint9.pth",
                   # 'pretrained_ckp_path': "/home/sharonpe/sandox/checkpoint_argus.pth",
-                  'config_filepath': str(Path(__file__).resolve())
+                  'config_filepath': str(Path(__file__).resolve()),
+                  'load_pairs': True
                   }
     # iterative_stuff
     SC_ITER_ARGS = {

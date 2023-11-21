@@ -27,7 +27,23 @@ from copy import deepcopy
 from src.components.models.FusionClassifier import CohortAwareVisionTransformer, MIL_CohortAwareVisionTransformer
 from datetime import datetime
 from pytorch_lightning.strategies import DDPStrategy
-import os
+
+
+def split_evenly(n, m):
+    quotient, remainder = divmod(n, m)
+    res = [quotient + (1 if i < remainder else 0) for i in range(m)]
+    np.random.shuffle(res)
+    return res
+
+
+def sample_from_df(df, n):
+    sampled_items = df.sample(min(n, len(df)), replace=False).reset_index(drop=True)
+    while n > len(sampled_items):
+        remainder = n - len(sampled_items)
+        additional_samples = df.sample(min(remainder, len(df)), replace=False)
+        sampled_items = pd.concat([sampled_items, additional_samples], ignore_index=True)
+    return sampled_items
+
 
 
 def train(df, train_transform, test_transform, logger, callbacks, model, **kwargs):
@@ -72,23 +88,26 @@ def cross_validate(df, train_transform, test_transform, mlflow_logger, model, ca
         df_train = df[df.slide_uuid.isin(t[i]['train_slide_uuids'])].reset_index(drop=True)
         df_test = df[~(df.slide_uuid.isin(t[i]['train_slide_uuids']))].reset_index(drop=True)
         assert df_train.slide_uuid.isin(df_test.slide_uuid.unique()).sum() == 0
-        from src.components.models.SubtypeClassifier import SubtypeClassifier
-        model = SubtypeClassifier(tile_encoder_name=Configs.SC_TILE_ENCODER, class_to_ind=Configs.SC_CLASS_TO_IND,
-                                  learning_rate=Configs.SC_INIT_LR, frozen_backbone=Configs.SC_FROZEN_BACKBONE,
-                                  class_to_weight=Configs.SC_CLASS_WEIGHT,
-                                  num_iters_warmup_wo_backbone=Configs.SC_ITER_TRAINING_WARMUP_WO_BACKBONE,
-                                  cohort_to_ind=Configs.SC_COHORT_TO_IND, cohort_weight=Configs.SC_COHORT_WEIGHT,
-                                  **Configs.SC_KW_ARGS)
-        # Configs.SC_TEST_ONLY = t[i]['trained_model_path']
-        # model = SubtypeClassifier.load_from_checkpoint(Configs.SC_TEST_ONLY, strict=False, tile_encoder_name=Configs.SC_TILE_ENCODER,
-        #                                                class_to_ind=Configs.SC_CLASS_TO_IND,
-        #                                                learning_rate=Configs.SC_INIT_LR,
-        #                                                frozen_backbone=Configs.SC_FROZEN_BACKBONE,
-        #                                                class_to_weight=Configs.SC_CLASS_WEIGHT,
-        #                                                num_iters_warmup_wo_backbone=Configs.SC_ITER_TRAINING_WARMUP_WO_BACKBONE,
-        #                                                cohort_to_ind=Configs.SC_COHORT_TO_IND,
-        #                                                cohort_weight=Configs.SC_COHORT_WEIGHT,
-        #                                                **Configs.SC_KW_ARGS)
+        from src.components.models.SlideDetectionHead import SlideDetectionHead
+
+        # model = SlideDetectionHead(tile_encoder_name=Configs.SC_TILE_ENCODER, class_to_ind=Configs.SC_CLASS_TO_IND,
+        #                           learning_rate=Configs.SC_INIT_LR, frozen_backbone=Configs.SC_FROZEN_BACKBONE,
+        #                           class_to_weight=Configs.SC_CLASS_WEIGHT,
+        #                           num_iters_warmup_wo_backbone=Configs.SC_ITER_TRAINING_WARMUP_WO_BACKBONE,
+        #                           cohort_to_ind=Configs.SC_COHORT_TO_IND, cohort_weight=Configs.SC_COHORT_WEIGHT,
+        #                           **Configs.SC_KW_ARGS)
+
+        Configs.SC_TEST_ONLY = t[i]['trained_model_path']
+        model = SlideDetectionHead.load_from_checkpoint(Configs.SC_TEST_ONLY, strict=False, tile_encoder_name=Configs.SC_TILE_ENCODER,
+                                                       class_to_ind=Configs.SC_CLASS_TO_IND,
+                                                       learning_rate=Configs.SC_INIT_LR,
+                                                       frozen_backbone=Configs.SC_FROZEN_BACKBONE,
+                                                       class_to_weight=Configs.SC_CLASS_WEIGHT,
+                                                       num_iters_warmup_wo_backbone=Configs.SC_ITER_TRAINING_WARMUP_WO_BACKBONE,
+                                                       cohort_to_ind=Configs.SC_COHORT_TO_IND,
+                                                       cohort_weight=Configs.SC_COHORT_WEIGHT,
+                                                       **Configs.SC_KW_ARGS)
+
         # model.fold = i
         # model.iter_args['save_path'] = os.path.join(model.iter_args['save_path'], str(i))
         fitted_model = train_single_split(df_train, None, df_test, train_transform, test_transform, mlflow_logger, deepcopy(model),
@@ -250,9 +269,11 @@ def get_loader_and_datasets(df_train, df_valid, df_test, train_transform, test_t
     else:
         dataset_fn = ProcessedTileDataset
     train_dataset = dataset_fn(df_labels=df_train, transform=train_transform,
-                               cohort_to_index=Configs.joined['COHORT_TO_IND'])
+                               cohort_to_index=Configs.joined['COHORT_TO_IND'],
+                               load_pairs=kwargs['load_pairs'])
     test_dataset = dataset_fn(df_labels=df_test, transform=test_transform,
-                              cohort_to_index=Configs.joined['COHORT_TO_IND'])
+                              cohort_to_index=Configs.joined['COHORT_TO_IND'],
+                              load_pairs=kwargs['load_pairs'])
 
     train_loader = DataLoader(train_dataset, batch_size=Configs.joined['TRAINING_BATCH_SIZE'],
                               shuffle=kwargs.get('shuffle_train', True),
@@ -266,8 +287,8 @@ def get_loader_and_datasets(df_train, df_valid, df_test, train_transform, test_t
     if df_valid is None:
         return train_dataset, None, test_dataset, train_loader, None, test_loader
 
-    valid_dataset = ProcessedTileDataset(df_labels=df_valid, transform=test_transform,
-                                         cohort_to_index=Configs.joined['COHORT_TO_IND'])
+    valid_dataset = dataset_fn(df_labels=df_valid, transform=test_transform,
+                               cohort_to_index=Configs.joined['COHORT_TO_IND'], load_pairs=kwargs['load_pairs'])
     valid_loader = DataLoader(valid_dataset, batch_size=Configs.joined['TEST_BATCH_SIZE'], shuffle=False,
                               persistent_workers=True, num_workers=Configs.joined['NUM_WORKERS'],
                               worker_init_fn=set_worker_sharing_strategy,

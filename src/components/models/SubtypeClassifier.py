@@ -87,7 +87,7 @@ class SubtypeClassifier(PretrainedClassifier):
             loss = self.loss(scores, y)
             return loss, {'loss': loss.detach().cpu(), 'scores': scores.detach().cpu(), 'y': y.cpu(),
                           'slide_id': slide_id, 'patient_id': patient_id}
-        if len(batch) >= 5:
+        if len(batch) == 6:
             x, c, y, slide_id, patient_id, tile_path = batch
             scores = self.forward(x, c)
             loss = self.loss(scores, y, c, tile_path)
@@ -116,7 +116,7 @@ class SubtypeClassifier(PretrainedClassifier):
             return torch.tensor(-1)
         tile_w = torch.Tensor(self.tile_weight.loc(axis=0)[tile_path].tile_w.values).to(scores.device).to(scores.dtype)
         tile_w = tile_w / tile_w.sum()
-        loss_unreduced = F.cross_entropy(scores.float(), y.long(), reduction='none')
+        loss_unreduced = F.binary_cross_entropy_with_logits(scores.float(), y, reduction='none')
         return torch.dot(loss_unreduced, tile_w)
 
     def _get_df_for_metric_logging(self, outputs):
