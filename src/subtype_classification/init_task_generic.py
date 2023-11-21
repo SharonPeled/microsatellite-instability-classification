@@ -61,6 +61,7 @@ def load_df_labels_merged_tiles():
     df_labels[Configs.joined['Y_TO_BE_STRATIFIED']] = df_labels['subtype'].astype(str) + '_' + df_labels['cohort']
     # merging labels and tiles
     df_tiles = pd.read_csv(Configs.SC_DF_TILE_PATHS_PATH)
+    # df_tiles = df_tiles.groupby('slide_uuid').apply(lambda df: df.sample(min(len(df), 100), replace=False)).reset_index(drop=True)
     df_labels_merged_tiles = df_labels.merge(df_tiles, how='inner', on='slide_uuid', suffixes=('', '_x')).reset_index(
         drop=True)
     df_labels_merged_tiles = attached_df_paired_tiles(df_labels_merged_tiles)

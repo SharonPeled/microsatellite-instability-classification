@@ -147,6 +147,10 @@ class SubtypeClassifier(PretrainedClassifier):
     def log_epoch_level_metrics(self, outputs, dataset_str):
         df, num_classes = self._get_df_for_metric_logging(outputs)
         for cls in range(num_classes):
+            if num_classes > 1:
+                df['y_binary'] = (df.y_true == cls).astype(int)
+            else:
+                df['y_binary'] = df.y_true
             df['y_binary'] = (df.y_true == cls).astype(int)
             df['score'] = df[f'score_{cls}']
             tile_cin_auc = calc_safe_auc(df.y_binary, df.score)
