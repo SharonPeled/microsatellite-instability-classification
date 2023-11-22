@@ -27,7 +27,6 @@ from copy import deepcopy
 from src.components.models.FusionClassifier import CohortAwareVisionTransformer, MIL_CohortAwareVisionTransformer
 from datetime import datetime
 from pytorch_lightning.strategies import DDPStrategy
-import os
 
 
 def train(df, train_transform, test_transform, logger, callbacks, model, **kwargs):
@@ -59,8 +58,6 @@ def cross_validate(df, train_transform, test_transform, mlflow_logger, model, ca
         Logger.log(f"Fold {i}", log_importance=1)
         df_train = df.iloc[train_inds].reset_index(drop=True)
         df_test = df.iloc[test_inds].reset_index(drop=True)
-        # model.fold = i
-        # model.iter_args['save_path'] = os.path.join(model.iter_args['save_path'], str(i))
         fitted_model = train_single_split(df_train, None, df_test, train_transform, test_transform, mlflow_logger, deepcopy(model),
                                           callbacks=callbacks, **kwargs)
         cv_metrics.append(fitted_model.metrics)
@@ -236,8 +233,8 @@ def get_loader_and_datasets(df_train, df_valid, df_test, train_transform, test_t
     if df_valid is None:
         return train_dataset, None, test_dataset, train_loader, None, test_loader
 
-    valid_dataset = ProcessedTileDataset(df_labels=df_valid, transform=test_transform,
-                                         cohort_to_index=Configs.joined['COHORT_TO_IND'])
+    valid_dataset = dataset_fn(df_labels=df_valid, transform=test_transform,
+                               cohort_to_index=Configs.joined['COHORT_TO_IND'])
     valid_loader = DataLoader(valid_dataset, batch_size=Configs.joined['TEST_BATCH_SIZE'], shuffle=False,
                               persistent_workers=True, num_workers=Configs.joined['NUM_WORKERS'],
                               worker_init_fn=set_worker_sharing_strategy,

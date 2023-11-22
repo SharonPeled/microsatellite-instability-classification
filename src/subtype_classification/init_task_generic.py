@@ -6,24 +6,66 @@ from src.training_utils import init_training_transforms, init_training_callbacks
 from src.components.models.SubtypeClassifier import SubtypeClassifier
 from torch.multiprocessing import set_start_method, set_sharing_strategy
 from src.training_utils import train as train_general
+from src.training_utils import split_evenly, sample_from_df
+from functools import partial
+
+
+def get_paired_tiles_diff_slide_same_cohort(df_s, df_c_s_dict):
+    cohort = df_s.cohort.iloc[0]
+    slide_uuid = df_s.slide_uuid.iloc[0]
+    slide_uuids_list, df_slide_list = df_c_s_dict[cohort]
+    sample_per_s = split_evenly(len(df_s), len(df_slide_list) - 1)
+    sampled_pair_dfs = []
+    shift = 0
+    for i in range(len(slide_uuids_list)):
+        sample_i = i + shift
+        if slide_uuid == slide_uuids_list[i]:
+            shift = -1
+            continue
+        sampled_pair_dfs.append(sample_from_df(df_slide_list[i], sample_per_s[sample_i]))
+    df_sampled_tiles = pd.concat(sampled_pair_dfs, ignore_index=True)
+    df_s['paired_tile_0'] = df_sampled_tiles.tile_path.values
+    df_s['cohort_0'] = df_sampled_tiles.cohort.values
+    return df_s[['tile_path', 'paired_tile_0', 'cohort_0']]
+
+
+def get_paired_tiles_same_slide(df_c):
+    df_c['paired_tile_1'] = df_c.tile_path.sample(frac=1).values
+    return df_c[['tile_path', 'paired_tile_1']]
+
+
+def attached_df_paired_tiles(df):
+    df_c_s_dict = {cohort: list(zip(*df_c.groupby('slide_uuid')))
+                   for cohort, df_c in df[['slide_uuid', 'cohort', 'tile_path']].groupby('cohort')}
+    df_pairs_0 = df.groupby('slide_uuid').apply(partial(get_paired_tiles_diff_slide_same_cohort,
+                                                        df_c_s_dict=df_c_s_dict))
+    df_pairs_1 = df.groupby('slide_uuid').apply(get_paired_tiles_same_slide)
+    df.loc[df_pairs_0.index, 'paired_tile_0'] = df_pairs_0.paired_tile_0.values
+    df.loc[df_pairs_0.index, 'cohort_0'] = df_pairs_0.cohort_0.values
+    df.loc[df_pairs_1.index, 'paired_tile_1'] = df_pairs_1.paired_tile_1.values
+    return df
 
 
 def train():
     df, train_transform, test_transform, logger, callbacks, model = init_task()
-    train_general(df, train_transform, test_transform, logger, callbacks, model)
+    train_general(df, train_transform, test_transform, logger, callbacks, model,
+                  load_pairs=Configs.SC_KW_ARGS['load_pairs'])
 
 
 def load_df_labels_merged_tiles():
     df_labels = pd.read_csv(Configs.SC_LABEL_DF_PATH, sep='\t')
-    df_labels = df_labels[df_labels[Configs.SC_LABEL_COL].isin(Configs.SC_CLASS_TO_IND.keys())]
-    df_labels['slide_uuid'] = df_labels.slide_path.apply(lambda p: os.path.basename(os.path.dirname(p)))
-    df_labels['y'] = df_labels[Configs.SC_LABEL_COL].apply(lambda s: Configs.SC_CLASS_TO_IND[s])
     df_labels.cohort = df_labels.cohort.apply(lambda c: c if c not in ['COAD', 'READ'] else 'CRC')
-    df_labels[Configs.joined['Y_TO_BE_STRATIFIED']] = df_labels['y'].astype(str) + '_' + df_labels['cohort']
+    df_labels = df_labels[df_labels['subtype'].isin(['CIN', 'GS'])]
     df_labels = df_labels[df_labels.cohort.isin(Configs.SC_COHORT_TO_IND.keys())]
+    df_labels['slide_uuid'] = df_labels.slide_path.apply(lambda p: os.path.basename(os.path.dirname(p)))
+    df_labels[Configs.joined['Y_TO_BE_STRATIFIED']] = df_labels['subtype'].astype(str) + '_' + df_labels['cohort']
     # merging labels and tiles
     df_tiles = pd.read_csv(Configs.SC_DF_TILE_PATHS_PATH)
-    df_labels_merged_tiles = df_labels.merge(df_tiles, how='inner', on='slide_uuid')
+    # df_tiles = df_tiles.groupby('slide_uuid').apply(lambda df: df.sample(min(len(df), 100), replace=False)).reset_index(drop=True)
+    df_labels_merged_tiles = df_labels.merge(df_tiles, how='inner', on='slide_uuid', suffixes=('', '_x')).reset_index(
+        drop=True)
+    df_labels_merged_tiles = attached_df_paired_tiles(df_labels_merged_tiles)
+    df_labels_merged_tiles['y'] = -1
     return df_labels, df_labels_merged_tiles
 
 

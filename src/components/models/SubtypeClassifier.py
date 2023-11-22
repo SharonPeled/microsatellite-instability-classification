@@ -87,7 +87,7 @@ class SubtypeClassifier(PretrainedClassifier):
             loss = self.loss(scores, y)
             return loss, {'loss': loss.detach().cpu(), 'scores': scores.detach().cpu(), 'y': y.cpu(),
                           'slide_id': slide_id, 'patient_id': patient_id}
-        if len(batch) >= 5:
+        if len(batch) == 6:
             x, c, y, slide_id, patient_id, tile_path = batch
             scores = self.forward(x, c)
             loss = self.loss(scores, y, c, tile_path)
@@ -147,7 +147,10 @@ class SubtypeClassifier(PretrainedClassifier):
     def log_epoch_level_metrics(self, outputs, dataset_str):
         df, num_classes = self._get_df_for_metric_logging(outputs)
         for cls in range(num_classes):
-            df['y_binary'] = (df.y_true == cls).astype(int)
+            if num_classes > 1:
+                df['y_binary'] = (df.y_true == cls).astype(int)
+            else:
+                df['y_binary'] = df.y_true
             df['score'] = df[f'score_{cls}']
             tile_cin_auc = calc_safe_auc(df.y_binary, df.score)
             self.logger.experiment.log_metric(self.logger.run_id, f"{dataset_str}_tile_CIN_AUC_{cls}",
