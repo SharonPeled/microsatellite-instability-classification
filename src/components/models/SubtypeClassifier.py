@@ -73,27 +73,21 @@ class SubtypeClassifier(PretrainedClassifier):
                 raise NotImplementedError("learnable cohort prior type not implemented.")
         return x
 
-    def general_loop(self, batch, batch_idx):
+    def general_loop(self, batch, batch_idx, test=False):
         try:
             lr = self.trainer.lr_scheduler_configs[0].scheduler.optimizer.param_groups[0]["lr"]
             self.logger.experiment.log_metric(self.logger.run_id, f"lr", lr)
         except:
             pass
-        if isinstance(batch, list) and len(batch) == 1:
-            batch = batch[0]
-        if len(batch) == 4:
-            x, y, slide_id, patient_id = batch
-            scores = self.forward(x)
-            loss = self.loss(scores, y)
-            return loss, {'loss': loss.detach().cpu(), 'scores': scores.detach().cpu(), 'y': y.cpu(),
-                          'slide_id': slide_id, 'patient_id': patient_id}
-        if len(batch) == 6:
-            x, c, y, slide_id, patient_id, tile_path = batch
-            scores = self.forward(x, c)
+        x, c, y, slide_id, patient_id, tile_path = batch
+        scores = self.forward(x, c)
+        if test:
+            loss = torch.tensor(-1)
+        else:
             loss = self.loss(scores, y, c, tile_path)
-            return loss, {'loss': loss.detach().cpu(), 'c': c.detach().cpu(),
-                          'scores': scores.detach().cpu(), 'y': y, 'slide_id': slide_id, 'patient_id': patient_id,
-                          'tile_path': tile_path}
+        return loss, {'loss': loss.detach().cpu(), 'c': c.detach().cpu(),
+                      'scores': scores.detach().cpu(), 'y': y, 'slide_id': slide_id, 'patient_id': patient_id,
+                      'tile_path': tile_path}
 
     def configure_optimizers(self):
         if not self.other_kwargs.get('learnable_cohort_prior_type', None):
@@ -109,14 +103,15 @@ class SubtypeClassifier(PretrainedClassifier):
         return optimizer_dict
 
     def loss(self, scores, y, c=None, tile_path=None):
-        y = y.to(scores.dtype)
         if scores.dim() == 0:
             scores = scores.unsqueeze(dim=0)
-        if not tile_path[0] in self.train_tile_paths:
-            return torch.tensor(-1)
-        tile_w = torch.Tensor(self.tile_weight.loc(axis=0)[tile_path].tile_w.values).to(scores.device).to(scores.dtype)
+        tile_w = torch.Tensor(self.tile_weight.loc(axis=0)[list(tile_path)].tile_w.values).to(scores.device).to(scores.dtype)
         tile_w = tile_w / tile_w.sum()
-        loss_unreduced = F.binary_cross_entropy_with_logits(scores, y, reduction='none')
+        if len(scores.shape) == 1:
+            y = y.to(scores.dtype)
+            loss_unreduced = F.binary_cross_entropy_with_logits(scores, y, reduction='none')
+        else:
+            loss_unreduced = F.cross_entropy(scores.float(), y.long(), reduction='none')
         return torch.dot(loss_unreduced, tile_w)
 
     def _get_df_for_metric_logging(self, outputs):

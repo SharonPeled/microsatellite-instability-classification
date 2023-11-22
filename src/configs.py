@@ -161,8 +161,8 @@ class TumorRegressionConfigs:
 
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
-    SC_EXPERIMENT_NAME = 'SC_SLIDE_PREDICTION'
-    SC_FORMULATION = f'trained_p100_balanced_train_res_test'
+    SC_EXPERIMENT_NAME = 'SC_COMBINED_LOSS_TILE'
+    SC_FORMULATION = f'p100_balanced_both_loss_0.05'
     SC_RUN_NAME = f"{SC_FORMULATION}"
     SC_RUN_DESCRIPTION = f"""Labels are by bioportal.
     """
@@ -248,6 +248,13 @@ class SubtypeClassificationConfigs:
                   # 'pretrained_ckp_path': "/home/sharonpe/sandox/checkpoint_argus.pth",
                   'config_filepath': str(Path(__file__).resolve())
                   }
+    # combined loss
+    SC_COMBINED_LOSS_ARGS = {
+        'cohort_loss_w': 0.05,
+        'slide_loss_w': 0.05,
+        'n_nn_cohort_head': {'num_layers': 3, 'dropout_value': 0.0},
+        'n_nn_slide_head': {'num_layers': 3, 'dropout_value': 0.0}
+    }
     # iterative_stuff
     SC_ITER_ARGS = {
         'final_reduction_all': 0.3,

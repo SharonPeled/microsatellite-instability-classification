@@ -93,7 +93,7 @@ class TransferLearningClassifier(pl.LightningModule):
     def create_lr_scheduler(self, optimizer):
         return StepLR(optimizer, step_size=1, gamma=0.1)
 
-    def general_loop(self, batch, batch_idx):
+    def general_loop(self, batch, batch_idx, test=False):
         if isinstance(batch, list) and len(batch) == 1:
             batch = batch[0]
         x, y, slide_id, patient_id = batch
@@ -123,7 +123,7 @@ class TransferLearningClassifier(pl.LightningModule):
         return loop_dict
 
     def test_step(self, batch, batch_idx):
-        loss, loop_dict = self.general_loop(batch, batch_idx)
+        loss, loop_dict = self.general_loop(batch, batch_idx, test=True)
         self.logger.experiment.log_metric(self.logger.run_id, "test_loss", loop_dict['loss'])
         loop_dict['batch_idx'] = batch_idx
         self.outputs.append(loop_dict)
