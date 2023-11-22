@@ -88,7 +88,7 @@ class CombinedLossSubtypeClassifier(SubtypeClassifier):
         task_loss = super(CombinedLossSubtypeClassifier, self).loss(scores, y, c=None, tile_path=tile_path)
         auc_c_loss = super(CombinedLossSubtypeClassifier, self).loss(scores, y=c, c=None, tile_path=tile_path)
         aux_s_loss = super(CombinedLossSubtypeClassifier, self).loss(scores, y=s, c=None, tile_path=tile_path)
-        return self.loss_weights[0]*task_loss + self.loss_weights[1]*auc_c_loss + self.loss_weights[2]*aux_s_loss
+        return self.loss_weights[0]*task_loss - self.loss_weights[1]*auc_c_loss - self.loss_weights[2]*aux_s_loss
 
 
 
