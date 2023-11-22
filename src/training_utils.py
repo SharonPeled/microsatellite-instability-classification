@@ -243,9 +243,9 @@ def get_loader_and_datasets(df_train, df_valid, df_test, train_transform, test_t
     return train_dataset, valid_dataset, test_dataset, train_loader, valid_loader, test_loader
 
 
-def calc_safe_auc(y_true, y_score):
+def calc_safe_auc(y_true, y_score, **kwargs):
     try:
-        return roc_auc_score(y_true, y_score)
+        return roc_auc_score(y_true, y_score, **kwargs)
     except Exception as e:
         print(e)
         return np.nan

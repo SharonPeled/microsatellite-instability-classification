@@ -161,8 +161,8 @@ class TumorRegressionConfigs:
 
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
-    SC_EXPERIMENT_NAME = 'SC_SLIDE_DETECTION'
-    SC_FORMULATION = f'is_same_slide_p100_balanced_trained_train_res'
+    SC_EXPERIMENT_NAME = 'SC_SLIDE_PREDICTION'
+    SC_FORMULATION = f'trained_p100_balanced_train_res_test'
     SC_RUN_NAME = f"{SC_FORMULATION}"
     SC_RUN_DESCRIPTION = f"""Labels are by bioportal.
     """
@@ -235,7 +235,7 @@ class SubtypeClassificationConfigs:
                          }
     # separate_head - each cohort allocated a head, head of other cohorts are zeroed
     # separate_query - each cohort allocated a query, query of other cohorts are used but not updates (no gradients)
-    SC_KW_ARGS = {'one_hot_cohort_head': False,  # single layer head, overrides n_nn_head
+    SC_KW_ARGS = {'one_hot_cohort_head': False, # single layer head, overrides n_nn_head
                   'calc_proportions_class_w': False,
                   'n_nn_head': {'num_layers': 1, 'dropout_value': 0.0},
                   'sep_cohort_w_loss': True,
