@@ -16,12 +16,17 @@ def train():
 def load_df_labels_merged_tiles():
     df_labels = pd.read_csv(Configs.SC_LABEL_DF_PATH, sep='\t')
     df_labels.cohort = df_labels.cohort.apply(lambda c: c if c not in ['COAD', 'READ'] else 'CRC')
-    df_labels = df_labels[df_labels[Configs.SC_LABEL_COL].isin(Configs.SC_CLASS_TO_IND.keys())]
-    df_labels = df_labels[df_labels['subtype'].isin(['CIN', 'GS'])]
+    df_labels = df_labels[df_labels[Configs.SC_LABEL_COL].isin(['CIN', 'GS'])]
     df_labels['slide_uuid'] = df_labels.slide_path.apply(lambda p: os.path.basename(os.path.dirname(p)))
-    df_labels['y'] = df_labels[Configs.SC_LABEL_COL].apply(lambda s: Configs.SC_CLASS_TO_IND[s])
-    df_labels[Configs.joined['Y_TO_BE_STRATIFIED']] = df_labels['y'].astype(str) + '_' + df_labels['cohort']
+    df_labels[Configs.joined['Y_TO_BE_STRATIFIED']] = df_labels['subtype'].astype(str) + '_' + df_labels['cohort']
     df_labels = df_labels[df_labels.cohort.isin(Configs.SC_COHORT_TO_IND.keys())]
+    df_labels = df_labels.groupby('slide_uuid').apply(lambda d: d.sample(min(len(d), 10)))
+
+    unique_values = df_labels['slide_uuid'].unique()
+    mapping = {value: index for index, value in enumerate(unique_values)}
+    df_labels['y'] = df_labels['slide_uuid'].map(mapping)
+    Configs.SC_CLASS_TO_IND = mapping
+
     # merging labels and tiles
     df_tiles = pd.read_csv(Configs.SC_DF_TILE_PATHS_PATH)
     df_labels_merged_tiles = df_labels.merge(df_tiles, how='inner', on='slide_uuid')
@@ -29,10 +34,10 @@ def load_df_labels_merged_tiles():
 
 
 def init_task():
+    df_labels_merged_tiles = init_data()
     model = init_model()
     train_transform, test_transform = init_training_transforms()
     logger, callbacks = init_training_callbacks()
-    df_labels_merged_tiles = init_data()
     return df_labels_merged_tiles, train_transform, test_transform, logger, callbacks, model
 
 

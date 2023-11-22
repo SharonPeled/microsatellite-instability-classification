@@ -145,32 +145,35 @@ class SubtypeClassifier(PretrainedClassifier):
         return df, 1 if len(scores.shape) == 1 else scores.shape[1]
 
     def log_epoch_level_metrics(self, outputs, dataset_str):
-        df, num_classes = self._get_df_for_metric_logging(outputs)
-        for cls in range(num_classes):
-            df['y_binary'] = (df.y_true == cls).astype(int)
-            df['score'] = df[f'score_{cls}']
-            tile_cin_auc = calc_safe_auc(df.y_binary, df.score)
-            self.logger.experiment.log_metric(self.logger.run_id, f"{dataset_str}_tile_CIN_AUC_{cls}",
-                                              tile_cin_auc)
-            self.metrics[f"{dataset_str}_tile_CIN_AUC_{cls}"] = tile_cin_auc
+        dataset_str = 'train'
+        scores = torch.concat([out["scores"] for out in outputs])
+        scores = F.softmax(scores, dim=1)
+        y_true = torch.concat([out["y"] for out in outputs]).numpy()
+        tile_cin_auc = calc_safe_auc(y_true, scores, multiclass='ovr')
+        self.logger.experiment.log_metric(self.logger.run_id, f"{dataset_str}_tile_CIN_AUC_avg",
+                                          tile_cin_auc)
+        c = pd.Series(torch.concat([out["c"] for out in outputs]).numpy())
+        for cohort in c.unique():
+            auc_cohort = calc_safe_auc(y_true[c==cohort], scores[c==cohort], multiclass='ovr')
+            self.logger.experiment.log_metric(self.logger.run_id, f"{dataset_str}_patient_{cohort}_CIN_AUC_avg",
+                                              auc_cohort)
 
-            df_slide = df.groupby(['patient_id', 'cohort'], as_index=False).agg({
-                'y_binary': 'max',
-                'score': 'mean'
-            })
-            slide_cin_auc = calc_safe_auc(df_slide.y_binary, df_slide.score)
-            self.logger.experiment.log_metric(self.logger.run_id, f"{dataset_str}_patient_CIN_AUC_{cls}",
-                                              slide_cin_auc)
-            self.metrics[f"{dataset_str}_patient_CIN_AUC_{cls}"] = slide_cin_auc
-
-            df_slide_cohort = df_slide.groupby('cohort').apply(lambda df_group:
-                                                               calc_safe_auc(df_group.y_binary,
-                                                                             df_group.score))
-            for cohort, auc in df_slide_cohort.iteritems():
-                self.logger.experiment.log_metric(self.logger.run_id, f"{dataset_str}_patient_{cohort}_CIN_AUC_{cls}",
-                                                  auc)
-                self.metrics[f"{dataset_str}_C{cohort}_AUC_{cls}"] = auc
-
+        y_pred = np.argmax(scores, axis=1)
+        from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+        # Compute and print accuracy
+        accuracy = accuracy_score(y_true, y_pred)
+        print(f"Accuracy: {accuracy}")
+        self.logger.experiment.log_metric(self.logger.run_id, f"{dataset_str}_accuracy",
+                                          accuracy)
+        precision = precision_score(y_true, y_pred, average='weighted')
+        self.logger.experiment.log_metric(self.logger.run_id, f"{dataset_str}_precision",
+                                          precision)
+        recall = recall_score(y_true, y_pred, average='weighted')
+        self.logger.experiment.log_metric(self.logger.run_id, f"{dataset_str}_recall",
+                                          recall)
+        f1 = f1_score(y_true, y_pred, average='weighted')
+        self.logger.experiment.log_metric(self.logger.run_id, f"{dataset_str}_f1",
+                                          f1)
 
 
 

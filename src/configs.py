@@ -161,8 +161,8 @@ class TumorRegressionConfigs:
 
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
-    SC_EXPERIMENT_NAME = 'SC_COHORT_PREDICTION'
-    SC_FORMULATION = f'untrained_p100_cohort_detection'
+    SC_EXPERIMENT_NAME = 'SC_SLIDE_PREDICTION'
+    SC_FORMULATION = f'trained_p100_balanced_train_res_test'
     SC_RUN_NAME = f"{SC_FORMULATION}"
     SC_RUN_DESCRIPTION = f"""Labels are by bioportal.
     """
@@ -179,7 +179,7 @@ class SubtypeClassificationConfigs:
                                              f'df_processed_tile_paths_512.csv')
     SC_DF_TILE_PATHS_PATH_1024 = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                               f'df_processed_tile_paths_1024_reduced.csv')  # the labeled slides are full..
-    SC_LABEL_COL = 'cohort'
+    SC_LABEL_COL = 'subtype'
     SC_TRAINED_MODEL_PATH = os.path.join(GeneralConfigs.ROOT, 'models', 'subtype_classification',
                                          f'SC_{SC_RUN_NAME}_' + '{time}.ckpt')
     SC_TEST_PREDICT_OUTPUT_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
@@ -211,7 +211,7 @@ class SubtypeClassificationConfigs:
     SC_SAVE_CHECKPOINT_STEP_INTERVAL = None
     SC_VAL_STEP_INTERVAL = 1/2  # 2 times an epoch
     SC_TRAINING_BATCH_SIZE = 256  # accumulating gradients in MIL only
-    SC_NUM_WORKERS = 10
+    SC_NUM_WORKERS = 3
     SC_TEST_SIZE = 0.3333
     SC_VALID_SIZE = 0  # not used if CV=True
     SC_INIT_LR = [1e-6 * (SC_TRAINING_BATCH_SIZE/256),
