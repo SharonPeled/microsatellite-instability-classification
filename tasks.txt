@@ -11,9 +11,7 @@ on hold:
 
 
 to do:
-    slide/cohort identificaiton
-    cohort - easy, regular framework
-    slide -
+    tile base - combined the 3 losses
 
     add argument to loss about slide prediction
     save both train and test scores

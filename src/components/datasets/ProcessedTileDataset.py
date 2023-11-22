@@ -8,9 +8,7 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 class ProcessedTileDataset(Dataset, Logger):
     def __init__(self, df_labels, cohort_to_index=None, transform=None, target_transform=None, group_size=-1,
-                 num_mini_epochs=0, pretraining=False, mini_epoch_shuffle_seed=None,
-                 load_pairs=False):
-        self.load_pairs = load_pairs
+                 num_mini_epochs=0, pretraining=False, mini_epoch_shuffle_seed=None):
         self.mini_epoch_shuffle_seed = mini_epoch_shuffle_seed
         self.pretraining = pretraining
         self.df_labels = df_labels.reset_index(drop=True)
@@ -97,15 +95,7 @@ class ProcessedTileDataset(Dataset, Logger):
             y = self.target_transform(y)
         if self.cohort_to_index is None:
             return img, None, y, slide_id, patient_id, row['tile_path']
-        if not self.load_pairs:
-            return img, self.cohort_to_index[row['cohort']], y, slide_id, patient_id, row['tile_path']
-        pair0 = self.load_image_safe(row['paired_tile_0'])
-        pair1 = self.load_image_safe(row['paired_tile_1'])
-        if self.transform:
-            pair0 = self.transform(pair0)
-            pair1 = self.transform(pair1)
-        return img, self.cohort_to_index[row['cohort']], y, slide_id, patient_id, row['tile_path'], pair0,\
-               self.cohort_to_index[row['cohort_0']], pair1
+        return img, self.cohort_to_index[row['cohort']], y, slide_id, patient_id, row['tile_path']
 
     def load_image_safe(self, path):
         try:
