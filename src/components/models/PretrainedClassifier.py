@@ -41,10 +41,10 @@ class PretrainedClassifier(TransferLearningClassifier):
                  for _ in range(num_layers-1)),
                 nn.Linear(self.num_features, self.head_out_size)
             )
-            Logger.log(f"{num_layers} layered head created.", log_importance=1)
+            Logger.log(f"{num_layers} layered head output size {self.head_out_size} created.", log_importance=1)
         else:
             self.head = nn.Linear(self.num_features, self.head_out_size)
-            Logger.log(f"1 layered head created.", log_importance=1)
+            Logger.log(f"1 layered head with output size {self.head_out_size} created.", log_importance=1)
         self.model = MultiInputSequential(self.backbone, self.head)
         Logger.log(f"""PretrainedClassifier created with encoder name: {tile_encoder_name}.""", log_importance=1)
 

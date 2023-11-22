@@ -115,6 +115,8 @@ def train_single_split(df_train, df_valid, df_test, train_transform, test_transf
             trainer.fit(model, train_loader, valid_loader, ckpt_path=None)
         time_str = datetime.now().strftime('%d_%m_%Y_%H_%M')
         trainer.save_checkpoint(Configs.joined['TRAINED_MODEL_PATH'].format(time=time_str))
+        Logger.log('Model saved: {}'.format(Configs.joined['TRAINED_MODEL_PATH'].format(time=time_str)),
+                   log_importance=1)
     Logger.log("Done Training.", log_importance=1)
     Logger.log("Starting Test.", log_importance=1)
     trainer.test(model, test_loader)
