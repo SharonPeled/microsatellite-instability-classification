@@ -250,8 +250,8 @@ class SubtypeClassificationConfigs:
                   }
     # combined loss
     SC_COMBINED_LOSS_ARGS = {
-        'cohort_loss_w': 0.05,
-        'slide_loss_w': 0.05,
+        'cohort_loss_w': 0.01,
+        'slide_loss_w': 0.001,
         'n_nn_cohort_head': {'num_layers': 3, 'dropout_value': 0.0},
         'n_nn_slide_head': {'num_layers': 3, 'dropout_value': 0.0}
     }

@@ -23,6 +23,7 @@ class CombinedLossSubtypeClassifier(SubtypeClassifier):
             self.loss_weights[1] = self.combined_loss_args['cohort_loss_w']
         self.slide_head = None  # initialize with the training data
         self.slide_to_ind = None
+        self.automatic_optimization = False
         Logger.log(f"""CombinedLossSubtypeClassifier created with: {self.combined_loss_args}.""", log_importance=1)
 
     def create_aux_head(self, head_name, head_out_size):
@@ -57,6 +58,55 @@ class CombinedLossSubtypeClassifier(SubtypeClassifier):
             self.loss_weights[2] = self.combined_loss_args['slide_loss_w']
         self.loss_weights = [w/sum(self.loss_weights) for w in self.loss_weights]
 
+    def configure_optimizers(self):
+        self.set_training_warmup()
+
+        optimizer1 = torch.optim.Adam([
+            {"params": [p for p in self.backbone.parameters()], 'lr': self.learning_rate[0]},
+            {"params": [p for p in self.head.parameters()], 'lr': self.learning_rate[1]},
+        ])
+        optimizer2 = torch.optim.Adam([
+            {"params": [p for p in self.cohort_head.parameters()], 'lr': self.learning_rate[1]},
+        ])
+        optimizer3 = torch.optim.Adam([
+            {"params": [p for p in self.slide_head.parameters()], 'lr': self.learning_rate[1]},
+        ])
+        return optimizer1, optimizer2, optimizer3
+
+    def general_loop(self, batch, batch_idx, test=False):
+        # try:
+        #     lr = self.trainer.lr_scheduler_configs[0].scheduler.optimizer.param_groups[0]["lr"]
+        #     self.logger.experiment.log_metric(self.logger.run_id, f"lr", lr)
+        # except:
+        #     pass
+        x, c, y, slide_ids, patient_id, tile_path = batch
+        if test:
+            scores = self.forward(x, c, s=None, test=True)
+            loss = torch.tensor(-1)
+            return loss, {'loss': loss.detach().cpu(), 'c': c.detach().cpu(),
+                          'scores': scores.detach().cpu(), 'y': y, 'slide_id': slide_ids, 'patient_id': patient_id,
+                          'tile_path': tile_path}
+        opt1, opt2, opt3 = self.optimizers()
+        s = torch.tensor([self.slide_to_ind[slide_id] for slide_id in slide_ids], device=x.device)
+        scores, aux_c_scores, aux_s_scores = self.forward(x, c, s=s, test=False)
+        task_loss, aux_c_loss, aux_s_loss = self.loss(scores, aux_c_scores, aux_s_scores, y, c, s, tile_path)
+
+        combined_loss = self.loss_weights[0]*task_loss - self.loss_weights[1]*aux_c_loss - self.loss_weights[2]*aux_s_loss
+        opt1.zero_grad()
+        self.manual_backward(combined_loss)
+        opt1.step()
+
+        opt2.zero_grad()
+        self.manual_backward(aux_c_loss)
+        opt2.step()
+
+        opt3.zero_grad()
+        self.manual_backward(aux_s_loss)
+        opt3.step()
+        return combined_loss, {'loss': combined_loss.detach().cpu(), 'c': c.detach().cpu(),
+                      'scores': scores.detach().cpu(), 'y': y, 'slide_id': slide_ids, 'patient_id': patient_id,
+                      'tile_path': tile_path}
+
     def forward(self, x, c, s, test=False):
         x_embed = self.backbone(x, c)
         task_scores = self.head(x_embed).squeeze()
@@ -66,29 +116,11 @@ class CombinedLossSubtypeClassifier(SubtypeClassifier):
         aux_s_scores = self.slide_head(x_embed).squeeze()
         return task_scores, aux_c_scores, aux_s_scores
 
-    def general_loop(self, batch, batch_idx, test=False):
-        try:
-            lr = self.trainer.lr_scheduler_configs[0].scheduler.optimizer.param_groups[0]["lr"]
-            self.logger.experiment.log_metric(self.logger.run_id, f"lr", lr)
-        except:
-            pass
-        x, c, y, slide_ids, patient_id, tile_path = batch
-        if test:
-            scores = self.forward(x, c, s=None, test=True)
-            loss = torch.tensor(-1)
-        else:
-            s = torch.tensor([self.slide_to_ind[slide_id] for slide_id in slide_ids], device=x.device)
-            scores, aux_c_scores, aux_s_scores = self.forward(x, c, s=s, test=False)
-            loss = self.loss(scores, aux_c_scores, aux_s_scores, y, c, s, tile_path)
-        return loss, {'loss': loss.detach().cpu(), 'c': c.detach().cpu(),
-                      'scores': scores.detach().cpu(), 'y': y, 'slide_id': slide_ids, 'patient_id': patient_id,
-                      'tile_path': tile_path}
-
     def loss(self, scores, aux_c_scores, aux_s_scores, y, c, s, tile_path):
         task_loss = super(CombinedLossSubtypeClassifier, self).loss(scores, y, c=None, tile_path=tile_path)
-        auc_c_loss = super(CombinedLossSubtypeClassifier, self).loss(scores, y=c, c=None, tile_path=tile_path)
+        aux_c_loss = super(CombinedLossSubtypeClassifier, self).loss(scores, y=c, c=None, tile_path=tile_path)
         aux_s_loss = super(CombinedLossSubtypeClassifier, self).loss(scores, y=s, c=None, tile_path=tile_path)
-        return self.loss_weights[0]*task_loss - self.loss_weights[1]*auc_c_loss - self.loss_weights[2]*aux_s_loss
+        return task_loss, aux_c_loss, aux_s_loss
 
 
 

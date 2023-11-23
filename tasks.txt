@@ -11,9 +11,11 @@ on hold:
 
 
 to do:
-    tile base - combined the 3 losses
+    3 losses:
+    warmup for
+    save train results
 
-    add argument to loss about slide prediction
+
     save both train and test scores
     plot again and see diff in the heatmaps
 
