@@ -56,6 +56,10 @@ class CombinedLossSubtypeClassifier(SubtypeClassifier):
         else:
             self.slide_head = self.create_aux_head(head_name='slide', head_out_size=len(self.slide_to_ind)).to(self.backbone.device)
             self.loss_weights[2] = self.combined_loss_args['slide_loss_w']
+        optimizer3 = torch.optim.Adam([
+            {"params": [p for p in self.slide_head.parameters()], 'lr': self.learning_rate[1]},
+        ])
+        self.optimizers.append(optimizer3)
         self.loss_weights = [w/sum(self.loss_weights) for w in self.loss_weights]
 
     def configure_optimizers(self):
@@ -68,10 +72,7 @@ class CombinedLossSubtypeClassifier(SubtypeClassifier):
         optimizer2 = torch.optim.Adam([
             {"params": [p for p in self.cohort_head.parameters()], 'lr': self.learning_rate[1]},
         ])
-        optimizer3 = torch.optim.Adam([
-            {"params": [p for p in self.slide_head.parameters()], 'lr': self.learning_rate[1]},
-        ])
-        return optimizer1, optimizer2, optimizer3
+        return optimizer1, optimizer2
 
     def general_loop(self, batch, batch_idx, test=False):
         # try:
@@ -120,6 +121,7 @@ class CombinedLossSubtypeClassifier(SubtypeClassifier):
         task_loss = super(CombinedLossSubtypeClassifier, self).loss(scores, y, c=None, tile_path=tile_path)
         aux_c_loss = super(CombinedLossSubtypeClassifier, self).loss(scores, y=c, c=None, tile_path=tile_path)
         aux_s_loss = super(CombinedLossSubtypeClassifier, self).loss(scores, y=s, c=None, tile_path=tile_path)
+        print(round(task_loss.item(),2), round(aux_c_loss.item(),2 ), round(aux_s_loss.item(),2 ))
         return task_loss, aux_c_loss, aux_s_loss
 
 
