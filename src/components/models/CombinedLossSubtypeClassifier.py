@@ -22,8 +22,10 @@ class CombinedLossSubtypeClassifier(SubtypeClassifier):
             self.cohort_head = self.create_aux_head(head_name='cohort', head_out_size=len(cohort_to_ind))
             self.loss_weights[1] = self.combined_loss_args['cohort_loss_w']
         self.slide_head = None  # initialize with the training data
-        self.slide_to_ind = None
+        self.slide_to_ind_axu = None
+        self.cohort_to_ind_aux = None
         self.automatic_optimization = False
+        self.optimizers_list = []
         Logger.log(f"""CombinedLossSubtypeClassifier created with: {self.combined_loss_args}.""", log_importance=1)
 
     def create_aux_head(self, head_name, head_out_size):
@@ -49,17 +51,17 @@ class CombinedLossSubtypeClassifier(SubtypeClassifier):
         if not isinstance(dataset, ProcessedTileDataset):
             dataset = dataset.datasets
         df_labels = dataset.df_labels
-        unique_values = df_labels['slide_id'].unique()
-        self.slide_to_ind = {value: index for index, value in enumerate(unique_values)}
+        self.cohort_to_ind_aux = {value: index for index, value in enumerate(df_labels.cohort.map(self.cohort_to_ind).unique())}
+        self.slide_to_ind_axu = {value: index for index, value in enumerate(df_labels['slide_id'].unique())}
         if self.combined_loss_args['slide_loss_w'] is None:
             self.slide_head = nn.Identity().to(self.head.device).to(self.backbone.device)
         else:
-            self.slide_head = self.create_aux_head(head_name='slide', head_out_size=len(self.slide_to_ind)).to(self.backbone.device)
+            self.slide_head = self.create_aux_head(head_name='slide', head_out_size=len(self.slide_to_ind_axu)).to(self.backbone.device)
             self.loss_weights[2] = self.combined_loss_args['slide_loss_w']
         optimizer3 = torch.optim.Adam([
             {"params": [p for p in self.slide_head.parameters()], 'lr': self.learning_rate[1]},
         ])
-        self.optimizers.append(optimizer3)
+        self.optimizers_list.append(optimizer3)
         self.loss_weights = [w/sum(self.loss_weights) for w in self.loss_weights]
 
     def configure_optimizers(self):
@@ -72,6 +74,8 @@ class CombinedLossSubtypeClassifier(SubtypeClassifier):
         optimizer2 = torch.optim.Adam([
             {"params": [p for p in self.cohort_head.parameters()], 'lr': self.learning_rate[1]},
         ])
+        self.optimizers_list.append(optimizer1)
+        self.optimizers_list.append(optimizer2)
         return optimizer1, optimizer2
 
     def general_loop(self, batch, batch_idx, test=False):
@@ -87,18 +91,21 @@ class CombinedLossSubtypeClassifier(SubtypeClassifier):
             return loss, {'loss': loss.detach().cpu(), 'c': c.detach().cpu(),
                           'scores': scores.detach().cpu(), 'y': y, 'slide_id': slide_ids, 'patient_id': patient_id,
                           'tile_path': tile_path}
-        opt1, opt2, opt3 = self.optimizers()
-        s = torch.tensor([self.slide_to_ind[slide_id] for slide_id in slide_ids], device=x.device)
-        scores, aux_c_scores, aux_s_scores = self.forward(x, c, s=s, test=False)
-        task_loss, aux_c_loss, aux_s_loss = self.loss(scores, aux_c_scores, aux_s_scores, y, c, s, tile_path)
+        opt1, opt2, opt3 = self.optimizers_list
+        s_aux = torch.tensor([self.slide_to_ind_axu[slide_id] for slide_id in slide_ids], device=x.device)
+        c_aux = torch.tensor([self.cohort_to_ind_aux[cohort_ind.item()] for cohort_ind in c], device=x.device) # cohort_ind an cohort_aux_id are different
 
+        scores, aux_c_scores, aux_s_scores = self.forward(x, c, s=s_aux, test=False)
+        task_loss, aux_c_loss, aux_s_loss = self.loss(scores, aux_c_scores, aux_s_scores, y, c_aux, s_aux, tile_path)
         combined_loss = self.loss_weights[0]*task_loss - self.loss_weights[1]*aux_c_loss - self.loss_weights[2]*aux_s_loss
         opt1.zero_grad()
         self.manual_backward(combined_loss)
         opt1.step()
 
+        scores, aux_c_scores, aux_s_scores = self.forward(x, c, s=s_aux, test=False)
+        task_loss, aux_c_loss, aux_s_loss = self.loss(scores, aux_c_scores, aux_s_scores, y, c_aux, s_aux, tile_path)
         opt2.zero_grad()
-        self.manual_backward(aux_c_loss)
+        self.manual_backward(aux_c_loss, retain_graph=True)
         opt2.step()
 
         opt3.zero_grad()
@@ -119,9 +126,9 @@ class CombinedLossSubtypeClassifier(SubtypeClassifier):
 
     def loss(self, scores, aux_c_scores, aux_s_scores, y, c, s, tile_path):
         task_loss = super(CombinedLossSubtypeClassifier, self).loss(scores, y, c=None, tile_path=tile_path)
-        aux_c_loss = super(CombinedLossSubtypeClassifier, self).loss(scores, y=c, c=None, tile_path=tile_path)
-        aux_s_loss = super(CombinedLossSubtypeClassifier, self).loss(scores, y=s, c=None, tile_path=tile_path)
-        print(round(task_loss.item(),2), round(aux_c_loss.item(),2 ), round(aux_s_loss.item(),2 ))
+        aux_c_loss = super(CombinedLossSubtypeClassifier, self).loss(aux_c_scores, y=c, c=None, tile_path=tile_path)
+        aux_s_loss = super(CombinedLossSubtypeClassifier, self).loss(aux_s_scores, y=s, c=None, tile_path=tile_path)
+        # print(round(task_loss.item(),2), round(aux_c_loss.item(), 2), round(aux_s_loss.item(), 2))
         return task_loss, aux_c_loss, aux_s_loss
 
 
