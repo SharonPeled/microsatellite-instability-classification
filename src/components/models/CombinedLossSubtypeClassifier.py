@@ -111,6 +111,9 @@ class CombinedLossSubtypeClassifier(SubtypeClassifier):
         opt3.zero_grad()
         self.manual_backward(aux_s_loss)
         opt3.step()
+
+        self.logger.experiment.log_metric(self.logger.run_id, "cohort_loss", aux_c_loss.detach().cpu())
+        self.logger.experiment.log_metric(self.logger.run_id, "slide_loss", aux_s_loss.detach().cpu())
         return combined_loss, {'loss': combined_loss.detach().cpu(), 'c': c.detach().cpu(),
                       'scores': scores.detach().cpu(), 'y': y, 'slide_id': slide_ids, 'patient_id': patient_id,
                       'tile_path': tile_path}
