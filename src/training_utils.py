@@ -27,6 +27,8 @@ from copy import deepcopy
 from src.components.models.FusionClassifier import CohortAwareVisionTransformer, MIL_CohortAwareVisionTransformer
 from datetime import datetime
 from pytorch_lightning.strategies import DDPStrategy
+from tqdm import tqdm
+import os
 
 
 def train(df, train_transform, test_transform, logger, callbacks, model, **kwargs):
@@ -122,7 +124,35 @@ def train_single_split(df_train, df_valid, df_test, train_transform, test_transf
         save_results(model, test_dataset, valid_dataset)
     else:
         Logger.log('Saving results is suppressed.', log_importance=1)
+    if Configs.joined.get('SAVE_TRAIN', None):
+        df_pred = apply_model(train_loader, model)
+        df_pred = df_pred.merge(df_train_sampled, how='inner', on='tile_path')
+        time_str = datetime.now().strftime('%d_%m_%Y_%H_%M')
+        path = os.path.join(Configs.joined['TRAIN_PREDICT_OUTPUT_PATH'], f"df_pred_train_{time_str}.csv")
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        df_pred.to_csv(path, index=False)
+        Logger.log(f'Save df_pred_train in: {path}')
+    else:
+        Logger.log('Saving train results is suppressed.', log_importance=1)
     return model
+
+
+def apply_model(loader, model):
+    with torch.no_grad():
+        scores = []
+        tile_paths = []
+        print(model.device)
+        for i, b in tqdm(enumerate(loader), total=len(loader)):
+            b = [elem.to(model.device) if isinstance(elem, torch.Tensor) else elem for elem in b]
+            b_scores = model.general_loop(b, i, test=True)
+            scores.append(b_scores[1]['scores'].numpy())
+            tile_paths.append(b[-1])
+        if scores[-1].ndim == 0:
+            scores[-1] = np.array(scores[-1], ndmin=1)
+        scores = np.concatenate(scores)
+        scores = torch.sigmoid(torch.from_numpy(scores)).numpy()
+        tile_paths = np.concatenate(tile_paths)
+        return pd.DataFrame({'tile_path': tile_paths, 'score': scores})
 
 
 def save_results(model, test_dataset, valid_dataset, saving_raw=True):

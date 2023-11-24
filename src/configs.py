@@ -162,7 +162,7 @@ class TumorRegressionConfigs:
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
     SC_EXPERIMENT_NAME = 'SC_COMBINED_LOSS_TILE'
-    SC_FORMULATION = f'p100_balanced_both_loss_001_001'
+    SC_FORMULATION = f'p100_balanced_both_loss_005_scheduled'
     SC_RUN_NAME = f"{SC_FORMULATION}"
     SC_RUN_DESCRIPTION = f"""Labels are by bioportal.
     """
@@ -184,6 +184,8 @@ class SubtypeClassificationConfigs:
                                          f'SC_{SC_RUN_NAME}_' + '{time}.ckpt')
     SC_TEST_PREDICT_OUTPUT_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                                f'{SC_RUN_NAME}_pred', 'test')
+    SC_TRAIN_PREDICT_OUTPUT_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
+                                               f'{SC_RUN_NAME}_pred', 'train')
     SC_VALID_PREDICT_OUTPUT_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                                 f'{SC_RUN_NAME}_pred', 'valid')
     SC_SSL_STATISTICS = {'HSV': os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
@@ -203,6 +205,7 @@ class SubtypeClassificationConfigs:
     # SC_COHORT_TUNE = None # ['COAD', 'READ']
     SC_TEST_ONLY = None
     SC_SAVE_TEST = True
+    SC_SAVE_TRAIN = True
     SC_NUM_EPOCHS = 1
     SC_NUM_DEVICES = 1
     SC_NUM_NODES = 1
@@ -250,8 +253,8 @@ class SubtypeClassificationConfigs:
                   }
     # combined loss
     SC_COMBINED_LOSS_ARGS = {
-        'cohort_loss_w': 0.01,
-        'slide_loss_w': 0.01,
+        'cohort_loss_w': 0.05,
+        'slide_loss_w': 0.05,
         'n_nn_cohort_head': {'num_layers': 3, 'dropout_value': 0.0},
         'n_nn_slide_head': {'num_layers': 3, 'dropout_value': 0.0}
     }
@@ -406,7 +409,8 @@ class ConfigsClass(GeneralConfigs, PreprocessingConfigs, TumorClassificationConf
                           'TRAINED_MODEL_PATH', 'CLASS_TO_IND', 'NUM_EPOCHS', 'NUM_DEVICES', 'DEVICE', 'TEST_BATCH_SIZE',
                           'SAVE_CHECKPOINT_STEP_INTERVAL', 'VAL_STEP_INTERVAL', 'TRAINING_BATCH_SIZE', 'NUM_WORKERS',
                           'TEST_SIZE', 'VALID_SIZE', 'INIT_LR', 'TILE_SAMPLE_TRAIN', 'SSL_STATISTICS',
-                          'CROSS_VALIDATE', 'Y_TO_BE_STRATIFIED', 'TEST_ONLY', 'SAVE_TEST', 'TEST_PREDICT_OUTPUT_PATH',
+                          'CROSS_VALIDATE', 'Y_TO_BE_STRATIFIED', 'TEST_ONLY', 'SAVE_TEST', 'SAVE_TRAIN',
+                          'TEST_PREDICT_OUTPUT_PATH', 'TRAIN_PREDICT_OUTPUT_PATH',
                           'VALID_PREDICT_OUTPUT_PATH', 'COHORT_TO_IND', 'CONTINUE_FROM_FOLD', 'NUM_NODES']
         for c in common_configs:
             for prefix in self.TASK_PREFIXES:

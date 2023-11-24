@@ -4,6 +4,7 @@ from src.components.models.SubtypeClassifier import SubtypeClassifier
 from src.components.models.PretrainedClassifier import PretrainedClassifier
 from src.components.objects.Logger import Logger
 from src.components.datasets.ProcessedTileDataset import ProcessedTileDataset
+from src.training_utils import lr_scheduler_linspace_steps
 
 
 class CombinedLossSubtypeClassifier(SubtypeClassifier):
@@ -62,7 +63,25 @@ class CombinedLossSubtypeClassifier(SubtypeClassifier):
             {"params": [p for p in self.slide_head.parameters()], 'lr': self.learning_rate[1]},
         ])
         self.optimizers_list.append(optimizer3)
-        self.loss_weights = [w/sum(self.loss_weights) for w in self.loss_weights]
+        self.create_loss_weights_schedulers()
+
+    def create_loss_weights_schedulers(self):
+        loader = self.trainer.train_dataloader
+        tot_iters = len(loader) * self.trainer.max_epochs + self.trainer.max_epochs
+        cohort_w_list = lr_scheduler_linspace_steps(lr_pairs=[(0.0, self.num_iters_warmup_wo_backbone),
+                                                                   (0.0, -1), (self.loss_weights[1], None)],
+                                                         tot_iters=tot_iters)
+        slide_w_list = lr_scheduler_linspace_steps(lr_pairs=[(0.0, self.num_iters_warmup_wo_backbone),
+                                                                  (0.0, -1), (self.loss_weights[2], None)],
+                                                        tot_iters=tot_iters)
+        self.loss_weights = [[1.0 for _ in range(len(cohort_w_list))], cohort_w_list, slide_w_list]
+        # normalizing the loss weights
+        for i in range(len(cohort_w_list)):
+            # Calculate the sum of elements at index i across all sublists
+            total = sum(self.loss_weights[j][i] for j in range(3))
+            for j in range(3):
+                self.loss_weights[j][i] /= total
+        Logger.log(f'Weight loss initialized, Total steps: {tot_iters}', log_importance=1)
 
     def configure_optimizers(self):
         self.set_training_warmup()
@@ -97,7 +116,8 @@ class CombinedLossSubtypeClassifier(SubtypeClassifier):
 
         scores, aux_c_scores, aux_s_scores = self.forward(x, c, s=s_aux, test=False)
         task_loss, aux_c_loss, aux_s_loss = self.loss(scores, aux_c_scores, aux_s_scores, y, c_aux, s_aux, tile_path)
-        combined_loss = self.loss_weights[0]*task_loss - self.loss_weights[1]*aux_c_loss - self.loss_weights[2]*aux_s_loss
+        i = self.global_step
+        combined_loss = self.loss_weights[0][i]*task_loss - self.loss_weights[1][i]*aux_c_loss - self.loss_weights[2][i]*aux_s_loss
         opt1.zero_grad()
         self.manual_backward(combined_loss)
         opt1.step()
