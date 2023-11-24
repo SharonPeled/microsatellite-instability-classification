@@ -141,6 +141,7 @@ def apply_model(loader, model):
     with torch.no_grad():
         scores = []
         tile_paths = []
+        model = model.cuda()
         print(model.device)
         for i, b in tqdm(enumerate(loader), total=len(loader)):
             b = [elem.to(model.device) if isinstance(elem, torch.Tensor) else elem for elem in b]
