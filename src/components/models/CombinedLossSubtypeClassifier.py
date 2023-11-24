@@ -68,19 +68,31 @@ class CombinedLossSubtypeClassifier(SubtypeClassifier):
     def create_loss_weights_schedulers(self):
         loader = self.trainer.train_dataloader
         tot_iters = len(loader) * self.trainer.max_epochs + self.trainer.max_epochs
-        cohort_w_list = lr_scheduler_linspace_steps(lr_pairs=[(0.0, self.num_iters_warmup_wo_backbone),
-                                                                   (0.0, -1), (self.loss_weights[1], None)],
-                                                         tot_iters=tot_iters)
-        slide_w_list = lr_scheduler_linspace_steps(lr_pairs=[(0.0, self.num_iters_warmup_wo_backbone),
-                                                                  (0.0, -1), (self.loss_weights[2], None)],
+        if self.combined_loss_args['cohort_warmup'] is not None:
+            cohort_w_list = lr_scheduler_linspace_steps(lr_pairs=[(0.0, self.num_iters_warmup_wo_backbone),
+                                                                  (0.0, self.combined_loss_args['cohort_warmup']), (self.loss_weights[1], -1),
+                                                                  (self.loss_weights[1], None)],
                                                         tot_iters=tot_iters)
+        else:
+            cohort_w_list = lr_scheduler_linspace_steps(lr_pairs=[(0.0, self.num_iters_warmup_wo_backbone),
+                                                                  (0.0, -1), (self.loss_weights[1], None)],
+                                                        tot_iters=tot_iters)
+        if self.combined_loss_args['slide_warmup'] is not None:
+            slide_w_list = lr_scheduler_linspace_steps(lr_pairs=[(0.0, self.num_iters_warmup_wo_backbone),
+                                                                 (0.0, self.combined_loss_args['slide_warmup']), (self.loss_weights[2], -1),
+                                                                 (self.loss_weights[2], None)],
+                                                       tot_iters=tot_iters)
+        else:
+            slide_w_list = lr_scheduler_linspace_steps(lr_pairs=[(0.0, self.num_iters_warmup_wo_backbone),
+                                                                 (0.0, -1), (self.loss_weights[2], None)],
+                                                       tot_iters=tot_iters)
         self.loss_weights = [[1.0 for _ in range(len(cohort_w_list))], cohort_w_list, slide_w_list]
         # normalizing the loss weights
-        for i in range(len(cohort_w_list)):
-            # Calculate the sum of elements at index i across all sublists
-            total = sum(self.loss_weights[j][i] for j in range(3))
-            for j in range(3):
-                self.loss_weights[j][i] /= total
+        # for i in range(len(cohort_w_list)):
+        #     # Calculate the sum of elements at index i across all sublists
+        #     total = sum(self.loss_weights[j][i] for j in range(3))
+        #     for j in range(3):
+        #         self.loss_weights[j][i] /= total
         Logger.log(f'Weight loss initialized, Total steps: {tot_iters}', log_importance=1)
 
     def configure_optimizers(self):
