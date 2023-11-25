@@ -23,7 +23,7 @@ to do:
 
 
 
-    2 streams? rethinking cohort awareness
+    move to tanh
 
     tune each cohort on its on
     different FoVs
@@ -34,16 +34,6 @@ to do:
 
     # rotating validation sets - train test reduce ect
 
-
-
-
-
-
-    different filters schedulers
-    rethink only positive class
-    soft labels
-
-    pretrain using 2 streams and without ESCA and balanced?
 
 
 
