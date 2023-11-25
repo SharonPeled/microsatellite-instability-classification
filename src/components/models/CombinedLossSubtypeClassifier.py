@@ -27,6 +27,7 @@ class CombinedLossSubtypeClassifier(SubtypeClassifier):
         self.cohort_to_ind_aux = None
         self.automatic_optimization = False
         self.optimizers_list = []
+        self.global_iter = 0
         Logger.log(f"""CombinedLossSubtypeClassifier created with: {self.combined_loss_args}.""", log_importance=1)
 
     def create_aux_head(self, head_name, head_out_size):
@@ -55,7 +56,7 @@ class CombinedLossSubtypeClassifier(SubtypeClassifier):
         self.cohort_to_ind_aux = {value: index for index, value in enumerate(df_labels.cohort.map(self.cohort_to_ind).unique())}
         self.slide_to_ind_axu = {value: index for index, value in enumerate(df_labels['slide_id'].unique())}
         if self.combined_loss_args['slide_loss_w'] is None:
-            self.slide_head = nn.Identity().to(self.head.device).to(self.backbone.device)
+            self.slide_head = nn.Identity().to(self.backbone)
         else:
             self.slide_head = self.create_aux_head(head_name='slide', head_out_size=len(self.slide_to_ind_axu)).to(self.backbone.device)
             self.loss_weights[2] = self.combined_loss_args['slide_loss_w']
@@ -75,7 +76,8 @@ class CombinedLossSubtypeClassifier(SubtypeClassifier):
                                                         tot_iters=tot_iters)
         else:
             cohort_w_list = lr_scheduler_linspace_steps(lr_pairs=[(0.0, self.num_iters_warmup_wo_backbone),
-                                                                  (0.0, -1), (self.loss_weights[1], None)],
+                                                                  (0.0, 0), (self.loss_weights[1], -1),
+                                                                  (self.loss_weights[1], None)],
                                                         tot_iters=tot_iters)
         if self.combined_loss_args['slide_warmup'] is not None:
             slide_w_list = lr_scheduler_linspace_steps(lr_pairs=[(0.0, self.num_iters_warmup_wo_backbone),
@@ -84,7 +86,8 @@ class CombinedLossSubtypeClassifier(SubtypeClassifier):
                                                        tot_iters=tot_iters)
         else:
             slide_w_list = lr_scheduler_linspace_steps(lr_pairs=[(0.0, self.num_iters_warmup_wo_backbone),
-                                                                 (0.0, -1), (self.loss_weights[2], None)],
+                                                                 (0.0, 0), (self.loss_weights[2], -1),
+                                                                 (self.loss_weights[2], None)],
                                                        tot_iters=tot_iters)
         self.loss_weights = [[1.0 for _ in range(len(cohort_w_list))], cohort_w_list, slide_w_list]
         # normalizing the loss weights
@@ -128,14 +131,14 @@ class CombinedLossSubtypeClassifier(SubtypeClassifier):
 
         scores, aux_c_scores, aux_s_scores = self.forward(x, c, s=s_aux, test=False)
         task_loss, aux_c_loss, aux_s_loss = self.loss(scores, aux_c_scores, aux_s_scores, y, c_aux, s_aux, tile_path)
-        i = self.global_step
+        i = self.global_iter
         combined_loss = self.loss_weights[0][i]*task_loss - self.loss_weights[1][i]*aux_c_loss - self.loss_weights[2][i]*aux_s_loss
         opt1.zero_grad()
         self.manual_backward(combined_loss)
         opt1.step()
 
-        scores, aux_c_scores, aux_s_scores = self.forward(x, c, s=s_aux, test=False)
-        task_loss, aux_c_loss, aux_s_loss = self.loss(scores, aux_c_scores, aux_s_scores, y, c_aux, s_aux, tile_path)
+        _, aux_c_scores, aux_s_scores = self.forward(x, c, s=s_aux, test=False)
+        _, aux_c_loss, aux_s_loss = self.loss(scores, aux_c_scores, aux_s_scores, y, c_aux, s_aux, tile_path)
         opt2.zero_grad()
         self.manual_backward(aux_c_loss, retain_graph=True)
         opt2.step()
@@ -144,8 +147,13 @@ class CombinedLossSubtypeClassifier(SubtypeClassifier):
         self.manual_backward(aux_s_loss)
         opt3.step()
 
+        self.logger.experiment.log_metric(self.logger.run_id, "task_loss", task_loss.detach().cpu())
         self.logger.experiment.log_metric(self.logger.run_id, "cohort_loss", aux_c_loss.detach().cpu())
         self.logger.experiment.log_metric(self.logger.run_id, "slide_loss", aux_s_loss.detach().cpu())
+
+        # print([self.loss_weights[j][i] for j in range(3)])
+        # print(combined_loss.detach().cpu(), task_loss.detach().cpu(), aux_c_loss.detach().cpu(), aux_s_loss.detach().cpu())
+
         return combined_loss, {'loss': combined_loss.detach().cpu(), 'c': c.detach().cpu(),
                       'scores': scores.detach().cpu(), 'y': y, 'slide_id': slide_ids, 'patient_id': patient_id,
                       'tile_path': tile_path}
@@ -163,8 +171,10 @@ class CombinedLossSubtypeClassifier(SubtypeClassifier):
         task_loss = super(CombinedLossSubtypeClassifier, self).loss(scores, y, c=None, tile_path=tile_path)
         aux_c_loss = super(CombinedLossSubtypeClassifier, self).loss(aux_c_scores, y=c, c=None, tile_path=tile_path)
         aux_s_loss = super(CombinedLossSubtypeClassifier, self).loss(aux_s_scores, y=s, c=None, tile_path=tile_path)
-        # print(round(task_loss.item(),2), round(aux_c_loss.item(), 2), round(aux_s_loss.item(), 2))
         return task_loss, aux_c_loss, aux_s_loss
+
+    def on_train_batch_end(self, outputs, batch, batch_idx):
+        self.global_iter += 1
 
 
 

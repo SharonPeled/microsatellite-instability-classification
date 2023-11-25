@@ -76,7 +76,7 @@ class TransferLearningClassifier(pl.LightningModule):
         return F.cross_entropy(scores, y, weight=self.class_weights.to(scores.device))
 
     def set_training_warmup(self):
-        if self.num_iters_warmup_wo_backbone is not None:
+        if self.num_iters_warmup_wo_backbone is not None and self.num_iters_warmup_wo_backbone > 0:
             for param in self.model[:-1].parameters():
                 param.requires_grad = False
             self.backbone_grad_status = False

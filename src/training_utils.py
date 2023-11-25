@@ -228,6 +228,8 @@ def lr_scheduler_linspace_steps(lr_pairs, tot_iters):
     left_iters = tot_iters - sum([num_iters for _, num_iters in lr_pairs[:-1] if num_iters > 1])
     lr_array = []
     for (lr, iters), (next_lr, _) in zip(lr_pairs, lr_pairs[1:]):
+        if iters == 0:
+            continue
         if iters == -1:
             lr_array.append(np.linspace(lr, next_lr, int(left_iters)))
         elif iters < 1:
