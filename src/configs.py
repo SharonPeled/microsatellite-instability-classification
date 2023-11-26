@@ -256,7 +256,7 @@ class SubtypeClassificationConfigs:
         'cohort_loss_w': 0.0,
         'cohort_warmup': None,
         'slide_loss_w': 0.05,
-        'slide_warmup': 0.1,
+        'slide_warmup': 1.0,
         'n_nn_cohort_head': {'num_layers': 3, 'dropout_value': 0.0},
         'n_nn_slide_head': {'num_layers': 3, 'dropout_value': 0.0}
     }
