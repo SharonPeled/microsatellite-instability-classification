@@ -162,7 +162,7 @@ class TumorRegressionConfigs:
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
     SC_EXPERIMENT_NAME = 'SC_COMBINED_LOSS_TILE'
-    SC_FORMULATION = f'p100_balanced_both_loss_0_005_wm075'
+    SC_FORMULATION = f'p100_balanced_both_loss_0_005_wm1_5f_e7'
     SC_RUN_NAME = f"{SC_FORMULATION}"
     SC_RUN_DESCRIPTION = f"""Labels are by bioportal.
     """
@@ -205,7 +205,7 @@ class SubtypeClassificationConfigs:
     # SC_COHORT_TUNE = None # ['COAD', 'READ']
     SC_TEST_ONLY = None
     SC_SAVE_TEST = True
-    SC_SAVE_TRAIN = True
+    SC_SAVE_TRAIN = False
     SC_NUM_EPOCHS = 1
     SC_NUM_DEVICES = 1
     SC_NUM_NODES = 1
@@ -215,9 +215,9 @@ class SubtypeClassificationConfigs:
     SC_VAL_STEP_INTERVAL = 1/2  # 2 times an epoch
     SC_TRAINING_BATCH_SIZE = 256  # accumulating gradients in MIL only
     SC_NUM_WORKERS = 25
-    SC_TEST_SIZE = 0.3333
+    SC_TEST_SIZE = 0.2
     SC_VALID_SIZE = 0  # not used if CV=True
-    SC_INIT_LR = [1e-6 * (SC_TRAINING_BATCH_SIZE/256),
+    SC_INIT_LR = [1e-7 * (SC_TRAINING_BATCH_SIZE/256),
                   1e-4 * (SC_TRAINING_BATCH_SIZE/256)]  # per part of the network, in order of the actual nn
     SC_TILE_SAMPLE_TRAIN = 1e10  # all tiles
     SC_TILE_SAMPLE_LAMBDA_TRAIN_TUNE = None
@@ -256,7 +256,7 @@ class SubtypeClassificationConfigs:
         'cohort_loss_w': 0.0,
         'cohort_warmup': None,
         'slide_loss_w': 0.05,
-        'slide_warmup': 0.75,
+        'slide_warmup': 0.1,
         'n_nn_cohort_head': {'num_layers': 3, 'dropout_value': 0.0},
         'n_nn_slide_head': {'num_layers': 3, 'dropout_value': 0.0}
     }
