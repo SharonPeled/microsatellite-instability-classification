@@ -162,7 +162,7 @@ class TumorRegressionConfigs:
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
     SC_EXPERIMENT_NAME = 'SC_COMBINED_LOSS_TILE'
-    SC_FORMULATION = f'p100_balanced_both_loss_0_005_wm1_5f_e7_r123'
+    SC_FORMULATION = f'p100_balanced_both_loss_05_005_wm1_5f_e7_r123'
     SC_RUN_NAME = f"{SC_FORMULATION}"
     SC_RUN_DESCRIPTION = f"""Labels are by bioportal.
     """
@@ -253,8 +253,8 @@ class SubtypeClassificationConfigs:
                   }
     # combined loss
     SC_COMBINED_LOSS_ARGS = {
-        'cohort_loss_w': 0.0,
-        'cohort_warmup': None,
+        'cohort_loss_w': 0.5,
+        'cohort_warmup': 1.0,
         'slide_loss_w': 0.05,
         'slide_warmup': 1.0,
         'n_nn_cohort_head': {'num_layers': 3, 'dropout_value': 0.0},
