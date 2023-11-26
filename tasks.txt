@@ -11,12 +11,7 @@ on hold:
 
 
 to do:
-    3 losses:
-    warmup for
-    save train results
 
-
-    save both train and test scores
     plot again and see diff in the heatmaps
 
 
@@ -24,12 +19,6 @@ to do:
 
 
     move to tanh
-
-    tune each cohort on its on
-    different FoVs
-    lr
-    ESCA
-    fp
 
 
     # rotating validation sets - train test reduce ect
