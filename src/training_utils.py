@@ -41,6 +41,7 @@ def save_embeddings(configs):
     ])
     df_tiles = pd.read_csv(configs.TS_DF_TILE_PATHS_PATH)
     df_tiles['y'] = 0 # dummy
+    # df_tiles = df_tiles[df_tiles.slide_uuid.isin(df_tiles.slide_uuid.unique()[:10])].groupby('slide_uuid', as_index=False).apply(lambda d: d.sample(min(len(d), 10)))
     slide_path_list = []
     with torch.no_grad():
         backbone = backbone.to(0)
