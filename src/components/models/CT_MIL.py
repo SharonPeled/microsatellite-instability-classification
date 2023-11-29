@@ -70,6 +70,7 @@ class CT_MIL(CombinedLossSubtypeClassifier):
 
         opt1, opt2, opt_s = self.optimizers_list
         x_embed = self.get_tile_embeddings(x, c)
+        del x # to save cuda space
         bags_embed, tier1_scores = self.forward_tier1(x_embed)
         tier1_y = torch.full((tier1_scores.shape[0],), y.item()).to(tier1_scores.device)
         tier1_loss = F.binary_cross_entropy_with_logits(tier1_scores, tier1_y.float(), reduction='mean')
@@ -92,6 +93,7 @@ class CT_MIL(CombinedLossSubtypeClassifier):
 
     def forward(self, x, c):
         x_embed = self.get_tile_embeddings(x, c)
+        del x
         bags_embed, tier1_scores = self.forward_tier1(x_embed)
         slide_embed, tier2_score = self.forward_tier2(bags_embed)
         return tier2_score

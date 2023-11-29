@@ -189,11 +189,11 @@ def save_pred_outputs_raw(outputs, dataset, save_path, suffix):
     except:
         pass
     outputs_path = os.path.join(save_path, f"outputs_{suffix}.tensor")
-    dataset_df_path = os.path.join(save_path, f"dataset_df_{suffix}.csv")
+    # dataset_df_path = os.path.join(save_path, f"dataset_df_{suffix}.csv")
     os.makedirs(os.path.dirname(outputs_path), exist_ok=True)
-    os.makedirs(os.path.dirname(dataset_df_path), exist_ok=True)
-    dataset.df_labels.to_csv(dataset_df_path, index=False)
-    Logger.log(f'Save dataset.df_labels in: {dataset_df_path}')
+    # os.makedirs(os.path.dirname(dataset_df_path), exist_ok=True)
+    # dataset.df_labels.to_csv(dataset_df_path, index=False)
+    # Logger.log(f'Save dataset.df_labels in: {dataset_df_path}')
     torch.save(outputs, outputs_path)
     Logger.log(f'Save tensor outputs in: {outputs_path}')
     return None, outputs_path

@@ -265,7 +265,7 @@ class SubtypeClassificationConfigs:
         'vit_adapter_trainable_blocks': None,
         'attn_dim': 128,
         'num_bags': 4,
-        'slide_sample_size': 750,
+        'slide_sample_size': 500,
         'inner_batch_size': 256
     }
     # iterative_stuff
