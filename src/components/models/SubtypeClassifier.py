@@ -115,7 +115,7 @@ class SubtypeClassifier(PretrainedClassifier):
         return torch.dot(loss_unreduced, tile_w)
 
     def _get_df_for_metric_logging(self, outputs):
-        if len(outputs[-1]['out'].shape) == 0:
+        if len(outputs[-1]['scores'].shape) == 0:
             outputs[-1]['scores'] = outputs[-1]['scores'].unsqueeze(dim=0)
         scores = torch.concat([out["scores"] for out in outputs])
         if len(scores.shape) == 1:

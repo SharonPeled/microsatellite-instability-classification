@@ -12,7 +12,7 @@ from collections import defaultdict
 
 @dataclass
 class GeneralConfigs:
-    RANDOM_SEED = 123
+    RANDOM_SEED = 1234
     VERBOSE = 2  # 1 logs to LOG_FILE, 2 logs to console, 3 logs to both to file and console
     ROOT = Path(__file__).parent.parent.resolve()
     # DATA_FOLDER = '/mnt/data/users/sharonpe' if 'dev' not in str(ROOT) else os.path.join(ROOT, 'data')
@@ -161,8 +161,8 @@ class TumorRegressionConfigs:
 
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
-    SC_EXPERIMENT_NAME = 'SC_COMBINED_LOSS_TILE'
-    SC_FORMULATION = f'p100_balanced_both_loss_05_005_wm1_5f_e7_r123'
+    SC_EXPERIMENT_NAME = 'SC_DISTILMIL'
+    SC_FORMULATION = f'p100_baseline'
     SC_RUN_NAME = f"{SC_FORMULATION}"
     SC_RUN_DESCRIPTION = f"""Labels are by bioportal.
     """
@@ -206,23 +206,23 @@ class SubtypeClassificationConfigs:
     SC_TEST_ONLY = None
     SC_SAVE_TEST = True
     SC_SAVE_TRAIN = False
-    SC_NUM_EPOCHS = 1
+    SC_NUM_EPOCHS = 10
     SC_NUM_DEVICES = 1
     SC_NUM_NODES = 1
     SC_DEVICE = 'gpu'
-    SC_TEST_BATCH_SIZE = 512
+    SC_TEST_BATCH_SIZE = 1
     SC_SAVE_CHECKPOINT_STEP_INTERVAL = None
     SC_VAL_STEP_INTERVAL = 1/2  # 2 times an epoch
-    SC_TRAINING_BATCH_SIZE = 256  # accumulating gradients in MIL only
-    SC_NUM_WORKERS = 25
-    SC_TEST_SIZE = 0.2
+    SC_TRAINING_BATCH_SIZE = 1  # accumulating gradients in MIL only
+    SC_NUM_WORKERS = 15
+    SC_TEST_SIZE = 0.333
     SC_VALID_SIZE = 0  # not used if CV=True
-    SC_INIT_LR = [1e-7 * (SC_TRAINING_BATCH_SIZE/256),
+    SC_INIT_LR = [1e-6 * (SC_TRAINING_BATCH_SIZE/256),
                   1e-4 * (SC_TRAINING_BATCH_SIZE/256)]  # per part of the network, in order of the actual nn
     SC_TILE_SAMPLE_TRAIN = 1e10  # all tiles
     SC_TILE_SAMPLE_LAMBDA_TRAIN_TUNE = None
     SC_FROZEN_BACKBONE = False
-    SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 2000
+    SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 0
     SC_TILE_ENCODER = 'VIT_PRETRAINED_DINO'  # to load dino net for future classification - VIT_PRETRAINED_DINO
     COHORT_AWARE_DICT = {'num_cohorts': 4,
                          'num_heads_per_cohort': 6,
@@ -259,6 +259,14 @@ class SubtypeClassificationConfigs:
         'slide_warmup': 0.99,
         'n_nn_cohort_head': {'num_layers': 3, 'dropout_value': 0.0},
         'n_nn_slide_head': {'num_layers': 3, 'dropout_value': 0.0}
+    }
+    SC_CT_MIL = {
+        'combined_loss_args': SC_COMBINED_LOSS_ARGS,
+        'vit_adapter_trainable_blocks': None,
+        'attn_dim': 128,
+        'num_bags': 4,
+        'slide_sample_size': 750,
+        'inner_batch_size': 256
     }
     # iterative_stuff
     SC_ITER_ARGS = {

@@ -11,6 +11,15 @@ on hold:
 
 
 to do:
+    tile weight?
+    MLH instead of gated attention?
+    warmup slide head? - move to slide level and global level
+    trainable backbone? + warmup
+    add slide loss
+    epochs?
+
+    gradient clip?
+    weight decay?
 
     plot again and see diff in the heatmaps
 
