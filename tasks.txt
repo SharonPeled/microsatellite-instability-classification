@@ -11,6 +11,9 @@ on hold:
 
 
 to do:
+
+    repeat the entire process again....
+
     tile weight?
     MLH instead of gated attention?
     warmup slide head? - move to slide level and global level

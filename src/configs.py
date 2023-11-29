@@ -61,6 +61,35 @@ class PreprocessingConfigs:
 
 
 @dataclass
+class TileEmbeddingSavingConfigs:
+    TS_PATH_DIR = os.path.join(GeneralConfigs.DATA_FOLDER, 'tile_embeddings')
+    TS_DF_TILE_PATHS_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
+                                         f'df_processed_tile_paths_512.csv')
+    TS_BATCH_SIZE = 512
+    TS_NUM_WORKERS = 10
+    TS_COHORT_TO_IND = {'CRC': 0, 'STAD': 1, 'ESCA': 2, 'UCEC': 3}
+    TS_TILE_ENCODER_NAME = 'VIT_PRETRAINED_DINO'
+    TS_COHORT_AWARE_DICT = {'num_cohorts': 4,
+                         'num_heads_per_cohort': 6,
+                         'num_blocks_per_cohort': 12,  # default is last blocks
+                         'block_position': 'end',
+                         'exclude_cohorts': [2, ],
+                         # separate_query_per_block, separate_noisy_query, separate_query, 'one_hot_head',
+                         # 'shared_query_separate_training'
+                         'awareness_strategy': 'separate_attended_query_per_block',
+                         'q_attention_type': '2_layered_tanh',  # linear, 2_layered_tanh
+                         'q_attention_drop': 0.0,
+                         'bias_matrices': None
+                         }
+    TS_KW_ARGS = {
+                  'tile_encoder': TS_TILE_ENCODER_NAME,
+                  'cohort_aware_dict': TS_COHORT_AWARE_DICT,
+                  'pretrained_ckp_path': os.path.join(GeneralConfigs.ROOT, 'models', 'subtype_classification', 'dgx_SQ6B12_At2Lrelu_32k_4_dino_checkpoints', 'checkpoint.pth'),
+                  # 'pretrained_ckp_path': "/home/sharonpe/microsatellite-instability-classification/data/subtype_classification/third_try_all_slides_16k_4_dino_checkpoints/checkpoint9.pth",
+                  }
+
+
+@dataclass
 class TumorClassificationConfigs:
     TUMOR_EXPERIMENT_NAME = 'tumor_classifier'
     TUMOR_RUN_NAME = 'color_jitter'
@@ -268,42 +297,6 @@ class SubtypeClassificationConfigs:
         'slide_sample_size': 500,
         'inner_batch_size': 256
     }
-    # iterative_stuff
-    SC_ITER_ARGS = {
-        'final_reduction_all': 0.3,
-        'final_reduction_tuned': 0.0,
-        'tune_cohort': None,
-        'balanced_cohorts': ['CRC', 'STAD', 'UCEC'],
-        'save_path': None,
-        'lr_pairs': [
-            (1e-4, 10), (1e-4, -1), (1e-4, None)
-            # (1e-4, 2000), (1e-4, 1),  # warmup fc
-            # (1e-6, 1000), (1e-4, 0.4),  # warmup + train all
-            # (1e-4, -1), (1e-6, None)  # end decaying
-        ],
-        'tune_model_each_time': True,
-        'warmup_p': 0.3,
-        'train_batch_size': SC_TRAINING_BATCH_SIZE
-    }
-    # MIL STUFF
-    SC_MIL_MODEL_NAME = 'VIT_PRETRAINED_DINO'
-    # SC_MIL_MODEL_CKPT = "/home/sharonpe/microsatellite-instability-classification/data/subtype_classification/third_try_all_slides_16k_4_dino_checkpoints/checkpoint9.pth"
-    SC_MIL_MODEL_CKPT = os.path.join(GeneralConfigs.ROOT, 'models', 'subtype_classification',
-                                     'dgx_SQ6B12_At2Ltanh_65k_2_dino_checkpoints', 'checkpoint0005.pth')
-    # SC_MIL_TILE_ENCODER_CKPT = "/home/sharonpe/microsatellite-instability-classification/data/subtype_classification/third_try_all_slides_16k_4_dino_checkpoints/checkpoint9.pth"
-    SC_MIL_TILE_ENCODER_CKPT = os.path.join(GeneralConfigs.ROOT, 'models', 'subtype_classification',
-                                     'dgx_SQ6B12_At2Ltanh_65k_2_dino_checkpoints', 'checkpoint0005.pth')
-    SC_MIL_TILE_ENCODER_NAME = 'VIT_PRETRAINED_DINO'
-    SC_MIL_TILE_INFERENCE_BATCH_SIZE = 512
-    SC_MIL_TILE_INFERENCE_NUM_WORKERS = 8
-    SC_MIL_MAX_TILES = 900
-    # SC_MIL_LR_DICT = {'base_value': 1e-3 * (SC_TRAINING_BATCH_SIZE * SC_NUM_NODES * SC_NUM_DEVICES) / 64.0,
-    #                   'final_value': 1e-6, 'warmup_epochs': 2, 'start_warmup_value': 1e-6}
-    SC_MIL_POOLING_STRATEGY = {
-        'type': 'max',
-        'kernel_size': 4
-    }
-    SC_DROPOUT = (0.0, 0.0, 0.0)
 
 
 class DINOConfigs:
@@ -405,7 +398,8 @@ class VariantClassificationConfigs:
 
 @dataclass
 class ConfigsClass(GeneralConfigs, PreprocessingConfigs, TumorClassificationConfigs, SemanticSegConfigs,
-                   TumorRegressionConfigs, SubtypeClassificationConfigs, VariantClassificationConfigs, DINOConfigs):
+                   TumorRegressionConfigs, SubtypeClassificationConfigs, VariantClassificationConfigs, DINOConfigs,
+                   TileEmbeddingSavingConfigs):
     TASK_PREFIXES = ''
 
     def __init__(self):
