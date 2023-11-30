@@ -295,9 +295,7 @@ class SubtypeClassificationConfigs:
         'combined_loss_args': SC_COMBINED_LOSS_ARGS,
         'vit_adapter_trainable_blocks': None,
         'attn_dim': 128,
-        'num_bags': 4,
-        'slide_sample_size': 500,
-        'inner_batch_size': 256
+        'num_bags': 5
     }
 
 
