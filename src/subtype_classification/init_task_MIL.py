@@ -3,9 +3,9 @@ from src.components.objects.Logger import Logger
 import pandas as pd
 import os
 from src.training_utils import init_training_transforms, init_training_callbacks
+from torch.multiprocessing import set_start_method, set_sharing_strategy
 from src.components.models.CT_MIL import CT_MIL
-from src.subtype_classification.init_task_generic import init_data
-from src.components.datasets.BagDataset import BagDataset
+from src.components.datasets.BagTileEmbeddingsDataset import BagTileEmbeddingsDataset
 from src.training_utils import train as train_general
 from functools import partial
 
@@ -13,15 +13,34 @@ from functools import partial
 def train():
     df, train_transform, test_transform, logger, callbacks, model = init_task()
     train_general(df, train_transform, test_transform, logger, callbacks, model,
-                  dataset_fn=partial(BagDataset, slide_sample_size=Configs.SC_CT_MIL['slide_sample_size']))
+                  dataset_fn=BagTileEmbeddingsDataset)
 
 
 def init_task():
     model = init_model()
-    train_transform, test_transform = init_training_transforms()
+    train_transform, test_transform = init_training_transforms(is_tile_embeddings=True)
     logger, callbacks = init_training_callbacks()
-    df_labels_merged_tiles = init_data()
-    return df_labels_merged_tiles, train_transform, test_transform, logger, callbacks, model
+    df_labels_merged_tiles_embeddings = init_data()
+    return df_labels_merged_tiles_embeddings, train_transform, test_transform, logger, callbacks, model
+
+
+def init_data():
+    set_sharing_strategy('file_system')
+    set_start_method("spawn")
+
+    Logger.log("Loading Datasets..", log_importance=1)
+    df_labels = pd.read_csv(Configs.SC_LABEL_DF_PATH, sep='\t')
+    df_labels = df_labels[df_labels[Configs.SC_LABEL_COL].isin(Configs.SC_CLASS_TO_IND.keys())]
+    df_labels['slide_uuid'] = df_labels.slide_path.apply(lambda p: os.path.basename(os.path.dirname(p)))
+    df_labels['y'] = df_labels[Configs.SC_LABEL_COL].apply(lambda s: Configs.SC_CLASS_TO_IND[s])
+    df_labels.cohort = df_labels.cohort.apply(lambda c: c if c not in ['COAD', 'READ'] else 'CRC')
+    df_labels[Configs.joined['Y_TO_BE_STRATIFIED']] = df_labels['y'].astype(str) + '_' + df_labels['cohort']
+    df_labels = df_labels[df_labels.cohort.isin(Configs.SC_COHORT_TO_IND.keys())]
+    # merging labels and tiles
+    df_tile_embeddings = pd.read_csv(Configs.SC_DF_TILE_EMBEDDINGS_PATH)
+    # df_tile_embeddings = df_tile_embeddings[df_tile_embeddings.slide_uuid.isin(df_tile_embeddings.slide_uuid.unique()[:10])]
+    df_labels_merged_tiles_embeddings = df_labels.merge(df_tile_embeddings, how='inner', on='slide_uuid')
+    return df_labels_merged_tiles_embeddings
 
 
 def init_model():

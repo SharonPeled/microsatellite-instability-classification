@@ -218,7 +218,13 @@ def init_training_callbacks():
     return mlflow_logger, [lr_monitor, checkpoint_callback]
 
 
-def init_training_transforms():
+def init_training_transforms(is_tile_embeddings=False):
+    if is_tile_embeddings:
+        transform = transforms.Compose([
+            transforms.ToTensor()
+        ])
+        return transform, transform
+
     train_transform = transforms.Compose([
         transforms.RandomApply([transforms.RandomResizedCrop(224, scale=(0.75, 1.0), interpolation=Image.BICUBIC), ],
                                p=0.1),

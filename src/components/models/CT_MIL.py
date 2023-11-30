@@ -26,6 +26,9 @@ class CT_MIL(CombinedLossSubtypeClassifier):
         self.tier2_head = deepcopy(self.head)
         Logger.log(f"""CT_MIL created with: {self.ct_mil_args}.""", log_importance=1)
 
+    def init_tile_weight(self, a):
+        pass
+
     def on_train_start(self):
         super(CT_MIL, self).on_train_start()
 
@@ -49,28 +52,27 @@ class CT_MIL(CombinedLossSubtypeClassifier):
         self.optimizers_list.append(optimizer1)
         self.optimizers_list.append(optimizer2)
 
-    def get_tile_embeddings(self, x, c):
-        x_embed_list = []
-        batch_size = self.ct_mil_args['inner_batch_size']
-        for i in range(0, x.shape[0], batch_size):
-            x_batch = x[i:i + batch_size, :]
-            c_batch = torch.full((x_batch.shape[0],), c.item()).to(x_batch.device)
-            x_embed_list.append(self.backbone(x_batch, c_batch))
-        return torch.cat(x_embed_list)
+    # def get_tile_embeddings(self, x, c):
+    #     x_embed_list = []
+    #     batch_size = self.ct_mil_args['inner_batch_size']
+    #     for i in range(0, x.shape[0], batch_size):
+    #         x_batch = x[i:i + batch_size, :]
+    #         c_batch = torch.full((x_batch.shape[0],), c.item()).to(x_batch.device)
+    #         x_embed_list.append(self.backbone(x_batch, c_batch))
+    #     return torch.cat(x_embed_list)
 
     def general_loop(self, batch, batch_idx, test=False):
-        x, c, y, s, p, tile_path = batch
-        x = x.squeeze()
+        x_embed, c, y, s, p = batch
+        x_embed = x_embed.squeeze()
         if test:
-            scores = self.forward(x, c)
+            scores = self.forward(x_embed, c)
             loss = torch.tensor(-1)
             return loss, {'loss': loss.detach().cpu(), 'c': c.detach().cpu(),
                           'scores': scores.detach().cpu(), 'y': y, 'slide_id': s, 'patient_id': p,
-                          'tile_path': tile_path}
+                          'tile_path': ''}
 
         opt1, opt2, opt_s = self.optimizers_list
-        x_embed = self.get_tile_embeddings(x, c)
-        del x # to save cuda space
+
         bags_embed, tier1_scores = self.forward_tier1(x_embed)
         tier1_y = torch.full((tier1_scores.shape[0],), y.item()).to(tier1_scores.device)
         tier1_loss = F.binary_cross_entropy_with_logits(tier1_scores, tier1_y.float(), reduction='mean')
@@ -89,11 +91,9 @@ class CT_MIL(CombinedLossSubtypeClassifier):
         self.logger.experiment.log_metric(self.logger.run_id, "tier2_loss", tier2_loss.detach().cpu())
         return tier2_loss, {'loss': tier2_loss.detach().cpu(), 'c': c.detach().cpu(),
                             'scores': tier2_score.detach().cpu(), 'y': y, 'slide_id': s, 'patient_id': p,
-                            'tile_path': tile_path}
+                            'tile_path': ''}
 
-    def forward(self, x, c):
-        x_embed = self.get_tile_embeddings(x, c)
-        del x
+    def forward(self, x_embed, c):
         bags_embed, tier1_scores = self.forward_tier1(x_embed)
         slide_embed, tier2_score = self.forward_tier2(bags_embed)
         return tier2_score
