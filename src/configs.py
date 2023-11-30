@@ -191,7 +191,7 @@ class TumorRegressionConfigs:
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
     SC_EXPERIMENT_NAME = 'SC_DISTILMIL'
-    SC_FORMULATION = f'p100_baseline'
+    SC_FORMULATION = f'p100_baseline_300e'
     SC_RUN_NAME = f"{SC_FORMULATION}"
     SC_RUN_DESCRIPTION = f"""Labels are by bioportal.
     """
@@ -237,7 +237,7 @@ class SubtypeClassificationConfigs:
     SC_TEST_ONLY = None
     SC_SAVE_TEST = True
     SC_SAVE_TRAIN = False
-    SC_NUM_EPOCHS = 100
+    SC_NUM_EPOCHS = 300
     SC_NUM_DEVICES = 1
     SC_NUM_NODES = 1
     SC_DEVICE = 'gpu'
@@ -245,7 +245,7 @@ class SubtypeClassificationConfigs:
     SC_SAVE_CHECKPOINT_STEP_INTERVAL = None
     SC_VAL_STEP_INTERVAL = 1/2  # 2 times an epoch
     SC_TRAINING_BATCH_SIZE = 1  # accumulating gradients in MIL only
-    SC_NUM_WORKERS = 5
+    SC_NUM_WORKERS = 3
     SC_TEST_SIZE = 0.333
     SC_VALID_SIZE = 0  # not used if CV=True
     SC_INIT_LR = [1e-6,
