@@ -5,6 +5,7 @@ from src.components.models.PretrainedClassifier import PretrainedClassifier
 from src.components.objects.Logger import Logger
 from src.components.datasets.ProcessedTileDataset import ProcessedTileDataset
 from src.components.datasets.BagDataset import BagDataset
+from src.components.datasets.BagTileEmbeddingsDataset import BagTileEmbeddingsDataset
 from src.training_utils import lr_scheduler_linspace_steps
 
 
@@ -51,7 +52,7 @@ class CombinedLossSubtypeClassifier(SubtypeClassifier):
         super(CombinedLossSubtypeClassifier, self).on_train_start()
         loader = self.trainer.train_dataloader
         dataset = loader.dataset
-        if not isinstance(dataset, (ProcessedTileDataset, BagDataset)):
+        if not isinstance(dataset, (ProcessedTileDataset, BagDataset, BagTileEmbeddingsDataset)):
             dataset = dataset.datasets
         df_labels = dataset.df_labels
         self.cohort_to_ind_aux = {value: index for index, value in enumerate(df_labels.cohort.map(self.cohort_to_ind).unique())}
