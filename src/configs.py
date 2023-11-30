@@ -237,7 +237,7 @@ class SubtypeClassificationConfigs:
     SC_TEST_ONLY = None
     SC_SAVE_TEST = True
     SC_SAVE_TRAIN = False
-    SC_NUM_EPOCHS = 10
+    SC_NUM_EPOCHS = 100
     SC_NUM_DEVICES = 1
     SC_NUM_NODES = 1
     SC_DEVICE = 'gpu'
@@ -245,11 +245,11 @@ class SubtypeClassificationConfigs:
     SC_SAVE_CHECKPOINT_STEP_INTERVAL = None
     SC_VAL_STEP_INTERVAL = 1/2  # 2 times an epoch
     SC_TRAINING_BATCH_SIZE = 1  # accumulating gradients in MIL only
-    SC_NUM_WORKERS = 15
+    SC_NUM_WORKERS = 5
     SC_TEST_SIZE = 0.333
     SC_VALID_SIZE = 0  # not used if CV=True
-    SC_INIT_LR = [1e-6 * (SC_TRAINING_BATCH_SIZE/256),
-                  1e-4 * (SC_TRAINING_BATCH_SIZE/256)]  # per part of the network, in order of the actual nn
+    SC_INIT_LR = [1e-6,
+                  1e-4]  # per part of the network, in order of the actual nn
     SC_TILE_SAMPLE_TRAIN = 1e10  # all tiles
     SC_TILE_SAMPLE_LAMBDA_TRAIN_TUNE = None
     SC_FROZEN_BACKBONE = False
