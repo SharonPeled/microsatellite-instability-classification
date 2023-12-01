@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 from src.components.models.CombinedLossSubtypeClassifier import CombinedLossSubtypeClassifier
+from src.components.datasets.BagTileEmbeddingsDataset import BagTileEmbeddingsDataset
 from src.components.models.PretrainedClassifier import PretrainedClassifier
 from src.components.objects.Logger import Logger
 from src.components.datasets.ProcessedTileDataset import ProcessedTileDataset
@@ -20,10 +21,13 @@ class CT_MIL(CombinedLossSubtypeClassifier):
                                                             cohort_to_ind, cohort_weight, nn_output_size,
                                                             **other_kwargs)
         self.ct_mil_args = ct_mil_args
+        self.adapter = DimReduction(n_channels=self.num_features, m_dim=self.num_features, numLayer_Res=self.ct_mil_args['num_res_blocks'])
         self.tier1_attention = Attention_Gated(L=self.num_features, D=self.ct_mil_args['attn_dim'])
         self.tier1_head = deepcopy(self.head)
         self.tier2_attention = Attention_Gated(L=self.num_features, D=self.ct_mil_args['attn_dim'])
         self.tier2_head = deepcopy(self.head)
+        self.slide_weight = None
+        del self.model
         Logger.log(f"""CT_MIL created with: {self.ct_mil_args}.""", log_importance=1)
 
     def init_tile_weight(self, a):
@@ -31,9 +35,17 @@ class CT_MIL(CombinedLossSubtypeClassifier):
 
     def on_train_start(self):
         super(CT_MIL, self).on_train_start()
+        loader = self.trainer.train_dataloader
+        dataset = loader.dataset
+        if not isinstance(dataset, (BagTileEmbeddingsDataset)):
+            dataset = dataset.datasets
+        df_labels = dataset.df_labels
+        slide_per_y_per_c = df_labels.groupby(['y', 'cohort_ind']).slide_uuid.nunique()
+        self.slide_weight = 1 / (slide_per_y_per_c / slide_per_y_per_c.sum())
+        self.slide_weight = self.slide_weight / self.slide_weight.min()
 
     def configure_optimizers(self):
-        self.set_training_warmup()
+        # self.set_training_warmup()
         param_groups = []
         if self.ct_mil_args['vit_adapter_trainable_blocks'] is not None \
                 and self.ct_mil_args['vit_adapter_trainable_blocks'] > 0:
@@ -41,14 +53,16 @@ class CT_MIL(CombinedLossSubtypeClassifier):
                                             if name.startswith('norm') or name.startswith(tuple([f'blocks.{11 - i}'
                                                                                                  for i in range(self.ct_mil_args['vit_adapter_trainable_blocks'])]))],
                                  'lr': self.learning_rate[0]})
+
+        param_groups.append({"params": [p for p in self.adapter.parameters()], 'lr': self.learning_rate[1]})
         param_groups.append({"params": [p for p in self.tier1_attention.parameters()], 'lr': self.learning_rate[1]})
         param_groups.append({"params": [p for p in self.tier1_head.parameters()], 'lr': self.learning_rate[1]})
-        optimizer1 = torch.optim.Adam(param_groups)
+        optimizer1 = torch.optim.Adam(param_groups,  weight_decay=self.ct_mil_args['weight_decay'])
 
         optimizer2 = torch.optim.Adam([
             {"params": [p for p in self.tier2_attention.parameters()], 'lr': self.learning_rate[1]},
             {"params": [p for p in self.tier2_head.parameters()], 'lr': self.learning_rate[1]}
-        ])
+        ],  weight_decay=self.ct_mil_args['weight_decay'])
         self.optimizers_list.append(optimizer1)
         self.optimizers_list.append(optimizer2)
 
@@ -72,19 +86,27 @@ class CT_MIL(CombinedLossSubtypeClassifier):
                           'tile_path': ''}
 
         opt1, opt2, opt_s = self.optimizers_list
+        slide_w = self.slide_weight.loc[(y.item(), c.item())]
 
         bags_embed, tier1_scores = self.forward_tier1(x_embed)
         tier1_y = torch.full((tier1_scores.shape[0],), y.item()).to(tier1_scores.device)
         tier1_loss = F.binary_cross_entropy_with_logits(tier1_scores, tier1_y.float(), reduction='mean')
+        tier1_loss *= slide_w
         opt1.zero_grad()
         self.manual_backward(tier1_loss, retain_graph=True)
+        torch.nn.utils.clip_grad_norm_(self.adapter.parameters(), self.ct_mil_args['grad_clip'])
+        torch.nn.utils.clip_grad_norm_(self.tier1_attention.parameters(), self.ct_mil_args['grad_clip'])
+        torch.nn.utils.clip_grad_norm_(self.tier1_head.parameters(), self.ct_mil_args['grad_clip'])
         opt1.step()
 
         slide_embed, tier2_score = self.forward_tier2(bags_embed.clone().detach())
         tier2_y = torch.full((tier2_score.shape[0],), y.item()).to(tier2_score.device)
         tier2_loss = F.binary_cross_entropy_with_logits(tier2_score, tier2_y.float(), reduction='mean')
+        tier2_loss *= slide_w
         opt2.zero_grad()
         self.manual_backward(tier2_loss)
+        torch.nn.utils.clip_grad_norm_(self.tier2_attention.parameters(), self.ct_mil_args['grad_clip'])
+        torch.nn.utils.clip_grad_norm_(self.tier2_head.parameters(), self.ct_mil_args['grad_clip'])
         opt2.step()
 
         self.logger.experiment.log_metric(self.logger.run_id, "tier1_loss", tier1_loss.detach().cpu())
@@ -110,6 +132,7 @@ class CT_MIL(CombinedLossSubtypeClassifier):
         tier2_embeds = []
         for i in range(0, x_embed.shape[0], bag_size):
             x_embed_b = x_embed[i:i + bag_size, :]
+            x_embed_b = self.adapter(x_embed_b)
             attn_w1 = self.tier1_attention(x_embed_b)
             bag_embed = (x_embed_b * attn_w1).sum(dim=0)
             tier1_scores.append(self.tier1_head(bag_embed))
@@ -158,4 +181,42 @@ class Attention_Gated(nn.Module):
         if isNorm:
             A = softmax(A, dim=0)  # softmax over N
         return A
+
+
+class residual_block(nn.Module):
+    def __init__(self, nChn=512):
+        super(residual_block, self).__init__()
+        self.block = nn.Sequential(
+                nn.Linear(nChn, nChn, bias=False),
+                nn.ReLU(inplace=True),
+                nn.Linear(nChn, nChn, bias=False),
+                nn.ReLU(inplace=True),
+            )
+    def forward(self, x):
+        tt = self.block(x)
+        x = x + tt
+        return x
+
+
+class DimReduction(nn.Module):
+    def __init__(self, n_channels, m_dim, numLayer_Res):
+        super(DimReduction, self).__init__()
+        self.fc1 = nn.Linear(n_channels, m_dim, bias=False)
+        self.relu1 = nn.ReLU(inplace=True)
+        self.numRes = numLayer_Res
+
+        self.resBlocks = []
+        for ii in range(numLayer_Res):
+            self.resBlocks.append(residual_block(m_dim))
+        self.resBlocks = nn.Sequential(*self.resBlocks)
+
+    def forward(self, x):
+
+        x = self.fc1(x)
+        x = self.relu1(x)
+
+        if self.numRes > 0:
+            x = self.resBlocks(x)
+
+        return x
 

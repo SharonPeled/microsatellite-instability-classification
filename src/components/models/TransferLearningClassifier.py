@@ -103,7 +103,7 @@ class TransferLearningClassifier(pl.LightningModule):
                       'y': y.cpu(), 'slide_id': slide_id, 'patient_id': patient_id}
 
     def training_step(self, batch, batch_idx):
-        if self.num_iters_warmup_wo_backbone is not None and not self.backbone_grad_status \
+        if self.num_iters_warmup_wo_backbone is not None and self.num_iters_warmup_wo_backbone>0 and not self.backbone_grad_status \
                 and batch_idx > self.num_iters_warmup_wo_backbone:
             for param in self.model[:-1].parameters():
                 param.requires_grad = True

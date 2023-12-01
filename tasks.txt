@@ -11,9 +11,20 @@ on hold:
 
 
 to do:
+    gradient clip? weight decay?
+    dim reduction layer
+    slide weight
+
+    tune epochs/bags
+
+    dim warmup/more sophisticated
+    slide reg
+
+
 
     repeat the entire process again....
 
+    accumolate gradients?
     tile weight?
     MLH instead of gated attention?
     warmup slide head? - move to slide level and global level

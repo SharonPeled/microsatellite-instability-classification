@@ -36,6 +36,7 @@ def init_data():
     df_labels.cohort = df_labels.cohort.apply(lambda c: c if c not in ['COAD', 'READ'] else 'CRC')
     df_labels[Configs.joined['Y_TO_BE_STRATIFIED']] = df_labels['y'].astype(str) + '_' + df_labels['cohort']
     df_labels = df_labels[df_labels.cohort.isin(Configs.SC_COHORT_TO_IND.keys())]
+    df_labels['cohort_ind'] = df_labels.cohort.apply(lambda c: Configs.SC_COHORT_TO_IND[c])
     # merging labels and tiles
     df_tile_embeddings = pd.read_csv(Configs.SC_DF_TILE_EMBEDDINGS_PATH)
     # df_tile_embeddings = df_tile_embeddings[df_tile_embeddings.slide_uuid.isin(df_tile_embeddings.slide_uuid.unique()[:10])]
