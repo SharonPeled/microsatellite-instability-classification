@@ -11,6 +11,9 @@ on hold:
 
 
 to do:
+
+    sample the bags!!!
+
     using the tile encoder and save tile once!!
     compare test and train of w/wo slide reg
 

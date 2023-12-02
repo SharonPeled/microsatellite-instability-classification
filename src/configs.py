@@ -190,8 +190,8 @@ class TumorRegressionConfigs:
 
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
-    SC_EXPERIMENT_NAME = 'SC_DISTILMIL'
-    SC_FORMULATION = f'p100_baseline_50e_4b'
+    SC_EXPERIMENT_NAME = 'SC_BASELINE'
+    SC_FORMULATION = f'p100_balanced_both_loss_0_0_baseline'
     SC_RUN_NAME = f"{SC_FORMULATION}"
     SC_RUN_DESCRIPTION = f"""Labels are by bioportal.
     """
@@ -200,8 +200,10 @@ class SubtypeClassificationConfigs:
                                     # 'df_labels_msi_slides_and_other_msi_mss.tsv')
                                     # 'df_labels_cin_slides_and_other_cin_gs.tsv')
                                     # 'df_labels_cin_slides_and_other_cin_gs_2.tsv')
+    # f for fold to be replaced later
+    SC_EXP_ARTIFACTS_DIR = os.path.join(GeneralConfigs.DATA_FOLDER, 'experiments_artifacts', SC_RUN_NAME, 'f')
     SC_DF_TILE_EMBEDDINGS_PATH = os.path.join(GeneralConfigs.DATA_FOLDER,
-                                              f'tile_embeddings', 'df_tile_embeddings.csv')
+                                              f'tile_embeddings', 'df_tile_embeddings.csv') # TODO: change this
     SC_DF_TILE_PATHS_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                          f'df_processed_tile_paths_{SC_TILE_SIZE}.csv')
     SC_DF_TILE_PATHS_PATH_256 = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
@@ -211,14 +213,11 @@ class SubtypeClassificationConfigs:
     SC_DF_TILE_PATHS_PATH_1024 = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                               f'df_processed_tile_paths_1024_reduced.csv')  # the labeled slides are full..
     SC_LABEL_COL = 'subtype'
-    SC_TRAINED_MODEL_PATH = os.path.join(GeneralConfigs.ROOT, 'models', 'subtype_classification',
-                                         f'SC_{SC_RUN_NAME}_' + '{time}.ckpt')
-    SC_TEST_PREDICT_OUTPUT_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
-                                               f'{SC_RUN_NAME}_pred', 'test')
-    SC_TRAIN_PREDICT_OUTPUT_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
-                                               f'{SC_RUN_NAME}_pred', 'train')
-    SC_VALID_PREDICT_OUTPUT_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
-                                                f'{SC_RUN_NAME}_pred', 'valid')
+    SC_TRAINED_MODEL_PATH = os.path.join(SC_EXP_ARTIFACTS_DIR, 'train', f'model_' + '{time}.ckpt')
+    SC_TEST_PREDICT_OUTPUT_PATH = os.path.join(SC_EXP_ARTIFACTS_DIR, 'test')
+    SC_TRAIN_PREDICT_OUTPUT_PATH = os.path.join(SC_EXP_ARTIFACTS_DIR, 'train')
+    # SC_VALID_PREDICT_OUTPUT_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
+    #                                             f'{SC_RUN_NAME}_pred', 'valid')
     SC_SSL_STATISTICS = {'HSV': os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                              f'HSV_statistics_30_512.yaml'),
                          'HED': os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
@@ -227,6 +226,7 @@ class SubtypeClassificationConfigs:
                                              f'LAB_statistics_30_512.yaml')}
     SC_CROSS_VALIDATE = True  # num folds according to test size
     SC_CONTINUE_FROM_FOLD = 0  # 0 to 1/TEST_SIZE
+    SC_SINGLE_FOLD = True  # 0 to 1/TEST_SIZE
     SC_Y_TO_BE_STRATIFIED = 'y_to_be_stratified'
     SC_CLASS_TO_IND = {'GS': 0, 'CIN': 1} # {'MSS': 0, 'MSI': 1} #
     SC_CLASS_WEIGHT = None #  {'GS': 770, 'CIN': 235}
@@ -236,20 +236,20 @@ class SubtypeClassificationConfigs:
     # SC_COHORT_TUNE = None # ['COAD', 'READ']
     SC_TEST_ONLY = None
     SC_SAVE_TEST = True
-    SC_SAVE_TRAIN = False
-    SC_NUM_EPOCHS = 50
+    SC_SAVE_TRAIN = True
+    SC_NUM_EPOCHS = 1
     SC_NUM_DEVICES = 1
     SC_NUM_NODES = 1
     SC_DEVICE = 'gpu'
-    SC_TEST_BATCH_SIZE = 1
+    SC_TEST_BATCH_SIZE = 512
     SC_SAVE_CHECKPOINT_STEP_INTERVAL = None
     SC_VAL_STEP_INTERVAL = 1/2  # 2 times an epoch
-    SC_TRAINING_BATCH_SIZE = 1  # accumulating gradients in MIL only
-    SC_NUM_WORKERS = 3
-    SC_TEST_SIZE = 0.333
+    SC_TRAINING_BATCH_SIZE = 256  # accumulating gradients in MIL only
+    SC_NUM_WORKERS = 20
+    SC_TEST_SIZE = 0.3333
     SC_VALID_SIZE = 0  # not used if CV=True
-    SC_INIT_LR = [1e-6,
-                  1e-4]  # per part of the network, in order of the actual nn
+    SC_INIT_LR = [1e-6 * (SC_TRAINING_BATCH_SIZE/256),
+                  1e-4 * (SC_TRAINING_BATCH_SIZE/256)]  # per part of the network, in order of the actual nn
     SC_TILE_SAMPLE_TRAIN = 1e10  # all tiles
     SC_TILE_SAMPLE_LAMBDA_TRAIN_TUNE = None
     SC_FROZEN_BACKBONE = False
@@ -284,10 +284,10 @@ class SubtypeClassificationConfigs:
                   }
     # combined loss
     SC_COMBINED_LOSS_ARGS = {
-        'cohort_loss_w': 0.5,
-        'cohort_warmup': 0.99,
-        'slide_loss_w': 0.05,
-        'slide_warmup': 0.99,
+        'cohort_loss_w': 0.0,
+        'cohort_warmup': None,
+        'slide_loss_w': 0.0,
+        'slide_warmup': None,
         'n_nn_cohort_head': {'num_layers': 3, 'dropout_value': 0.0},
         'n_nn_slide_head': {'num_layers': 3, 'dropout_value': 0.0}
     }

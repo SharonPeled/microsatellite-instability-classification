@@ -29,6 +29,7 @@ from datetime import datetime
 from pytorch_lightning.strategies import DDPStrategy
 from tqdm import tqdm
 import os
+import re
 
 
 def save_embeddings(configs):
@@ -94,11 +95,20 @@ def cross_validate(df, train_transform, test_transform, mlflow_logger, model, ca
             Logger.log(f"Skipped Fold {i}", log_importance=1)
             continue
         Logger.log(f"Fold {i}", log_importance=1)
+
+        if Configs.SC_EXP_ARTIFACTS_DIR is not None:
+            for attr in ['TRAINED_MODEL_PATH', 'TEST_PREDICT_OUTPUT_PATH', 'TRAIN_PREDICT_OUTPUT_PATH']:
+                Configs.joined[attr] = re.sub(r"/./train", f"/{i}/train", Configs.joined[attr])
+                Configs.joined[attr] = re.sub(r"/./test", f"/{i}/test", Configs.joined[attr])
+                os.makedirs(os.path.dirname(Configs.joined[attr]), exist_ok=True)
+
         df_train = df.iloc[train_inds].reset_index(drop=True)
         df_test = df.iloc[test_inds].reset_index(drop=True)
         fitted_model = train_single_split(df_train, None, df_test, train_transform, test_transform, mlflow_logger, deepcopy(model),
                                           callbacks=callbacks, **kwargs)
         cv_metrics.append(fitted_model.metrics)
+        if Configs.SC_SINGLE_FOLD:
+            break
     metrics_dict = pd.DataFrame(cv_metrics).mean().add_suffix('_cv').to_dict()
     for metric_str, metric_val in metrics_dict.items():
         mlflow_logger.experiment.log_metric(mlflow_logger.run_id, metric_str, metric_val)

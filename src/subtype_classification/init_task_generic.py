@@ -24,6 +24,7 @@ def load_df_labels_merged_tiles():
     # merging labels and tiles
     df_tiles = pd.read_csv(Configs.SC_DF_TILE_PATHS_PATH)
     # df_tiles = df_tiles.groupby('slide_uuid', as_index=False).apply(lambda d: d.sample(min(len(d), 10)))
+    # df_tiles = df_tiles[df_tiles.slide_uuid.isin(df_tiles.slide_uuid.unique()[:10])]
     df_labels_merged_tiles = df_labels.merge(df_tiles, how='inner', on='slide_uuid')
     return df_labels, df_labels_merged_tiles
 
