@@ -11,6 +11,10 @@ on hold:
 
 
 to do:
+    using the tile encoder and save tile once!!
+    compare test and train of w/wo slide reg
+
+
     gradient clip? weight decay?
     dim reduction layer
     slide weight
@@ -23,6 +27,7 @@ to do:
 
 
     repeat the entire process again....
+    check other papers for slide canceling
 
     accumolate gradients?
     tile weight?
