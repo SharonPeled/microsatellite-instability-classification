@@ -8,7 +8,7 @@ from src.semantic_segmentation.predict import predict as predict_semantic_seg
 from src.tumor_distance_estimation.training import train as train_tumor_regression
 from src.general_utils import bring_files, bring_joined_log_file, delete_all_artifacts, \
     generate_thumbnails_with_tissue_classification, load_df_pred, get_time, set_global_configs
-from src.training_utils import save_embeddings
+from src.subtype_classification.save_tile_embeddings import save_tile_trained_embeddings
 from src.subtype_classification.init_task_MIL import train as train_subtype_classification_mil
 from src.subtype_classification.init_task_generic import train as train_subtype_classification_tile
 from src.subtype_classification.init_task_combined_loss_tile import train as train_subtype_classification_combined_tile
@@ -103,7 +103,7 @@ def main():
         from src.preprocessing.pipeline import execute_preprocessing_pipeline
         execute_preprocessing_pipeline(with_tiling=True, num_processes=args.num_processes, slide_ids=args.slide_ids)
     if args.save_tiles_embeddings:
-        save_embeddings(Configs)
+        save_tile_trained_embeddings()
     if args.thumbnails_only:
         from src.preprocessing.pipeline import execute_preprocessing_pipeline
         execute_preprocessing_pipeline(with_tiling=False, num_processes=args.num_processes, slide_ids=args.slide_ids)
