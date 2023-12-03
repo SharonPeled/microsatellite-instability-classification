@@ -194,7 +194,7 @@ class TumorRegressionConfigs:
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
     SC_EXPERIMENT_NAME = 'SC_DISTILMIL'
-    SC_FORMULATION = f'tile_backbone_100e_4b_2res'
+    SC_FORMULATION = f'tile_backbone_sr_100e_5b_2res'
     SC_RUN_NAME = f"{SC_FORMULATION}"
     SC_RUN_DESCRIPTION = f"""Labels are by bioportal.
     """
@@ -204,7 +204,7 @@ class SubtypeClassificationConfigs:
                                     # 'df_labels_cin_slides_and_other_cin_gs.tsv')
                                     # 'df_labels_cin_slides_and_other_cin_gs_2.tsv')
     SC_BACKBONE_ARTIFACT_DIR = os.path.join(GeneralConfigs.DATA_FOLDER, 'experiments_artifacts',
-                                            'p100_balanced_both_loss_0_0_baseline')
+                                            'p100_balanced_both_loss_0_005_wm1_baseline')
     # f for fold to be replaced later
     SC_EXP_ARTIFACTS_DIR = os.path.join(GeneralConfigs.DATA_FOLDER, 'experiments_artifacts',
                                         f'{SC_EXPERIMENT_NAME}_{SC_RUN_NAME}', 'f')
@@ -302,7 +302,7 @@ class SubtypeClassificationConfigs:
         'combined_loss_args': SC_COMBINED_LOSS_ARGS,
         'vit_adapter_trainable_blocks': None,
         'attn_dim': 128,
-        'num_bags': 4,
+        'num_bags': 5,
         'weight_decay': 1e-4,
         'grad_clip': 5,
         'num_res_blocks': 2
