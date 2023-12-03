@@ -252,7 +252,7 @@ class SubtypeClassificationConfigs:
     SC_SAVE_CHECKPOINT_STEP_INTERVAL = None
     SC_VAL_STEP_INTERVAL = 1/2  # 2 times an epoch
     SC_TRAINING_BATCH_SIZE = 1  # accumulating gradients in MIL only
-    SC_NUM_WORKERS = 15
+    SC_NUM_WORKERS = 3
     SC_TEST_SIZE = 0.3333
     SC_VALID_SIZE = 0  # not used if CV=True
     SC_INIT_LR = [1e-6,
