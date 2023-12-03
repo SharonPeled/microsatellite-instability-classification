@@ -11,21 +11,20 @@ on hold:
 
 
 to do:
+    load the fold train/test tiles
+    load the trained model - no working
+    add 2 adapter layers
+    remove the slide weights
+    sample the bags
+    check all
 
-    sample the bags!!!
+    look at the results
 
-    using the tile encoder and save tile once!!
-    compare test and train of w/wo slide reg
-
-
-    gradient clip? weight decay?
-    dim reduction layer
     slide weight
-
+    compare test and train of w/wo slide reg
     tune epochs/bags
 
-    dim warmup/more sophisticated
-    slide reg
+
 
 
 

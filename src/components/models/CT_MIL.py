@@ -91,7 +91,7 @@ class CT_MIL(CombinedLossSubtypeClassifier):
         bags_embed, tier1_scores = self.forward_tier1(x_embed)
         tier1_y = torch.full((tier1_scores.shape[0],), y.item()).to(tier1_scores.device)
         tier1_loss = F.binary_cross_entropy_with_logits(tier1_scores, tier1_y.float(), reduction='mean')
-        tier1_loss *= slide_w
+        # tier1_loss *= slide_w
         opt1.zero_grad()
         self.manual_backward(tier1_loss, retain_graph=True)
         torch.nn.utils.clip_grad_norm_(self.adapter.parameters(), self.ct_mil_args['grad_clip'])
@@ -102,7 +102,7 @@ class CT_MIL(CombinedLossSubtypeClassifier):
         slide_embed, tier2_score = self.forward_tier2(bags_embed.clone().detach())
         tier2_y = torch.full((tier2_score.shape[0],), y.item()).to(tier2_score.device)
         tier2_loss = F.binary_cross_entropy_with_logits(tier2_score, tier2_y.float(), reduction='mean')
-        tier2_loss *= slide_w
+        # tier2_loss *= slide_w
         opt2.zero_grad()
         self.manual_backward(tier2_loss)
         torch.nn.utils.clip_grad_norm_(self.tier2_attention.parameters(), self.ct_mil_args['grad_clip'])
@@ -127,6 +127,7 @@ class CT_MIL(CombinedLossSubtypeClassifier):
         return slide_embed, tier2_score
 
     def forward_tier1(self, x_embed):
+        x_embed = x_embed[torch.randperm(x_embed.shape[0])]
         bag_size = x_embed.shape[0] // self.ct_mil_args['num_bags']
         tier1_scores = []
         tier2_embeds = []

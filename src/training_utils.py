@@ -101,10 +101,21 @@ def cross_validate(df, train_transform, test_transform, mlflow_logger, model, ca
                 Configs.joined[attr] = re.sub(r"/./train", f"/{i}/train", Configs.joined[attr])
                 Configs.joined[attr] = re.sub(r"/./test", f"/{i}/test", Configs.joined[attr])
                 os.makedirs(os.path.dirname(Configs.joined[attr]), exist_ok=True)
-
-        df_train = df.iloc[train_inds].reset_index(drop=True)
-        df_test = df.iloc[test_inds].reset_index(drop=True)
-        fitted_model = train_single_split(df_train, None, df_test, train_transform, test_transform, mlflow_logger, deepcopy(model),
+        fold_model = deepcopy(model)
+        if Configs.SC_USE_ARTIFACT_DIR:
+            train_dir = os.path.join(Configs.SC_BACKBONE_ARTIFACT_DIR, str(i), 'train')
+            test_dir = os.path.join(Configs.SC_BACKBONE_ARTIFACT_DIR, str(i), 'test')
+            df_train = pd.read_csv(os.path.join(train_dir, 'df_tile_embeddings.csv'))
+            df_train = df_train.merge(df, how='inner', on='slide_uuid', suffixes=('', '_x'))
+            df_test = pd.read_csv(os.path.join(test_dir, 'df_tile_embeddings.csv'))
+            df_test = df_test.merge(df, how='inner', on='slide_uuid', suffixes=('', '_x'))
+            # model_path = [os.path.join(train_dir, file) for file in os.listdir(train_dir) if file.endswith(".ckpt")]
+            # assert len(model_path) == 1
+            # fold_model.load_state_dict(torch.load(model_path[0]), strict=False)
+        else:
+            df_train = df.iloc[train_inds].reset_index(drop=True)
+            df_test = df.iloc[test_inds].reset_index(drop=True)
+        fitted_model = train_single_split(df_train, None, df_test, train_transform, test_transform, mlflow_logger, fold_model,
                                           callbacks=callbacks, **kwargs)
         cv_metrics.append(fitted_model.metrics)
         if Configs.SC_SINGLE_FOLD:
