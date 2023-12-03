@@ -194,7 +194,7 @@ class TumorRegressionConfigs:
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
     SC_EXPERIMENT_NAME = 'SC_DISTILMIL'
-    SC_FORMULATION = f'tile_backbone_sr_100e_6b_2res'
+    SC_FORMULATION = f'tile_backbone_sr_100e_4b_1res'
     SC_RUN_NAME = f"{SC_FORMULATION}"
     SC_RUN_DESCRIPTION = f"""Labels are by bioportal.
     """
@@ -302,10 +302,10 @@ class SubtypeClassificationConfigs:
         'combined_loss_args': SC_COMBINED_LOSS_ARGS,
         'vit_adapter_trainable_blocks': None,
         'attn_dim': 128,
-        'num_bags': 6,
+        'num_bags': 4,
         'weight_decay': 1e-4,
         'grad_clip': 5,
-        'num_res_blocks': 2
+        'num_res_blocks': 1
     }
 
 
