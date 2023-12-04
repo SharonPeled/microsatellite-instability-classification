@@ -194,7 +194,7 @@ class TumorRegressionConfigs:
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
     SC_EXPERIMENT_NAME = 'SC_DISTILMIL'
-    SC_FORMULATION = f'tile_backbone_sr_100e_1kb_2res'
+    SC_FORMULATION = f'tile_backbone_sr_w10_5e4_200e_4b_2res'
     SC_RUN_NAME = f"{SC_FORMULATION}"
     SC_RUN_DESCRIPTION = f"""Labels are by bioportal.
     """
@@ -244,7 +244,7 @@ class SubtypeClassificationConfigs:
     SC_TEST_ONLY = None
     SC_SAVE_TEST = True
     SC_SAVE_TRAIN = False
-    SC_NUM_EPOCHS = 100
+    SC_NUM_EPOCHS = 200
     SC_NUM_DEVICES = 1
     SC_NUM_NODES = 1
     SC_DEVICE = 'gpu'
@@ -256,7 +256,7 @@ class SubtypeClassificationConfigs:
     SC_TEST_SIZE = 0.3333
     SC_VALID_SIZE = 0  # not used if CV=True
     SC_INIT_LR = [1e-6,
-                  1e-4]  # per part of the network, in order of the actual nn
+                  5e-4]  # per part of the network, in order of the actual nn
     SC_TILE_SAMPLE_TRAIN = 1e10  # all tiles
     SC_TILE_SAMPLE_LAMBDA_TRAIN_TUNE = None
     SC_FROZEN_BACKBONE = False
@@ -304,6 +304,7 @@ class SubtypeClassificationConfigs:
         'attn_dim': 128,
         'num_bags': None,
         'num_tiles_per_bag': 1000,
+        'cumulative_batch_size': 10,
         'weight_decay': 1e-4,
         'grad_clip': 5,
         'num_res_blocks': 2

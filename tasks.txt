@@ -14,7 +14,7 @@ to do:
     1000 tiles per bag
     slide weight + batch>1
 
-
+    check for slide detection from the tier1/2
     compare test and train of w/wo slide reg
     tune epochs/bags
 

@@ -30,6 +30,10 @@ class CT_MIL(CombinedLossSubtypeClassifier):
         self.tier2_head = deepcopy(self.head)
         self.slide_weight = None
         del self.model
+        self.tier_1_batch_loss = []
+        self.tier_2_batch_loss = []
+        self.slide_w_batch = []
+        self.loader_size = 0
         Logger.log(f"""CT_MIL created with: {self.ct_mil_args}.""", log_importance=1)
 
     def init_tile_weight(self, a):
@@ -38,6 +42,7 @@ class CT_MIL(CombinedLossSubtypeClassifier):
     def on_train_start(self):
         super(CT_MIL, self).on_train_start()
         loader = self.trainer.train_dataloader
+        self.loader_size = len(loader)
         dataset = loader.dataset
         if not isinstance(dataset, (BagTileEmbeddingsDataset)):
             dataset = dataset.datasets
@@ -94,22 +99,25 @@ class CT_MIL(CombinedLossSubtypeClassifier):
         tier1_y = torch.full((tier1_scores.shape[0],), y.item()).to(tier1_scores.device)
         tier1_loss = F.binary_cross_entropy_with_logits(tier1_scores, tier1_y.float(), reduction='mean')
         # tier1_loss *= slide_w
-        opt1.zero_grad()
-        self.manual_backward(tier1_loss, retain_graph=True)
-        torch.nn.utils.clip_grad_norm_(self.adapter.parameters(), self.ct_mil_args['grad_clip'])
-        torch.nn.utils.clip_grad_norm_(self.tier1_attention.parameters(), self.ct_mil_args['grad_clip'])
-        torch.nn.utils.clip_grad_norm_(self.tier1_head.parameters(), self.ct_mil_args['grad_clip'])
-        opt1.step()
+        # opt1.zero_grad()
+        # self.manual_backward(tier1_loss, retain_graph=True)
+        # torch.nn.utils.clip_grad_norm_(self.adapter.parameters(), self.ct_mil_args['grad_clip'])
+        # torch.nn.utils.clip_grad_norm_(self.tier1_attention.parameters(), self.ct_mil_args['grad_clip'])
+        # torch.nn.utils.clip_grad_norm_(self.tier1_head.parameters(), self.ct_mil_args['grad_clip'])
+        # opt1.step()
 
         slide_embed, tier2_score = self.forward_tier2(bags_embed.clone().detach())
         tier2_y = torch.full((tier2_score.shape[0],), y.item()).to(tier2_score.device)
         tier2_loss = F.binary_cross_entropy_with_logits(tier2_score, tier2_y.float(), reduction='mean')
         # tier2_loss *= slide_w
-        opt2.zero_grad()
-        self.manual_backward(tier2_loss)
-        torch.nn.utils.clip_grad_norm_(self.tier2_attention.parameters(), self.ct_mil_args['grad_clip'])
-        torch.nn.utils.clip_grad_norm_(self.tier2_head.parameters(), self.ct_mil_args['grad_clip'])
-        opt2.step()
+        # opt2.zero_grad()
+        # self.manual_backward(tier2_loss)
+        # torch.nn.utils.clip_grad_norm_(self.tier2_attention.parameters(), self.ct_mil_args['grad_clip'])
+        # torch.nn.utils.clip_grad_norm_(self.tier2_head.parameters(), self.ct_mil_args['grad_clip'])
+        # opt2.step()
+        self.tier_1_batch_loss.append(tier1_loss)
+        self.tier_2_batch_loss.append(tier2_loss)
+        self.slide_w_batch.append(slide_w)
 
         self.logger.experiment.log_metric(self.logger.run_id, "tier1_loss", tier1_loss.detach().cpu())
         self.logger.experiment.log_metric(self.logger.run_id, "tier2_loss", tier2_loss.detach().cpu())
@@ -156,6 +164,29 @@ class CT_MIL(CombinedLossSubtypeClassifier):
 
     def on_train_batch_end(self, outputs, batch, batch_idx):
         self.global_iter += 1
+        if len(self.slide_w_batch) == self.ct_mil_args['cumulative_batch_size'] or (self.global_iter % self.loader_size) == 0:
+            opt1, opt2, opt_s = self.optimizers_list
+
+            sum_slide_w = sum(self.slide_w_batch)
+            tier1_loss = sum([loss*(w/sum_slide_w) for loss, w in zip(self.tier_1_batch_loss, self.slide_w_batch)])
+            opt1.zero_grad()
+            self.manual_backward(tier1_loss, retain_graph=True)
+            torch.nn.utils.clip_grad_norm_(self.adapter.parameters(), self.ct_mil_args['grad_clip'])
+            torch.nn.utils.clip_grad_norm_(self.tier1_attention.parameters(), self.ct_mil_args['grad_clip'])
+            torch.nn.utils.clip_grad_norm_(self.tier1_head.parameters(), self.ct_mil_args['grad_clip'])
+            opt1.step()
+
+            tier2_loss = sum([loss*(w/sum_slide_w) for loss, w in zip(self.tier_2_batch_loss, self.slide_w_batch)])
+            opt2.zero_grad()
+            self.manual_backward(tier2_loss)
+            torch.nn.utils.clip_grad_norm_(self.tier2_attention.parameters(), self.ct_mil_args['grad_clip'])
+            torch.nn.utils.clip_grad_norm_(self.tier2_head.parameters(), self.ct_mil_args['grad_clip'])
+            opt2.step()
+
+            self.tier_1_batch_loss = []
+            self.tier_2_batch_loss = []
+            self.slide_w_batch = []
+            Logger.log(f"""Batch backward.""", log_importance=1)
 
 
 # copy paste from https://github.com/hrzhang1123/DTFD-MIL
