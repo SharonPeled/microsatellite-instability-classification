@@ -302,7 +302,8 @@ class SubtypeClassificationConfigs:
         'combined_loss_args': SC_COMBINED_LOSS_ARGS,
         'vit_adapter_trainable_blocks': None,
         'attn_dim': 128,
-        'num_bags': 4,
+        'num_bags': None,
+        'num_tiles_per_bag': 1000,
         'weight_decay': 1e-4,
         'grad_clip': 5,
         'num_res_blocks': 3

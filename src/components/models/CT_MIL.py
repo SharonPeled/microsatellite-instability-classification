@@ -21,6 +21,8 @@ class CT_MIL(CombinedLossSubtypeClassifier):
                                                             cohort_to_ind, cohort_weight, nn_output_size,
                                                             **other_kwargs)
         self.ct_mil_args = ct_mil_args
+        assert self.ct_mil_args.get('num_tiles_per_bag', None) is None or \
+               self.ct_mil_args.get('num_bags', None) is None
         self.adapter = DimReduction(n_channels=self.num_features, m_dim=self.num_features, numLayer_Res=self.ct_mil_args['num_res_blocks'])
         self.tier1_attention = Attention_Gated(L=self.num_features, D=self.ct_mil_args['attn_dim'])
         self.tier1_head = deepcopy(self.head)
@@ -128,7 +130,11 @@ class CT_MIL(CombinedLossSubtypeClassifier):
 
     def forward_tier1(self, x_embed):
         x_embed = x_embed[torch.randperm(x_embed.shape[0])]
-        bag_size = x_embed.shape[0] // self.ct_mil_args['num_bags']
+        if self.ct_mil_args.get('num_bags', None) is None:
+            bag_size = self.ct_mil_args['num_tiles_per_bag']
+            pass
+        else:
+            bag_size = x_embed.shape[0] // self.ct_mil_args['num_bags']
         tier1_scores = []
         tier2_embeds = []
         for i in range(0, x_embed.shape[0], bag_size):

@@ -8,19 +8,13 @@ test:
 
 
 on hold:
-
+    load the trained model - no working
 
 to do:
-    load the fold train/test tiles
-    load the trained model - no working
-    add 2 adapter layers
-    remove the slide weights
-    sample the bags
-    check all
+    1000 tiles per bag
+    slide weight + batch>1
 
-    look at the results
 
-    slide weight
     compare test and train of w/wo slide reg
     tune epochs/bags
 
