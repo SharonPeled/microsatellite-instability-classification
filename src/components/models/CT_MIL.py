@@ -121,7 +121,7 @@ class CT_MIL(CombinedLossSubtypeClassifier):
 
         self.logger.experiment.log_metric(self.logger.run_id, "tier1_loss", tier1_loss.detach().cpu())
         self.logger.experiment.log_metric(self.logger.run_id, "tier2_loss", tier2_loss.detach().cpu())
-        return tier2_loss, {'loss': tier2_loss.detach().cpu(), 'c': c.detach().cpu(),
+        return tier2_loss.detach().cpu(), {'loss': tier2_loss.detach().cpu(), 'c': c.detach().cpu(),
                             'scores': tier2_score.detach().cpu(), 'y': y, 'slide_id': s, 'patient_id': p,
                             'tile_path': ''}
 

@@ -193,8 +193,8 @@ class TumorRegressionConfigs:
 
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
-    SC_EXPERIMENT_NAME = 'SC_DISTILMIL_2'
-    SC_FORMULATION = f'tile_backbone_sr_w16_5e4_400e_6b_3res'
+    SC_EXPERIMENT_NAME = 'SC_TABLE_COMPARE'
+    SC_FORMULATION = f'SSL_VIT_w10_5e4_200e_6b_3res'
     SC_RUN_NAME = f"{SC_FORMULATION}"
     SC_RUN_DESCRIPTION = f"""Labels are by bioportal.
     """
@@ -232,7 +232,7 @@ class SubtypeClassificationConfigs:
                          'LAB': os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                              f'LAB_statistics_30_512.yaml')}
     SC_CROSS_VALIDATE = True  # num folds according to test size
-    SC_CONTINUE_FROM_FOLD = 2  # 0 to 1/TEST_SIZE
+    SC_CONTINUE_FROM_FOLD = 0  # 0 to 1/TEST_SIZE
     SC_SINGLE_FOLD = False  # 0 to 1/TEST_SIZE
     SC_Y_TO_BE_STRATIFIED = 'y_to_be_stratified'
     SC_CLASS_TO_IND = {'GS': 0, 'CIN': 1} # {'MSS': 0, 'MSI': 1} #
@@ -244,7 +244,7 @@ class SubtypeClassificationConfigs:
     SC_TEST_ONLY = None
     SC_SAVE_TEST = True
     SC_SAVE_TRAIN = False
-    SC_NUM_EPOCHS = 400
+    SC_NUM_EPOCHS = 200
     SC_NUM_DEVICES = 1
     SC_NUM_NODES = 1
     SC_DEVICE = 'gpu'
@@ -261,7 +261,7 @@ class SubtypeClassificationConfigs:
     SC_TILE_SAMPLE_LAMBDA_TRAIN_TUNE = None
     SC_FROZEN_BACKBONE = False
     SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 0
-    SC_TILE_ENCODER = 'VIT_PRETRAINED_DINO'  # to load dino net for future classification - VIT_PRETRAINED_DINO
+    SC_TILE_ENCODER = 'SSL_VIT_PRETRAINED'  # SSL_VIT_PRETRAINED VIT_PRETRAINED_DINO
     COHORT_AWARE_DICT = {'num_cohorts': 4,
                          'num_heads_per_cohort': 6,
                          'num_blocks_per_cohort': 12,  # default is last blocks
@@ -304,7 +304,7 @@ class SubtypeClassificationConfigs:
         'attn_dim': 128,
         'num_bags': 6,
         'num_tiles_per_bag': None,
-        'cumulative_batch_size': 16,
+        'cumulative_batch_size': 10,
         'weight_decay': 1e-4,
         'grad_clip': 5,
         'num_res_blocks': 3
