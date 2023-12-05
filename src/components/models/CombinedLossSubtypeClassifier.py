@@ -60,7 +60,8 @@ class CombinedLossSubtypeClassifier(SubtypeClassifier):
         if self.combined_loss_args['slide_loss_w'] is None:
             self.slide_head = nn.Identity().to(self.backbone)
         else:
-            self.slide_head = self.create_aux_head(head_name='slide', head_out_size=len(self.slide_to_ind_axu)).to(self.backbone.device)
+            device = next(self.backbone.parameters()).device
+            self.slide_head = self.create_aux_head(head_name='slide', head_out_size=len(self.slide_to_ind_axu)).to(device)
             self.loss_weights[2] = self.combined_loss_args['slide_loss_w']
         optimizer3 = torch.optim.Adam([
             {"params": [p for p in self.slide_head.parameters()], 'lr': self.learning_rate[1]},
