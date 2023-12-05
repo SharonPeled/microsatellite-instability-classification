@@ -193,8 +193,8 @@ class TumorRegressionConfigs:
 
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
-    SC_EXPERIMENT_NAME = 'SC_DISTILMIL'
-    SC_FORMULATION = f'tile_backbone_sr_w10_5e4_250e_6b_2res'
+    SC_EXPERIMENT_NAME = 'SC_DISTILMIL_2'
+    SC_FORMULATION = f'tile_backbone_sr_w10_5e4_200e_4b_2res'
     SC_RUN_NAME = f"{SC_FORMULATION}"
     SC_RUN_DESCRIPTION = f"""Labels are by bioportal.
     """
@@ -232,7 +232,7 @@ class SubtypeClassificationConfigs:
                          'LAB': os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                              f'LAB_statistics_30_512.yaml')}
     SC_CROSS_VALIDATE = True  # num folds according to test size
-    SC_CONTINUE_FROM_FOLD = 0  # 0 to 1/TEST_SIZE
+    SC_CONTINUE_FROM_FOLD = 2  # 0 to 1/TEST_SIZE
     SC_SINGLE_FOLD = False  # 0 to 1/TEST_SIZE
     SC_Y_TO_BE_STRATIFIED = 'y_to_be_stratified'
     SC_CLASS_TO_IND = {'GS': 0, 'CIN': 1} # {'MSS': 0, 'MSI': 1} #
@@ -244,7 +244,7 @@ class SubtypeClassificationConfigs:
     SC_TEST_ONLY = None
     SC_SAVE_TEST = True
     SC_SAVE_TRAIN = False
-    SC_NUM_EPOCHS = 250
+    SC_NUM_EPOCHS = 200
     SC_NUM_DEVICES = 1
     SC_NUM_NODES = 1
     SC_DEVICE = 'gpu'
@@ -302,7 +302,7 @@ class SubtypeClassificationConfigs:
         'combined_loss_args': SC_COMBINED_LOSS_ARGS,
         'vit_adapter_trainable_blocks': None,
         'attn_dim': 128,
-        'num_bags': 6,
+        'num_bags': 4,
         'num_tiles_per_bag': None,
         'cumulative_batch_size': 10,
         'weight_decay': 1e-4,
