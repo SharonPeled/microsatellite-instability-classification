@@ -96,11 +96,12 @@ def cross_validate(df, train_transform, test_transform, mlflow_logger, model, ca
             continue
         Logger.log(f"Fold {i}", log_importance=1)
 
-        if Configs.SC_EXP_ARTIFACTS_DIR is not None:
+        if Configs.joined['EXP_ARTIFACTS_DIR'] is not None:
             for attr in ['TRAINED_MODEL_PATH', 'TEST_PREDICT_OUTPUT_PATH', 'TRAIN_PREDICT_OUTPUT_PATH']:
-                Configs.joined[attr] = re.sub(r"/./train", f"/{i}/train", Configs.joined[attr])
-                Configs.joined[attr] = re.sub(r"/./test", f"/{i}/test", Configs.joined[attr])
-                os.makedirs(os.path.dirname(Configs.joined[attr]), exist_ok=True)
+                if Configs.joined.get(attr, None) is not None:
+                    Configs.joined[attr] = re.sub(r"/./train", f"/{i}/train", Configs.joined[attr])
+                    Configs.joined[attr] = re.sub(r"/./test", f"/{i}/test", Configs.joined[attr])
+                    os.makedirs(os.path.dirname(Configs.joined[attr]), exist_ok=True)
         fold_model = deepcopy(model)
         if Configs.SC_USE_ARTIFACT_DIR:
             train_dir = os.path.join(Configs.SC_BACKBONE_ARTIFACT_DIR, str(i), 'train')
