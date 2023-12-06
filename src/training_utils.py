@@ -30,6 +30,8 @@ from pytorch_lightning.strategies import DDPStrategy
 from tqdm import tqdm
 import os
 import re
+import time
+import gc
 
 
 def save_embeddings(configs):
@@ -119,6 +121,9 @@ def cross_validate(df, train_transform, test_transform, mlflow_logger, model, ca
                                           callbacks=callbacks, **kwargs)
         cv_metrics.append(fitted_model.metrics)
         del fitted_model
+        del fold_model
+        gc.collect()
+        time.sleep(1)
         if Configs.SC_SINGLE_FOLD:
             break
     metrics_dict = pd.DataFrame(cv_metrics).mean().add_suffix('_cv').to_dict()
@@ -129,7 +134,6 @@ def cross_validate(df, train_transform, test_transform, mlflow_logger, model, ca
 def train_single_split(df_train, df_valid, df_test, train_transform, test_transform, logger, model, callbacks=(),
                        **kwargs):
     assert not model.is_fit
-    rm_tmp_files()
     Logger.log(f'Single train split started with:', log_importance=1)
     Logger.log(f'Train slides - {df_train.slide_uuid.unique()}', log_importance=1)
     if df_valid is not None:

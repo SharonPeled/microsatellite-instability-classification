@@ -11,8 +11,9 @@ on hold:
     load the trained model - no working
 
 to do:
-    1000 tiles per bag
-    slide weight + batch>1
+    weight decay scheduling
+    lr scheuling
+
 
     try each cohort on its on
     check for slide detection from the tier1/2
