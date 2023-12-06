@@ -33,7 +33,10 @@ class CT_MIL(CombinedLossSubtypeClassifier):
         self.tier_1_batch_loss = []
         self.tier_2_batch_loss = []
         self.slide_w_batch = []
-        self.loader_size = 0
+        self.loader_size = None
+        self.step_num = 0
+        self.lr_list = []
+        self.wd_list = []
         Logger.log(f"""CT_MIL created with: {self.ct_mil_args}.""", log_importance=1)
 
     def init_tile_weight(self, a):
@@ -50,26 +53,27 @@ class CT_MIL(CombinedLossSubtypeClassifier):
         slide_per_y_per_c = df_labels.groupby(['y', 'cohort_ind']).slide_uuid.nunique()
         self.slide_weight = 1 / (slide_per_y_per_c / slide_per_y_per_c.sum())
         self.slide_weight = self.slide_weight / self.slide_weight.min()
+        self.init_schedulers(len(loader))
+
+    def init_schedulers(self, loader_len):
+        steps_per_epoch = (loader_len//self.ct_mil_args['cumulative_batch_size']) + 2
+        tot_steps = self.trainer.max_epochs * steps_per_epoch
+        self.lr_list = lr_scheduler_linspace_steps(self.ct_mil_args['lr_pairs'],
+                                                   tot_iters=tot_steps)
+        self.wd_list = lr_scheduler_linspace_steps(self.ct_mil_args['wd_pairs'],
+                                                   tot_iters=tot_steps)
 
     def configure_optimizers(self):
-        # self.set_training_warmup()
         param_groups = []
-        if self.ct_mil_args['vit_adapter_trainable_blocks'] is not None \
-                and self.ct_mil_args['vit_adapter_trainable_blocks'] > 0:
-            param_groups.append({"params": [param for name, param in self.backbone.named_parameters()
-                                            if name.startswith('norm') or name.startswith(tuple([f'blocks.{11 - i}'
-                                                                                                 for i in range(self.ct_mil_args['vit_adapter_trainable_blocks'])]))],
-                                 'lr': self.learning_rate[0]})
-
         param_groups.append({"params": [p for p in self.adapter.parameters()], 'lr': self.learning_rate[1]})
         param_groups.append({"params": [p for p in self.tier1_attention.parameters()], 'lr': self.learning_rate[1]})
         param_groups.append({"params": [p for p in self.tier1_head.parameters()], 'lr': self.learning_rate[1]})
-        optimizer1 = torch.optim.Adam(param_groups,  weight_decay=self.ct_mil_args['weight_decay'])
+        optimizer1 = torch.optim.Adam(param_groups)
 
         optimizer2 = torch.optim.Adam([
             {"params": [p for p in self.tier2_attention.parameters()], 'lr': self.learning_rate[1]},
             {"params": [p for p in self.tier2_head.parameters()], 'lr': self.learning_rate[1]}
-        ],  weight_decay=self.ct_mil_args['weight_decay'])
+        ])
         self.optimizers_list.append(optimizer1)
         self.optimizers_list.append(optimizer2)
 
@@ -165,6 +169,11 @@ class CT_MIL(CombinedLossSubtypeClassifier):
     def on_train_batch_end(self, outputs, batch, batch_idx):
         self.global_iter += 1
         if len(self.slide_w_batch) == self.ct_mil_args['cumulative_batch_size'] or (self.global_iter % self.loader_size) == 0:
+            for opt in self.optimizers_list:
+                for param_group in opt.param_groups:
+                    param_group['lr'] = self.lr_list[self.step_num]
+                    param_group['weight_decay'] = self.lr_list[self.step_num]
+
             opt1, opt2, opt_s = self.optimizers_list
 
             sum_slide_w = sum(self.slide_w_batch)
@@ -186,6 +195,7 @@ class CT_MIL(CombinedLossSubtypeClassifier):
             self.tier_1_batch_loss = []
             self.tier_2_batch_loss = []
             self.slide_w_batch = []
+            self.step_num += 1
             Logger.log(f"""Batch backward.""", log_importance=1)
 
 

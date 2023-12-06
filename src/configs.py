@@ -193,7 +193,7 @@ class TumorRegressionConfigs:
 
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
-    SC_EXPERIMENT_NAME = 'SC_DISTILMIL_2'
+    SC_EXPERIMENT_NAME = 'SC_DISTILMIL_3'
     SC_FORMULATION = f'tile_backbone_sr_w16_5e4_400e_6b_3res_with_scheduling'
     SC_RUN_NAME = f"{SC_FORMULATION}"
     SC_RUN_DESCRIPTION = f"""Labels are by bioportal.
@@ -305,9 +305,15 @@ class SubtypeClassificationConfigs:
         'num_bags': 6,
         'num_tiles_per_bag': None,
         'cumulative_batch_size': 16,
-        'weight_decay': 1e-4,
         'grad_clip': 5,
-        'num_res_blocks': 3
+        'num_res_blocks': 3,
+        # approx 40 steps per iter
+        'lr_pairs': [
+            (5e-5, 0.05), (5e-4, 0.95), (5e-4, -1), (5e-5, None)
+        ],
+        'wd_pairs': [
+            (1e-4, -1), (1e-3, None)
+        ],
     }
 
 
