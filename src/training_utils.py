@@ -109,9 +109,6 @@ def cross_validate(df, train_transform, test_transform, mlflow_logger, model, ca
         fitted_model = train_single_split(df_train, None, df_test, train_transform, test_transform, mlflow_logger, fold_model,
                                           callbacks=callbacks, **kwargs)
         cv_metrics.append(fitted_model.metrics)
-        del fold_model
-        del fitted_model
-        gc.collect()
         if Configs.SC_SINGLE_FOLD:
             break
     metrics_dict = pd.DataFrame(cv_metrics).mean().add_suffix('_cv').to_dict()
