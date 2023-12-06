@@ -194,7 +194,7 @@ class TumorRegressionConfigs:
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
     SC_EXPERIMENT_NAME = 'SC_DISTILMIL_2'
-    SC_FORMULATION = f'tile_backbone_sr_w16_5e4_400e_6b_3res'
+    SC_FORMULATION = f'tile_backbone_sr_w16_5e4_400e_6b_3res_with_scheduling'
     SC_RUN_NAME = f"{SC_FORMULATION}"
     SC_RUN_DESCRIPTION = f"""Labels are by bioportal.
     """
@@ -244,7 +244,7 @@ class SubtypeClassificationConfigs:
     SC_TEST_ONLY = None
     SC_SAVE_TEST = True
     SC_SAVE_TRAIN = False
-    SC_NUM_EPOCHS = 1
+    SC_NUM_EPOCHS = 400
     SC_NUM_DEVICES = 1
     SC_NUM_NODES = 1
     SC_DEVICE = 'gpu'
@@ -284,8 +284,8 @@ class SubtypeClassificationConfigs:
                   'FoVs_augs_amounts': None,  # (0.15, 0.15),  # tuple of % from each FoVs to add
                   'tile_encoder': SC_TILE_ENCODER,
                   'cohort_aware_dict': COHORT_AWARE_DICT,
-                  # 'pretrained_ckp_path': os.path.join(GeneralConfigs.ROOT, 'models', 'subtype_classification', 'dgx_SQ6B12_At2Lrelu_32k_4_dino_checkpoints', 'checkpoint.pth'),
-                  'pretrained_ckp_path': "/home/sharonpe/microsatellite-instability-classification/data/subtype_classification/third_try_all_slides_16k_4_dino_checkpoints/checkpoint9.pth",
+                  'pretrained_ckp_path': os.path.join(GeneralConfigs.ROOT, 'models', 'subtype_classification', 'dgx_SQ6B12_At2Lrelu_32k_4_dino_checkpoints', 'checkpoint.pth'),
+                  # 'pretrained_ckp_path': "/home/sharonpe/microsatellite-instability-classification/data/subtype_classification/third_try_all_slides_16k_4_dino_checkpoints/checkpoint9.pth",
                   # 'pretrained_ckp_path': "/home/sharonpe/sandox/checkpoint_argus.pth",
                   'config_filepath': str(Path(__file__).resolve())
                   }
@@ -302,7 +302,7 @@ class SubtypeClassificationConfigs:
         'combined_loss_args': SC_COMBINED_LOSS_ARGS,
         'vit_adapter_trainable_blocks': None,
         'attn_dim': 128,
-        'num_bags': 2,
+        'num_bags': 6,
         'num_tiles_per_bag': None,
         'cumulative_batch_size': 16,
         'weight_decay': 1e-4,
