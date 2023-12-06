@@ -194,7 +194,7 @@ class TumorRegressionConfigs:
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
     SC_EXPERIMENT_NAME = 'SC_DISTILMIL_3'
-    SC_FORMULATION = f'tile_backbone_sr_w16_5e4_400e_6b_3res_with_scheduling'
+    SC_FORMULATION = f'tile_backbone_sr_w16_5e4_400e_6b_3res_with_scheduling10'
     SC_RUN_NAME = f"{SC_FORMULATION}"
     SC_RUN_DESCRIPTION = f"""Labels are by bioportal.
     """
@@ -291,7 +291,7 @@ class SubtypeClassificationConfigs:
                   }
     # combined loss
     SC_COMBINED_LOSS_ARGS = {
-        'cohort_loss_w': 0.0,
+        'cohort_loss_w': None,
         'cohort_warmup': None,
         'slide_loss_w': 0.05,
         'slide_warmup': 1,
@@ -309,7 +309,7 @@ class SubtypeClassificationConfigs:
         'num_res_blocks': 3,
         # approx 40 steps per iter
         'lr_pairs': [
-            (5e-5, 0.05), (5e-4, 0.95), (5e-4, -1), (5e-5, None)
+            (5e-5, 0.05), (5e-4, 0.9), (5e-4, -1), (5e-5, None)
         ],
         'wd_pairs': [
             (1e-4, -1), (1e-3, None)

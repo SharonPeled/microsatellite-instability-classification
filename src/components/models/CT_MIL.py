@@ -43,7 +43,7 @@ class CT_MIL(CombinedLossSubtypeClassifier):
         pass
 
     def on_train_start(self):
-        super(CT_MIL, self).on_train_start()
+        # super(CT_MIL, self).on_train_start()
         loader = self.trainer.train_dataloader
         self.loader_size = len(loader)
         dataset = loader.dataset
@@ -96,7 +96,7 @@ class CT_MIL(CombinedLossSubtypeClassifier):
                           'scores': scores.detach().cpu(), 'y': y, 'slide_id': s, 'patient_id': p,
                           'tile_path': ''}
 
-        opt1, opt2, opt_s = self.optimizers_list
+        opt1, opt2 = self.optimizers_list
         slide_w = self.slide_weight.loc[(y.item(), c.item())]
 
         bags_embed, tier1_scores = self.forward_tier1(x_embed)
@@ -169,12 +169,13 @@ class CT_MIL(CombinedLossSubtypeClassifier):
     def on_train_batch_end(self, outputs, batch, batch_idx):
         self.global_iter += 1
         if len(self.slide_w_batch) == self.ct_mil_args['cumulative_batch_size'] or (self.global_iter % self.loader_size) == 0:
-            for opt in self.optimizers_list:
-                for param_group in opt.param_groups:
-                    param_group['lr'] = self.lr_list[self.step_num]
-                    param_group['weight_decay'] = self.lr_list[self.step_num]
+            if self.step_num % 10 == 0:  # to reduce complexity
+                for opt in self.optimizers_list:
+                    for param_group in opt.param_groups:
+                        param_group['lr'] = self.lr_list[self.step_num]
+                        param_group['weight_decay'] = self.lr_list[self.step_num]
 
-            opt1, opt2, opt_s = self.optimizers_list
+            opt1, opt2 = self.optimizers_list
 
             sum_slide_w = sum(self.slide_w_batch)
             tier1_loss = sum([loss*(w/sum_slide_w) for loss, w in zip(self.tier_1_batch_loss, self.slide_w_batch)])
