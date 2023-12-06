@@ -387,7 +387,7 @@ class VariantClassificationConfigs:
     VC_SAVE_TEST = True
     VC_Y_TO_BE_STRATIFIED = None
     VC_CLASS_TO_IND = {'GT0': 0, 'GT1': 1, 'GT2': 2}
-    VC_COHORT_TO_IND = {'CRC': 0, 'STAD': 1, 'UCEC': 3}  # {'CRC': 0, 'STAD': 1, 'ESCA': 2, 'UCEC': 3}
+    VC_COHORT_TO_IND = {'COAD': 0, 'STAD': 1, 'UCEC': 3}  # {'CRC': 0, 'STAD': 1, 'ESCA': 2, 'UCEC': 3}
     VC_NUM_EPOCHS = 1
     VC_NUM_DEVICES = 1
     VC_NUM_NODES = 1
@@ -396,7 +396,7 @@ class VariantClassificationConfigs:
     VC_SAVE_CHECKPOINT_STEP_INTERVAL = None
     VC_VAL_STEP_INTERVAL = None  # 10 times an epoch
     VC_TRAINING_BATCH_SIZE = 256
-    VC_NUM_WORKERS = 25
+    VC_NUM_WORKERS = 20
     VC_TEST_SIZE = 0.3333
     VC_VALID_SIZE = None
     VC_INIT_LR = [1e-6 * (VC_TRAINING_BATCH_SIZE/256),

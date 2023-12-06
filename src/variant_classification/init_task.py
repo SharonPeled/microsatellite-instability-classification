@@ -20,6 +20,7 @@ def init_task():
     df_tiles = pd.read_csv(Configs.VC_DF_TILE_PATHS_PATH)
     if Configs.VC_COHORT == 'COAD':
         df_tiles = df_tiles[df_tiles.filename.isin(coad_filenames)]
+        df_tiles['cohort'] = 'COAD'
     else:
         df_tiles = df_tiles[df_tiles.cohort == Configs.VC_COHORT]
     # loading labels
