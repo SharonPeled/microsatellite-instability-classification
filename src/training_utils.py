@@ -30,6 +30,7 @@ from pytorch_lightning.strategies import DDPStrategy
 from tqdm import tqdm
 import os
 import re
+import gc
 
 
 def save_embeddings(configs):
@@ -103,22 +104,14 @@ def cross_validate(df, train_transform, test_transform, mlflow_logger, model, ca
                     Configs.joined[attr] = re.sub(r"/./test", f"/{i}/test", Configs.joined[attr])
                     os.makedirs(os.path.dirname(Configs.joined[attr]), exist_ok=True)
         fold_model = deepcopy(model)
-        if Configs.SC_USE_ARTIFACT_DIR:
-            train_dir = os.path.join(Configs.SC_BACKBONE_ARTIFACT_DIR, str(i), 'train')
-            test_dir = os.path.join(Configs.SC_BACKBONE_ARTIFACT_DIR, str(i), 'test')
-            df_train = pd.read_csv(os.path.join(train_dir, 'df_tile_embeddings.csv'))
-            df_train = df_train.merge(df, how='inner', on='slide_uuid', suffixes=('', '_x'))
-            df_test = pd.read_csv(os.path.join(test_dir, 'df_tile_embeddings.csv'))
-            df_test = df_test.merge(df, how='inner', on='slide_uuid', suffixes=('', '_x'))
-            # model_path = [os.path.join(train_dir, file) for file in os.listdir(train_dir) if file.endswith(".ckpt")]
-            # assert len(model_path) == 1
-            # fold_model.load_state_dict(torch.load(model_path[0]), strict=False)
-        else:
-            df_train = df.iloc[train_inds].reset_index(drop=True)
-            df_test = df.iloc[test_inds].reset_index(drop=True)
+        df_train = df.iloc[train_inds].reset_index(drop=True)
+        df_test = df.iloc[test_inds].reset_index(drop=True)
         fitted_model = train_single_split(df_train, None, df_test, train_transform, test_transform, mlflow_logger, fold_model,
                                           callbacks=callbacks, **kwargs)
         cv_metrics.append(fitted_model.metrics)
+        del fold_model
+        del fitted_model
+        gc.collect()
         if Configs.SC_SINGLE_FOLD:
             break
     metrics_dict = pd.DataFrame(cv_metrics).mean().add_suffix('_cv').to_dict()
@@ -171,9 +164,9 @@ def train_single_split(df_train, df_valid, df_test, train_transform, test_transf
         else:
             trainer.fit(model, train_loader, valid_loader, ckpt_path=None)
         time_str = datetime.now().strftime('%d_%m_%Y_%H_%M')
-        trainer.save_checkpoint(Configs.joined['TRAINED_MODEL_PATH'].format(time=time_str))
-        Logger.log('Model saved: {}'.format(Configs.joined['TRAINED_MODEL_PATH'].format(time=time_str)),
-                   log_importance=1)
+        # trainer.save_checkpoint(Configs.joined['TRAINED_MODEL_PATH'].format(time=time_str))
+        # Logger.log('Model saved: {}'.format(Configs.joined['TRAINED_MODEL_PATH'].format(time=time_str)),
+        #            log_importance=1)
     Logger.log("Done Training.", log_importance=1)
     Logger.log("Starting Test.", log_importance=1)
     trainer.test(model, test_loader)

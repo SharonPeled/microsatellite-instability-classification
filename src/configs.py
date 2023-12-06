@@ -371,8 +371,8 @@ class VariantClassificationConfigs:
     VC_EXP_ARTIFACTS_DIR = SC_EXP_ARTIFACTS_DIR = os.path.join(GeneralConfigs.DATA_FOLDER, 'experiments_artifacts',
                                         f'{VC_EXPERIMENT_NAME}_{VC_RUN_NAME}', 'f')
     VC_TRAINED_MODEL_PATH = None
-    SC_TEST_PREDICT_OUTPUT_PATH = os.path.join(VC_EXP_ARTIFACTS_DIR, 'test')
-    SC_TRAIN_PREDICT_OUTPUT_PATH = None
+    VC_TEST_PREDICT_OUTPUT_PATH = os.path.join(VC_EXP_ARTIFACTS_DIR, 'test')
+    VC_TRAIN_PREDICT_OUTPUT_PATH = None
     # VC_VALID_PREDICT_OUTPUT_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'variant_classification',
     #                                             f'{VC_RUN_NAME}_pred', 'valid')
     VC_SSL_STATISTICS = {'HSV': os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',

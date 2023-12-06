@@ -24,6 +24,17 @@ class VariantClassifier(PretrainedClassifier):
         Logger.log(f"""VariantClassifier created with nn_output_size: {self.nn_output_size}.""",
                    log_importance=1)
 
+    def general_loop(self, batch, batch_idx, test=False):
+        x, c, y, slide_id, patient_id, tile_path = batch
+        scores = self.forward(x)
+        if test:
+            loss = torch.tensor(-1)
+        else:
+            loss = self.loss(scores, y)
+        return loss, {'loss': loss.detach().cpu(), 'c': c.detach().cpu(),
+                      'scores': scores.detach().cpu(), 'y': y, 'slide_id': slide_id, 'patient_id': patient_id,
+                      'tile_path': tile_path}
+
     def loss(self, scores, y):
         scores = scores.reshape(scores.shape[0], self.output_shape[0], self.output_shape[1])
         return super().loss(scores, y)
