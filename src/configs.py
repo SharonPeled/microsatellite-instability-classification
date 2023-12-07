@@ -193,8 +193,8 @@ class TumorRegressionConfigs:
 
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
-    SC_EXPERIMENT_NAME = 'SC_DISTILMIL_3'
-    SC_FORMULATION = f'tile_backbone_sr_w16_5e4_400e_6b_3res_with_scheduling10'
+    SC_EXPERIMENT_NAME = 'SC_DISTILMIL_4'
+    SC_FORMULATION = f'tile_backbone_sr_w20_5e4_500e_6b_3res_with_scheduling10'
     SC_RUN_NAME = f"{SC_FORMULATION}"
     SC_RUN_DESCRIPTION = f"""Labels are by bioportal.
     """
@@ -232,8 +232,8 @@ class SubtypeClassificationConfigs:
                          'LAB': os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                              f'LAB_statistics_30_512.yaml')}
     SC_CROSS_VALIDATE = True  # num folds according to test size
-    SC_CONTINUE_FROM_FOLD = 2  # 0 to 1/TEST_SIZE
-    SC_SINGLE_FOLD = False  # 0 to 1/TEST_SIZE
+    SC_CONTINUE_FROM_FOLD = 0  # 0 to 1/TEST_SIZE
+    SC_SINGLE_FOLD = True  # 0 to 1/TEST_SIZE
     SC_Y_TO_BE_STRATIFIED = 'y_to_be_stratified'
     SC_CLASS_TO_IND = {'GS': 0, 'CIN': 1} # {'MSS': 0, 'MSI': 1} #
     SC_CLASS_WEIGHT = None #  {'GS': 770, 'CIN': 235}
@@ -244,7 +244,7 @@ class SubtypeClassificationConfigs:
     SC_TEST_ONLY = None
     SC_SAVE_TEST = True
     SC_SAVE_TRAIN = False
-    SC_NUM_EPOCHS = 400
+    SC_NUM_EPOCHS = 500
     SC_NUM_DEVICES = 1
     SC_NUM_NODES = 1
     SC_DEVICE = 'gpu'
@@ -304,15 +304,15 @@ class SubtypeClassificationConfigs:
         'attn_dim': 128,
         'num_bags': 6,
         'num_tiles_per_bag': None,
-        'cumulative_batch_size': 16,
+        'cumulative_batch_size': 20,
         'grad_clip': 5,
         'num_res_blocks': 3,
         # approx 40 steps per iter
         'lr_pairs': [
-            (5e-5, 0.05), (5e-4, 0.9), (5e-4, -1), (5e-5, None)
+            (5e-5, 0.1), (5e-4, 0.9), (5e-4, -1), (5e-5, None)
         ],
         'wd_pairs': [
-            (1e-4, -1), (1e-3, None)
+            (1e-4, -1), (1e-2, None)
         ],
     }
 

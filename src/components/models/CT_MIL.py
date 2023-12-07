@@ -169,7 +169,7 @@ class CT_MIL(CombinedLossSubtypeClassifier):
     def on_train_batch_end(self, outputs, batch, batch_idx):
         self.global_iter += 1
         if len(self.slide_w_batch) == self.ct_mil_args['cumulative_batch_size'] or (self.global_iter % self.loader_size) == 0:
-            if self.step_num % 10 == 0:  # to reduce complexity
+            if self.step_num % 100 == 0:  # to reduce complexity
                 for opt in self.optimizers_list:
                     for param_group in opt.param_groups:
                         param_group['lr'] = self.lr_list[self.step_num]
