@@ -355,12 +355,12 @@ class DINOConfigs:
 
 class VariantClassificationConfigs:
     VC_EXPERIMENT_NAME = 'VC_TILE_SSL_VIT'
-    VC_FORMULATION = 'STAD_dna_repair'
+    VC_FORMULATION = 'COAD_dna_repair'
     VC_RUN_NAME = f'{VC_FORMULATION}'
     VC_RUN_DESCRIPTION = f"""SSL_VIT - fill this
     """
     VC_TILE_SIZE = 512
-    VC_COHORT = 'STAD'
+    VC_COHORT = 'COAD'
     VC_LABEL_DF_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'variant_classification',
                                     'df_labels_dna.csv')
                                     # 'df_labels_rand.csv')
@@ -382,7 +382,7 @@ class VariantClassificationConfigs:
                          'LAB': os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                              f'LAB_statistics_30_512.yaml')}
     VC_CROSS_VALIDATE = True
-    VC_CONTINUE_FROM_FOLD = 0
+    VC_CONTINUE_FROM_FOLD = 1
     VC_TEST_ONLY = None
     VC_SAVE_TEST = True
     VC_Y_TO_BE_STRATIFIED = None
