@@ -232,7 +232,7 @@ class SubtypeClassificationConfigs:
                          'LAB': os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                              f'LAB_statistics_30_512.yaml')}
     SC_CROSS_VALIDATE = True  # num folds according to test size
-    SC_CONTINUE_FROM_FOLD = 0  # 0 to 1/TEST_SIZE
+    SC_CONTINUE_FROM_FOLD = 2  # 0 to 1/TEST_SIZE
     SC_SINGLE_FOLD = False  # 0 to 1/TEST_SIZE
     SC_Y_TO_BE_STRATIFIED = 'y_to_be_stratified'
     SC_CLASS_TO_IND = {'GS': 0, 'CIN': 1} # {'MSS': 0, 'MSI': 1} #
