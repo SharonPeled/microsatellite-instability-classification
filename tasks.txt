@@ -8,15 +8,16 @@ test:
 
 
 on hold:
-    load the trained model - no working
 
 to do:
-    1000 tiles per bag
-    slide weight + batch>1
+    make the powerpoint ?
+    compare test and train of w/wo slide reg
+
+    make the analysis - not yet
+
 
     try each cohort on its on
     check for slide detection from the tier1/2
-    compare test and train of w/wo slide reg
     tune epochs/bags
 
 
