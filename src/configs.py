@@ -355,15 +355,15 @@ class DINOConfigs:
 
 class VariantClassificationConfigs:
     VC_EXPERIMENT_NAME = 'VC_TILE_SSL_VIT'
-    VC_FORMULATION = 'UCEC_random'
+    VC_FORMULATION = 'UCEC_dna_repair'
     VC_RUN_NAME = f'{VC_FORMULATION}'
     VC_RUN_DESCRIPTION = f"""SSL_VIT - fill this
     """
     VC_TILE_SIZE = 512
     VC_COHORT = 'UCEC'
     VC_LABEL_DF_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'variant_classification',
-                                    # 'df_labels_dna.csv')
-                                    'df_labels_rand.csv')
+                                    'df_labels_dna.csv')
+                                    # 'df_labels_rand.csv')
                                     # 'df_labels_gwas_COAD.csv')
                                     # 'df_labels_gwas_STAD.csv')
     VC_DF_TILE_PATHS_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
