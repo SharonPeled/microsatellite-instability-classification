@@ -72,8 +72,10 @@ for (cohort, snp_type), df_g in df_t.groupby(['cohort', 'snp_type']):
         if fold_outputs is not None:
             outputs += fold_outputs
     df_auc = create_df_auc(outputs)
-    df_auc.to_csv(os.path.join(artifact_dir.format(cohort=cohort, snp_type=snp_type)
-                               , f'df_auc_test_{len(outputs)}.csv'), index=False)
+    df_auc_path = os.path.join(artifact_dir.format(cohort=cohort, snp_type=snp_type),
+                               f'df_auc_test_{len(outputs)}.csv')
+    df_auc.to_csv(df_auc_path, index=False)
+    print(f'Saved in {df_auc_path}')
 
 
 
