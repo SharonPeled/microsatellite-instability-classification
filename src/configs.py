@@ -382,7 +382,7 @@ class VariantClassificationConfigs:
                          'LAB': os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                              f'LAB_statistics_30_512.yaml')}
     VC_CROSS_VALIDATE = True
-    VC_CONTINUE_FROM_FOLD = 0
+    VC_CONTINUE_FROM_FOLD = 2
     VC_TEST_ONLY = None
     VC_SAVE_TEST = True
     VC_Y_TO_BE_STRATIFIED = None
