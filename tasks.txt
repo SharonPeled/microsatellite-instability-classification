@@ -8,16 +8,33 @@ test:
 
 
 on hold:
-    load the trained model - no working
 
 to do:
-    weight decay scheduling
-    lr scheuling
+
+    runs:
+    tile based classic - train and test
+    ABMIL
+
+
+    CIN gs
+    1. End presentation
+    2. try abmil
+    3. try tile based for regular (to show diff)
+    Questions:
+    1. is it enough for iccv
+    2. More dataset to fuse
+
+
+    Variant:
+    3. create df_auc for all
+    2. Create the Analysis
+    3. summarize in presentation
+    Question:
+    1.
 
 
     try each cohort on its on
     check for slide detection from the tier1/2
-    compare test and train of w/wo slide reg
     tune epochs/bags
 
 
