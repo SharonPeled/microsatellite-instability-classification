@@ -1,3 +1,4 @@
+import numpy
 import torch
 from torch.nn.functional import softmax
 import pandas as pd
@@ -10,16 +11,33 @@ from glob import glob
 
 
 def create_df_auc(outputs):
-    scores = torch.concat([out["scores"].reshape(-1, 3, out["scores"].shape[-1] // 3)
-                           for out in outputs])
-    logits = softmax(scores, dim=1).permute(2, 0, 1).numpy()
-    y_true = torch.concat([out["y"] for out in outputs], dim=0).transpose(1, 0).numpy()
-    auc_per_snp = []
-    for i in tqdm(range(y_true.shape[0]), total=y_true.shape[0]):
-        auc_per_snp.append(calc_safe_auc(y_true[i, :], logits[i, :], multi_class='ovr', average=None))
-    df_auc = pd.DataFrame(np.stack(auc_per_snp), columns=['0', '1', '2']).astype(float)
-    df_auc['mean_auc'] = df_auc[['0', '1', '2']].mean(axis=1)
-    return df_auc
+    # tile based
+    scores_tile = torch.concat([out["scores"].reshape(-1, 3, out["scores"].shape[-1] // 3)
+                                for out in outputs])
+    y_true_tile = torch.concat([out["y"] for out in outputs], dim=0).transpose(1, 0).numpy()
+    logits_tile = softmax(scores_tile, dim=1).permute(2, 0, 1).numpy()
+    # slide based
+    slide_uuids = np.concatenate([out["slide_id"] for out in outputs])
+    df_inds = pd.DataFrame({'slide_uuid': slide_uuids, 'ind': range(len(slide_uuids))})
+    scores_slide_list = []
+    y_true_slide_list = []
+    for slide_uuid, df_s in df_inds.groupby('slide_uuid'):
+        inds = df_s.ind.values
+        scores_slide_list.append(scores_tile[inds].mean(dim=0))
+        y_true_slide_list.append(torch.tensor(y_true_tile[:, inds[0]]))
+    scores_slide = torch.stack(scores_slide_list)
+    y_true_slide = torch.stack(y_true_slide_list).transpose(1, 0).numpy()
+    logits_slide = softmax(scores_slide, dim=1).permute(2, 0, 1).numpy()
+
+    auc_per_snp_tile = []
+    auc_per_snp_slide = []
+    for i in tqdm(range(y_true_tile.shape[0]), total=y_true_tile.shape[0]):
+        auc_per_snp_tile.append(calc_safe_auc(y_true_tile[i, :], logits_tile[i, :], multi_class='ovr', average=None))
+        auc_per_snp_slide.append(calc_safe_auc(y_true_slide[i, :], logits_slide[i, :], multi_class='ovr', average=None))
+
+    df_auc_tile = pd.DataFrame(np.stack(auc_per_snp_tile), columns=['0', '1', '2']).astype(float)
+    df_auc_slide = pd.DataFrame(np.stack(auc_per_snp_slide), columns=['0', '1', '2']).astype(float)
+    return df_auc_tile, df_auc_slide
 
 
 def calc_safe_auc(y_true_i, logits_i, **kwargs):
@@ -36,48 +54,33 @@ def calc_safe_auc(y_true_i, logits_i, **kwargs):
                 res.append(None)
         return np.array(res)
 
-cohorts = ['COAD', 'STAD']
+# per fold
+# per slide
+# dir/fold/test/tensor
+
+cohorts = ['COAD', 'STAD', 'UCEU']
 snp_types = ['dna_repair', 'random']
 artifact_dir = '/home/sharonpe/work/microsatellite-instability-classification/data/experiments_artifacts/VC_TILE_SSL_VIT_{cohort}_{snp_type}'
 dicts = []
 for cohort in cohorts:
     for snp_type in snp_types:
         dir_path = artifact_dir.format(cohort=cohort, snp_type=snp_type)
-        tensor_files = glob(f'{dir_path}/**/*.tensor', recursive=True)
-        if len(tensor_files) == 0:
-            continue
-        for fold in os.listdir(dir_path):
-            fold_dir = os.path.join(dir_path, fold, 'test')
-            if os.path.exists(fold_dir):
-                assert len(os.listdir(fold_dir)) <= 3
-                for tensor_filename in os.listdir(fold_dir):
-                    # print(os.path.join(fold_dir, tensor_filename))
-                    print(tensor_filename)
-                    dicts.append({
-                        'cohort': cohort,
-                        'snp_type': snp_type,
-                        'fold': fold,
-                        'path':os.path.join(fold_dir, tensor_filename)
-                    })
-        print(dir_path)
-        print()
-df_t = pd.DataFrame(dicts)
-print(df_t)
-for (cohort, snp_type), df_g in df_t.groupby(['cohort', 'snp_type']):
-    print(f'{datetime.now()}: Starting: {(cohort, snp_type)}')
-    outputs = []
-    for i,row in df_g.iterrows():
-        print(f'{datetime.now()}: Loading Fold: {i}')
-        fold_outputs = torch.load(row['path'])
-        if fold_outputs is not None:
-            outputs += fold_outputs
-    df_auc = create_df_auc(outputs)
-    df_auc_path = os.path.join(artifact_dir.format(cohort=cohort, snp_type=snp_type),
-                               f'df_auc_test_{len(outputs)}.csv')
-    df_auc.to_csv(df_auc_path, index=False)
-    print(f'Saved in {df_auc_path}')
-
-
-
+        for fold in range(3):
+            print('\n\n\n')
+            outputs_path = list(glob(f'{dir_path}/{fold}/test/*.tensor'))
+            if len(outputs_path) != 1:
+                print('-'*50 + f'{cohort}, {snp_type}, {fold} - SKIPPED!!')
+                print(f'output_path: {outputs_path}')
+                continue
+            outputs_path = outputs_path[0]
+            print(outputs_path)
+            outputs = torch.load(outputs_path)
+            df_auc_tile, df_auc_slide = create_df_auc(outputs)
+            df_auc_tile_path = os.path.join(dir_path, str(fold), 'test', f'df_auc_tile_test_{fold}_{len(outputs)}.csv')
+            df_auc_slide_path = os.path.join(dir_path, str(fold), 'test', f'df_auc_slide_test_{fold}_{len(outputs)}.csv')
+            df_auc_tile.to_csv(df_auc_tile_path, index=False)
+            df_auc_slide.to_csv(df_auc_slide_path, index=False)
+            print(f'Tile saved in {df_auc_tile_path}')
+            print(f'Slide saved in {df_auc_slide_path}')
 
 
