@@ -58,7 +58,7 @@ def calc_safe_auc(y_true_i, logits_i, **kwargs):
 # per slide
 # dir/fold/test/tensor
 
-cohorts = ['COAD', 'STAD', 'UCEU']
+cohorts = ['COAD', 'STAD', 'UCEC']
 snp_types = ['dna_repair', 'random']
 artifact_dir = '/home/sharonpe/work/microsatellite-instability-classification/data/experiments_artifacts/VC_TILE_SSL_VIT_{cohort}_{snp_type}'
 dicts = []
