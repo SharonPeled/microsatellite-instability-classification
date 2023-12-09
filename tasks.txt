@@ -14,7 +14,6 @@ to do:
     runs:
     tile based classic - train and test + imagenet
     ABMIL
-    rerun distilmill with proper warmup
 
 
     CIN gs
