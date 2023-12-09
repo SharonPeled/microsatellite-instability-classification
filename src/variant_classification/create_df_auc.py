@@ -66,8 +66,8 @@ for cohort in cohorts:
     for snp_type in snp_types:
         dir_path = artifact_dir.format(cohort=cohort, snp_type=snp_type)
         for fold in range(3):
-            print(f'{cohort}, {snp_type}, {fold}')
             print('\n\n\n')
+            print(f'{cohort}, {snp_type}, {fold}')
             outputs_path = list(glob(f'{dir_path}/{fold}/test/*.tensor'))
             if len(outputs_path) != 1:
                 print('-'*50 + f'{cohort}, {snp_type}, {fold} - SKIPPED!!')
