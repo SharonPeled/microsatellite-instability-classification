@@ -184,10 +184,10 @@ def remove_artifact(path):
 
 
 def save_pred_outputs_raw(outputs, dataset, save_path, suffix):
-    try:
-        dataset.df_labels['y'] = dataset.df_labels['y'].apply(lambda x: x.numpy())
-    except:
-        pass
+    # try:
+    #     dataset.df_labels['y'] = dataset.df_labels['y'].apply(lambda x: x.numpy())
+    # except:
+    #     pass
     outputs_path = os.path.join(save_path, f"outputs_{suffix}.tensor")
     # dataset_df_path = os.path.join(save_path, f"dataset_df_{suffix}.csv")
     os.makedirs(os.path.dirname(outputs_path), exist_ok=True)
