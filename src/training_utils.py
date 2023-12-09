@@ -467,6 +467,7 @@ def load_headless_tile_encoder(tile_encoder_name, path=None, **kwargs):
         model_name = 'vit_small_patch16_224'
         # Load the pre-trained ViT model
         model = timm.create_model(model_name, pretrained=True)
+        model.head = nn.Identity()
         return model, model.num_features
     elif tile_encoder_name == 'SSL_VIT_PRETRAINED':
         model = SLL_vit_small(pretrained=True, progress=False, key="DINO_p16", patch_size=16)

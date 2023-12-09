@@ -194,7 +194,7 @@ class TumorRegressionConfigs:
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
     SC_EXPERIMENT_NAME = 'SC_TABLE_COMPARE'
-    SC_FORMULATION = f'tile_based_SSL_vit_backbone_classic'
+    SC_FORMULATION = f'tile_based_IMAGENET_VIT_classic'
     SC_RUN_NAME = f"{SC_FORMULATION}"
     SC_RUN_DESCRIPTION = f"""Labels are by bioportal.
     """
@@ -261,7 +261,7 @@ class SubtypeClassificationConfigs:
     SC_TILE_SAMPLE_LAMBDA_TRAIN_TUNE = None
     SC_FROZEN_BACKBONE = False
     SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 0
-    SC_TILE_ENCODER = 'SSL_VIT_PRETRAINED'  # IMAGENET_VIT_PRETRAINED, SSL_VIT_PRETRAINED VIT_PRETRAINED_DINO
+    SC_TILE_ENCODER = 'IMAGENET_VIT_PRETRAINED'  # IMAGENET_VIT_PRETRAINED, SSL_VIT_PRETRAINED VIT_PRETRAINED_DINO
     COHORT_AWARE_DICT = {'num_cohorts': 4,
                          'num_heads_per_cohort': 6,
                          'num_blocks_per_cohort': 12,  # default is last blocks
