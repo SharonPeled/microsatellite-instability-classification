@@ -99,7 +99,7 @@ class CT_MIL(CombinedLossSubtypeClassifier):
         opt1, opt2 = self.optimizers_list
         slide_w = self.slide_weight.loc[(y.item(), c.item())]
 
-        bags_embed, tier1_scores = self.forward_tier1(x_embed)
+        tier1_scores = self.forward_tier1(x_embed)
         tier1_y = torch.full((tier1_scores.shape[0],), y.item()).to(tier1_scores.device)
         tier1_loss = F.binary_cross_entropy_with_logits(tier1_scores, tier1_y.float(), reduction='mean')
         # tier1_loss *= slide_w
@@ -110,9 +110,9 @@ class CT_MIL(CombinedLossSubtypeClassifier):
         # torch.nn.utils.clip_grad_norm_(self.tier1_head.parameters(), self.ct_mil_args['grad_clip'])
         # opt1.step()
 
-        slide_embed, tier2_score = self.forward_tier2(bags_embed.clone().detach())
-        tier2_y = torch.full((tier2_score.shape[0],), y.item()).to(tier2_score.device)
-        tier2_loss = F.binary_cross_entropy_with_logits(tier2_score, tier2_y.float(), reduction='mean')
+        # slide_embed, tier2_score = self.forward_tier2(bags_embed.clone().detach())
+        # tier2_y = torch.full((tier2_score.shape[0],), y.item()).to(tier2_score.device)
+        # tier2_loss = F.binary_cross_entropy_with_logits(tier2_score, tier2_y.float(), reduction='mean')
         # tier2_loss *= slide_w
         # opt2.zero_grad()
         # self.manual_backward(tier2_loss)
@@ -120,19 +120,19 @@ class CT_MIL(CombinedLossSubtypeClassifier):
         # torch.nn.utils.clip_grad_norm_(self.tier2_head.parameters(), self.ct_mil_args['grad_clip'])
         # opt2.step()
         self.tier_1_batch_loss.append(tier1_loss)
-        self.tier_2_batch_loss.append(tier2_loss)
+        # self.tier_2_batch_loss.append(tier2_loss)
         self.slide_w_batch.append(slide_w)
 
         self.logger.experiment.log_metric(self.logger.run_id, "tier1_loss", tier1_loss.detach().cpu())
-        self.logger.experiment.log_metric(self.logger.run_id, "tier2_loss", tier2_loss.detach().cpu())
-        return tier2_loss.detach().cpu(), {'loss': tier2_loss.detach().cpu(), 'c': c.detach().cpu(),
-                            'scores': tier2_score.detach().cpu(), 'y': y, 'slide_id': s, 'patient_id': p,
+        # self.logger.experiment.log_metric(self.logger.run_id, "tier2_loss", tier2_loss.detach().cpu())
+        return tier1_loss.detach().cpu(), {'loss': tier1_loss.detach().cpu(), 'c': c.detach().cpu(),
+                            'scores': tier1_loss.detach().cpu(), 'y': y, 'slide_id': s, 'patient_id': p,
                             'tile_path': ''}
 
     def forward(self, x_embed, c):
-        bags_embed, tier1_scores = self.forward_tier1(x_embed)
-        slide_embed, tier2_score = self.forward_tier2(bags_embed)
-        return tier2_score
+        tier1_scores = self.forward_tier1(x_embed)
+        # slide_embed, tier2_score = self.forward_tier2(bags_embed)
+        return tier1_scores
 
     def forward_tier2(self, bags_embed):
         attn_w2 = self.tier2_attention(bags_embed)
@@ -142,23 +142,13 @@ class CT_MIL(CombinedLossSubtypeClassifier):
 
     def forward_tier1(self, x_embed):
         x_embed = x_embed[torch.randperm(x_embed.shape[0])]
-        if self.ct_mil_args.get('num_bags', None) is None:
-            bag_size = self.ct_mil_args['num_tiles_per_bag']
-            pass
-        else:
-            bag_size = x_embed.shape[0] // self.ct_mil_args['num_bags']
-        tier1_scores = []
-        tier2_embeds = []
-        for i in range(0, x_embed.shape[0], bag_size):
-            x_embed_b = x_embed[i:i + bag_size, :]
-            x_embed_b = self.adapter(x_embed_b)
-            attn_w1 = self.tier1_attention(x_embed_b)
-            bag_embed = (x_embed_b * attn_w1).sum(dim=0)
-            tier1_scores.append(self.tier1_head(bag_embed))
-            tier2_embeds.append(bag_embed)
-        tier1_scores = torch.cat(tier1_scores)
-        bags_embed = torch.stack(tier2_embeds)
-        return bags_embed, tier1_scores
+        if self.ct_mil_args.get('bag_size', None) is not None:
+            x_embed = x_embed[:self.ct_mil_args.get('bag_size', None)]
+        # tier1_scores = []
+        x_embed_b = self.adapter(x_embed)
+        attn_w1 = self.tier1_attention(x_embed_b)
+        bag_embed = (x_embed_b * attn_w1).sum(dim=0)
+        return self.tier1_head(bag_embed)
 
     # def loss(self, scores, aux_c_scores, aux_s_scores, y, c, s, tile_path):
     #     task_loss = super(CombinedLossSubtypeClassifier, self).loss(scores, y, c=None, tile_path=tile_path)
@@ -186,15 +176,15 @@ class CT_MIL(CombinedLossSubtypeClassifier):
             torch.nn.utils.clip_grad_norm_(self.tier1_head.parameters(), self.ct_mil_args['grad_clip'])
             opt1.step()
 
-            tier2_loss = sum([loss*(w/sum_slide_w) for loss, w in zip(self.tier_2_batch_loss, self.slide_w_batch)])
-            opt2.zero_grad()
-            self.manual_backward(tier2_loss)
-            torch.nn.utils.clip_grad_norm_(self.tier2_attention.parameters(), self.ct_mil_args['grad_clip'])
-            torch.nn.utils.clip_grad_norm_(self.tier2_head.parameters(), self.ct_mil_args['grad_clip'])
-            opt2.step()
+            # tier2_loss = sum([loss*(w/sum_slide_w) for loss, w in zip(self.tier_2_batch_loss, self.slide_w_batch)])
+            # opt2.zero_grad()
+            # self.manual_backward(tier2_loss)
+            # torch.nn.utils.clip_grad_norm_(self.tier2_attention.parameters(), self.ct_mil_args['grad_clip'])
+            # torch.nn.utils.clip_grad_norm_(self.tier2_head.parameters(), self.ct_mil_args['grad_clip'])
+            # opt2.step()
 
             self.tier_1_batch_loss = []
-            self.tier_2_batch_loss = []
+            # self.tier_2_batch_loss = []
             self.slide_w_batch = []
             self.step_num += 1
             Logger.log(f"""Batch backward.""", log_importance=1)
