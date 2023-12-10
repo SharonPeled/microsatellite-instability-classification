@@ -26,7 +26,7 @@ def init_task():
     # loading labels
     df_labels = pd.read_csv(Configs.VC_LABEL_DF_PATH)
     df_labels.rename(columns={'GT_array': 'y'}, inplace=True)
-    df_labels.y = df_labels.y.apply(lambda a: torch.Tensor(eval(a)).long())
+    df_labels.y = df_labels.y.apply(lambda a: torch.Tensor(eval(a))[Configs.VC_SNP_IND_FILTER].long())
 
     df_labels_merged_tiles = df_labels.merge(df_tiles, how='inner', on='patient_id')
     df_labels_merged_tiles['slide_id'] = df_labels_merged_tiles.slide_uuid
