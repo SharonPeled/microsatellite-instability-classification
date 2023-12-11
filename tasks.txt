@@ -9,70 +9,20 @@ test:
 
 on hold:
 
+
+
+
 to do:
 
-    runs:
-    tile based classic - train and test
-    ABMIL
+    Try MSI/MSS
+    other biomarks - genes (TP-53, KRAS, EGFR), HRD mustly breast cancer, prostate, brain, ovarian,
 
-
-    CIN gs
-    1. End presentation
-    2. try abmil
-    3. try tile based for regular (to show diff)
-    Questions:
-    1. is it enough for iccv
-    2. More dataset to fuse
-
-
-    Variant:
-    3. create df_auc for all
-    2. Create the Analysis
-    3. summarize in presentation
-    Question:
-    1.
-
-
-    try each cohort on its on
-    check for slide detection from the tier1/2
-    tune epochs/bags
+    variant:
+    does high aUC SNPS are consistent across cohorts
+    variant - combine all 3 cohorts
 
 
 
-
-
-    repeat the entire process again....
-    check other papers for slide canceling
-
-    accumolate gradients?
-    tile weight?
-    MLH instead of gated attention?
-    warmup slide head? - move to slide level and global level
-    trainable backbone? + warmup
-    add slide loss
-    epochs?
-
-    gradient clip?
-    weight decay?
-
-    plot again and see diff in the heatmaps
-
-
-
-
-
-    move to tanh
-
-
-    # rotating validation sets - train test reduce ect
-
-
-
-
-    consider pretrain using all and train only using single cohort - in that way you don't increase the number of training sample - could be very interesting
-    tune on single cohort
-
-    move to other biomarks
 
 
 
@@ -99,13 +49,14 @@ some of the slide has weird tiling - single tile for something that look normal.
 
 thinking:
 look at the cleaning phases of Cell and the paper about UCEC
+repeat the entire process again....(move to tanh)
+
+# rotating validation sets - train test reduce ect
+consider pretrain using all and train only using single cohort - in that way you don't increase the number of training sample - could be very interesting
+tune on single cohort
 
 
 future:
-3/5 CV - on all results before submission
-testing on OOD dataset - could be a potential for improvement.
-Using pretrained HIPT?
-add more FoVs? like 384 and 786?
 
 
 Questions:

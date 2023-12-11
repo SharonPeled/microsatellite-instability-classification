@@ -15,6 +15,8 @@ def train():
 
 def load_df_labels_merged_tiles():
     df_labels = pd.read_csv(Configs.SC_LABEL_DF_PATH, sep='\t')
+    if 'MSS' in Configs.SC_CLASS_TO_IND.keys():
+        df_labels.subtype = df_labels.subtype.apply(lambda s: 'MSI' if s=='MSI' else 'MSS')
     df_labels = df_labels[df_labels[Configs.SC_LABEL_COL].isin(Configs.SC_CLASS_TO_IND.keys())]
     df_labels['slide_uuid'] = df_labels.slide_path.apply(lambda p: os.path.basename(os.path.dirname(p)))
     df_labels['y'] = df_labels[Configs.SC_LABEL_COL].apply(lambda s: Configs.SC_CLASS_TO_IND[s])
@@ -43,11 +45,6 @@ def init_data():
 
     Logger.log("Loading Datasets..", log_importance=1)
     df_labels, df_labels_merged_tiles = load_df_labels_merged_tiles()
-
-
-    if Configs.SC_KW_ARGS.get('calc_proportions_class_w', None):
-        Configs.SC_CLASS_WEIGHT = df_labels.groupby(
-            Configs.SC_LABEL_COL).slide_uuid.nunique().to_dict()
 
     if Configs.SC_KW_ARGS.get('FoVs_augs_amounts', None) and\
             any(fovs_rate > 0 for fovs_rate in Configs.SC_KW_ARGS['FoVs_augs_amounts']):

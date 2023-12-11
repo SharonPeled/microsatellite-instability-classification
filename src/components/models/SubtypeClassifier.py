@@ -31,14 +31,23 @@ class SubtypeClassifier(PretrainedClassifier):
 
     def init_tile_weight(self, train_dataset):
         df_tiles = train_dataset.df_labels
-        w_per_y_per_cohort = 1 / (df_tiles.y.nunique() * df_tiles.cohort.nunique())
-        tile_counts = df_tiles.groupby(['y', 'cohort', 'slide_uuid'], as_index=False).tile_path.count()
-        slide_counts = tile_counts.groupby(['y', 'cohort'], as_index=False).slide_uuid.nunique().rename(
-            columns={'slide_uuid': 'num_slides_per_y_per_cohort'})
-        tile_counts = tile_counts.merge(slide_counts, on=['y', 'cohort'], how='inner')
-        tile_counts['slide_w'] = w_per_y_per_cohort / tile_counts.num_slides_per_y_per_cohort
-        tile_counts['tile_w'] = tile_counts.slide_w / tile_counts.tile_path
-        self.tile_weight = df_tiles.merge(tile_counts, on='slide_uuid', how='inner', suffixes=('', '__y'))
+        if self.other_kwargs['tile_weight'] is None:
+            self.tile_weight = df_tiles[['tile_path']]
+            self.tile_weight['tile_w'] = 1
+        elif self.other_kwargs['tile_weight'] == 'class_balance':
+            cls_freq = df_tiles.y.value_counts().to_dict()
+            self.tile_weight = df_tiles[['tile_path', 'y']]
+            self.tile_weight['tile_w'] = self.tile_weight.y.apply(lambda y: 1.0 / cls_freq[y])
+        elif self.other_kwargs['tile_weight'] == 'balance_all':
+            w_per_y_per_cohort = 1 / (df_tiles.y.nunique() * df_tiles.cohort.nunique())
+            tile_counts = df_tiles.groupby(['y', 'cohort', 'slide_uuid'], as_index=False).tile_path.count()
+            slide_counts = tile_counts.groupby(['y', 'cohort'], as_index=False).slide_uuid.nunique().rename(
+                columns={'slide_uuid': 'num_slides_per_y_per_cohort'})
+            tile_counts = tile_counts.merge(slide_counts, on=['y', 'cohort'], how='inner')
+            tile_counts['slide_w'] = w_per_y_per_cohort / tile_counts.num_slides_per_y_per_cohort
+            tile_counts['tile_w'] = tile_counts.slide_w / tile_counts.tile_path
+            self.tile_weight = df_tiles.merge(tile_counts, on='slide_uuid', how='inner', suffixes=('', '__y'))
+
         self.tile_weight.set_index(self.tile_weight.tile_path.values, inplace=True)
         self.train_tile_paths = set(self.tile_weight.tile_path.values)
         Logger.log(f"""SubtypeClassifier update tile weights {len(self.tile_weight)}.""", log_importance=1)

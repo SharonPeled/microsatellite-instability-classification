@@ -193,8 +193,8 @@ class TumorRegressionConfigs:
 
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
-    SC_EXPERIMENT_NAME = 'SC_TABLE_COMPARE'
-    SC_FORMULATION = f'tile_based_IMAGENET_VIT_classic'
+    SC_EXPERIMENT_NAME = 'SC_MSS_MSI'
+    SC_FORMULATION = f'tile_based_SLL_VIT_classic'
     SC_RUN_NAME = f"{SC_FORMULATION}"
     SC_RUN_DESCRIPTION = f"""Labels are by bioportal.
     """
@@ -235,7 +235,7 @@ class SubtypeClassificationConfigs:
     SC_CONTINUE_FROM_FOLD = 0  # 0 to 1/TEST_SIZE
     SC_SINGLE_FOLD = False  # 0 to 1/TEST_SIZE
     SC_Y_TO_BE_STRATIFIED = 'y_to_be_stratified'
-    SC_CLASS_TO_IND = {'GS': 0, 'CIN': 1} # {'MSS': 0, 'MSI': 1} #
+    SC_CLASS_TO_IND = {'MSS': 0, 'MSI': 1} # {'GS': 0, 'CIN': 1} # {'MSS': 0, 'MSI': 1} #
     SC_CLASS_WEIGHT = None #  {'GS': 770, 'CIN': 235}
     SC_COHORT_TO_IND = {'CRC': 0, 'STAD': 1, 'UCEC': 3}  # {'CRC': 0, 'STAD': 1, 'ESCA': 2, 'UCEC': 3}
     SC_EXCLUDE_COHORT_AWARENESS = {'ESCA': 2}
@@ -261,7 +261,7 @@ class SubtypeClassificationConfigs:
     SC_TILE_SAMPLE_LAMBDA_TRAIN_TUNE = None
     SC_FROZEN_BACKBONE = False
     SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 0
-    SC_TILE_ENCODER = 'IMAGENET_VIT_PRETRAINED'  # IMAGENET_VIT_PRETRAINED, SSL_VIT_PRETRAINED VIT_PRETRAINED_DINO
+    SC_TILE_ENCODER = 'SSL_VIT_PRETRAINED'  # IMAGENET_VIT_PRETRAINED, SSL_VIT_PRETRAINED VIT_PRETRAINED_DINO
     COHORT_AWARE_DICT = {'num_cohorts': 4,
                          'num_heads_per_cohort': 6,
                          'num_blocks_per_cohort': 12,  # default is last blocks
@@ -277,9 +277,8 @@ class SubtypeClassificationConfigs:
     # separate_head - each cohort allocated a head, head of other cohorts are zeroed
     # separate_query - each cohort allocated a query, query of other cohorts are used but not updates (no gradients)
     SC_KW_ARGS = {'one_hot_cohort_head': False, # single layer head, overrides n_nn_head
-                  'calc_proportions_class_w': False,
                   'n_nn_head': {'num_layers': 1, 'dropout_value': 0.0},
-                  'sep_cohort_w_loss': True,
+                  'tile_weight': 'class_balance', # None, 'class_balance', 'balance_all'
                   'learnable_cohort_prior_type': None, # '*', # 0.1,  # initial prior value
                   'FoVs_augs_amounts': None,  # (0.15, 0.15),  # tuple of % from each FoVs to add
                   'tile_encoder': SC_TILE_ENCODER,
