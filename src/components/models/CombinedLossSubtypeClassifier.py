@@ -19,11 +19,8 @@ class CombinedLossSubtypeClassifier(SubtypeClassifier):
                                                             **other_kwargs)
         self.loss_weights = [1.0, 0.0, 0.0]
         self.combined_loss_args = combined_loss_args
-        if self.combined_loss_args['cohort_loss_w'] is None:
-            self.cohort_head = nn.Identity()
-        else:
-            self.cohort_head = self.create_aux_head(head_name='cohort', head_out_size=len(cohort_to_ind))
-            self.loss_weights[1] = self.combined_loss_args['cohort_loss_w']
+        self.cohort_head = self.create_aux_head(head_name='cohort', head_out_size=len(cohort_to_ind))
+        self.loss_weights[1] = self.combined_loss_args['cohort_loss_w']
         self.slide_head = None  # initialize with the training data
         self.slide_to_ind_axu = None
         self.cohort_to_ind_aux = None
@@ -57,12 +54,9 @@ class CombinedLossSubtypeClassifier(SubtypeClassifier):
         df_labels = dataset.df_labels
         self.cohort_to_ind_aux = {value: index for index, value in enumerate(df_labels.cohort.map(self.cohort_to_ind).unique())}
         self.slide_to_ind_axu = {value: index for index, value in enumerate(df_labels['slide_id'].unique())}
-        if self.combined_loss_args['slide_loss_w'] is None:
-            self.slide_head = nn.Identity().to(self.backbone)
-        else:
-            device = next(self.backbone.parameters()).device
-            self.slide_head = self.create_aux_head(head_name='slide', head_out_size=len(self.slide_to_ind_axu)).to(device)
-            self.loss_weights[2] = self.combined_loss_args['slide_loss_w']
+        device = next(self.backbone.parameters()).device
+        self.slide_head = self.create_aux_head(head_name='slide', head_out_size=len(self.slide_to_ind_axu)).to(device)
+        self.loss_weights[2] = self.combined_loss_args['slide_loss_w']
         optimizer3 = torch.optim.Adam([
             {"params": [p for p in self.slide_head.parameters()], 'lr': self.learning_rate[1]},
         ])
@@ -137,11 +131,9 @@ class CombinedLossSubtypeClassifier(SubtypeClassifier):
         i = self.global_iter
         combined_loss = self.loss_weights[0][i]*task_loss - self.loss_weights[1][i]*aux_c_loss - self.loss_weights[2][i]*aux_s_loss
         opt1.zero_grad()
-        self.manual_backward(combined_loss)
+        self.manual_backward(combined_loss, retain_graph=True)
         opt1.step()
 
-        _, aux_c_scores, aux_s_scores = self.forward(x, c, s=s_aux, test=False)
-        _, aux_c_loss, aux_s_loss = self.loss(scores, aux_c_scores, aux_s_scores, y, c_aux, s_aux, tile_path)
         opt2.zero_grad()
         self.manual_backward(aux_c_loss, retain_graph=True)
         opt2.step()
@@ -158,16 +150,29 @@ class CombinedLossSubtypeClassifier(SubtypeClassifier):
                       'scores': scores.detach().cpu(), 'y': y, 'slide_id': slide_ids, 'patient_id': patient_id,
                       'tile_path': tile_path}
 
-    def forward(self, x, c, s, test=False):
+    def forward_task(self, x, c):
         x_embed = self.backbone(x, c)
         task_scores = self.head(x_embed).squeeze()
-        if test:
-            return task_scores
+        return x_embed, task_scores
+
+    def forward_aux(self, x_embed, c, s):
         aux_c_scores = self.cohort_head(x_embed).squeeze()
         aux_s_scores = self.slide_head(x_embed).squeeze()
+        return aux_c_scores, aux_s_scores
+
+    def forward(self, x, c, s, test=False):
+        x_embed, task_scores = self.forward_task(x, c)
+        if test:
+            return task_scores
+        aux_c_scores, aux_s_scores = self.forward_aux(x_embed.detach(), c, s)
         return task_scores, aux_c_scores, aux_s_scores
 
     def loss(self, scores, aux_c_scores, aux_s_scores, y, c, s, tile_path):
+        if len(tile_path) == 1:
+            # batch of 1
+            scores = scores.unsqueeze(0)
+            aux_c_scores = aux_c_scores.unsqueeze(0)
+            aux_s_scores = aux_s_scores.unsqueeze(0)
         task_loss = super(CombinedLossSubtypeClassifier, self).loss(scores, y, c=None, tile_path=tile_path)
         aux_c_loss = super(CombinedLossSubtypeClassifier, self).loss(aux_c_scores, y=c, c=None, tile_path=tile_path)
         aux_s_loss = super(CombinedLossSubtypeClassifier, self).loss(aux_s_scores, y=s, c=None, tile_path=tile_path)

@@ -194,7 +194,7 @@ class TumorRegressionConfigs:
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
     SC_EXPERIMENT_NAME = 'SC_MSS_MSI'
-    SC_FORMULATION = f'tile_based_SLL_VIT_classic'
+    SC_FORMULATION = f'tile_based_combined_loss'
     SC_RUN_NAME = f"{SC_FORMULATION}"
     SC_RUN_DESCRIPTION = f"""Labels are by bioportal.
     """
@@ -261,7 +261,7 @@ class SubtypeClassificationConfigs:
     SC_TILE_SAMPLE_LAMBDA_TRAIN_TUNE = None
     SC_FROZEN_BACKBONE = False
     SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 0
-    SC_TILE_ENCODER = 'SSL_VIT_PRETRAINED'  # IMAGENET_VIT_PRETRAINED, SSL_VIT_PRETRAINED VIT_PRETRAINED_DINO
+    SC_TILE_ENCODER = 'VIT_PRETRAINED_DINO'  # IMAGENET_VIT_PRETRAINED, SSL_VIT_PRETRAINED VIT_PRETRAINED_DINO
     COHORT_AWARE_DICT = {'num_cohorts': 4,
                          'num_heads_per_cohort': 6,
                          'num_blocks_per_cohort': 12,  # default is last blocks
@@ -278,7 +278,7 @@ class SubtypeClassificationConfigs:
     # separate_query - each cohort allocated a query, query of other cohorts are used but not updates (no gradients)
     SC_KW_ARGS = {'one_hot_cohort_head': False, # single layer head, overrides n_nn_head
                   'n_nn_head': {'num_layers': 1, 'dropout_value': 0.0},
-                  'tile_weight': 'class_balance', # None, 'class_balance', 'balance_all'
+                  'tile_weight': 'balance_all', # None, 'class_balance', 'balance_all'
                   'learnable_cohort_prior_type': None, # '*', # 0.1,  # initial prior value
                   'FoVs_augs_amounts': None,  # (0.15, 0.15),  # tuple of % from each FoVs to add
                   'tile_encoder': SC_TILE_ENCODER,
@@ -290,11 +290,11 @@ class SubtypeClassificationConfigs:
                   }
     # combined loss
     SC_COMBINED_LOSS_ARGS = {
-        'cohort_loss_w': None,
+        'cohort_loss_w': 0,
         'cohort_warmup': None,
         'slide_loss_w': 0.05,
         'slide_warmup': 1,
-        'n_nn_cohort_head': {'num_layers': 3, 'dropout_value': 0.0},
+        'n_nn_cohort_head': {'num_layers': 1, 'dropout_value': 0.0},
         'n_nn_slide_head': {'num_layers': 3, 'dropout_value': 0.0}
     }
     SC_CT_MIL = {
