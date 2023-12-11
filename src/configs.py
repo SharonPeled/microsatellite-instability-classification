@@ -355,13 +355,13 @@ class DINOConfigs:
 
 class VariantClassificationConfigs:
     VC_EXPERIMENT_NAME = 'VC_TILE_SSL_VIT'
-    VC_FORMULATION = 'COAD_dna_repair_1'
+    VC_FORMULATION = 'All3_dna_repair_1'
     VC_RUN_NAME = f'{VC_FORMULATION}'
     VC_RUN_DESCRIPTION = f"""SSL_VIT - fill this
     """
     VC_TILE_SIZE = 512
     VC_SNP_IND_FILTER = range(2500)  # 2500, 4912
-    VC_COHORT = 'COAD'
+    VC_COHORT = 'All3'
     VC_LABEL_DF_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'variant_classification',
                                     'df_labels_dna.csv')
                                     # 'df_labels_rand.csv')

@@ -21,6 +21,8 @@ def init_task():
     if Configs.VC_COHORT == 'COAD':
         df_tiles = df_tiles[df_tiles.filename.isin(coad_filenames)]
         df_tiles['cohort'] = 'COAD'
+    elif Configs.VC_COHORT == 'All3':
+        df_tiles = df_tiles[df_tiles.cohort.isin(['COAD', 'STAD', 'UCEC'])]
     else:
         df_tiles = df_tiles[df_tiles.cohort == Configs.VC_COHORT]
     # loading labels
