@@ -30,6 +30,10 @@ def init_data():
 
     Logger.log("Loading Datasets..", log_importance=1)
     df_labels = pd.read_csv(Configs.SC_LABEL_DF_PATH, sep='\t')
+    if 'MSS' in Configs.SC_CLASS_TO_IND.keys():
+        df_labels.subtype = df_labels.subtype.apply(lambda s: 'MSI' if s=='MSI' else 'MSS')
+    if 'POLE' in Configs.SC_CLASS_TO_IND.keys():
+        df_labels.subtype = df_labels.subtype.apply(lambda s: 'POLE' if s=='POLE' else 'NOT_POLE')
     df_labels = df_labels[df_labels[Configs.SC_LABEL_COL].isin(Configs.SC_CLASS_TO_IND.keys())]
     df_labels['slide_uuid'] = df_labels.slide_path.apply(lambda p: os.path.basename(os.path.dirname(p)))
     df_labels['y'] = df_labels[Configs.SC_LABEL_COL].apply(lambda s: Configs.SC_CLASS_TO_IND[s])
