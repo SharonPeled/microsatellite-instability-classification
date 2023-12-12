@@ -187,6 +187,12 @@ def train_single_split(df_train, df_valid, df_test, train_transform, test_transf
     else:
         Logger.log('Saving results is suppressed.', log_importance=1)
     if Configs.joined.get('SAVE_TRAIN', None):
+        time_str = datetime.now().strftime('%d_%m_%Y_%H_%M')
+        path = os.path.join(Configs.joined['TRAIN_PREDICT_OUTPUT_PATH'], f"df_train_{time_str}.csv")
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        df_train.to_csv(path, index=False)
+        Logger.log(f'Save df_train in: {path}')
+    elif Configs.joined.get('SAVE_TRAIN_DF_PRED', None):
         df_pred = apply_model(train_loader, model)
         df_pred = df_pred.merge(df_train_sampled, how='inner', on='tile_path')
         time_str = datetime.now().strftime('%d_%m_%Y_%H_%M')

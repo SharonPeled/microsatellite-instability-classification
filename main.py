@@ -102,8 +102,6 @@ def main():
     if args.preprocess:
         from src.preprocessing.pipeline import execute_preprocessing_pipeline
         execute_preprocessing_pipeline(with_tiling=True, num_processes=args.num_processes, slide_ids=args.slide_ids)
-    if args.save_tiles_embeddings:
-        save_tile_trained_embeddings()
     if args.thumbnails_only:
         from src.preprocessing.pipeline import execute_preprocessing_pipeline
         execute_preprocessing_pipeline(with_tiling=False, num_processes=args.num_processes, slide_ids=args.slide_ids)
@@ -131,6 +129,8 @@ def main():
     if args.pretrain_subtype_classification_tile:
         Configs.set_task_configs(['DN', 'SC'])
         pretrain_subtype_classification_tile()
+    if args.save_tiles_embeddings:
+        save_tile_trained_embeddings()
     if args.train_subtype_classification_mil:
         Configs.set_task_configs('SC')
         train_subtype_classification_mil()

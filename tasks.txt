@@ -14,15 +14,26 @@ on hold:
 
 to do:
 
-    Try MSI/MSS
-    other biomarks - genes (TP-53, KRAS, EGFR), HRD mustly breast cancer, prostate, brain, ovarian,
+    Variants:
+    All3 - when finished - run dna_repair_2
+    Variants vs variants
 
-    variant:
-    does high aUC SNPS are consistent across cohorts
-    variant - combine all 3 cohorts
+    CIN/GS:
+    Repeat on MSI - when saving finished - run MIL
+
+    HDR - read more (breast cancer, prostate, brain, ovarian)
+
+    Start refactor all?
 
 
 
+
+preprocessing
+pretraining
+tile based classifier
+MIL classifier
+
+Variant classifier
 
 
 

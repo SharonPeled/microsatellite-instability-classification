@@ -12,13 +12,14 @@ import os
 
 def save_tile_trained_embeddings():
     test_transform = get_test_transform()
-    for fold in os.listdir(Configs.TS_ARTIFACT_DIR):
-        train_dir = os.path.join(Configs.TS_ARTIFACT_DIR, fold, 'train')
-        test_dir = os.path.join(Configs.TS_ARTIFACT_DIR, fold, 'test')
+    dir_name = os.path.dirname(Configs.SC_EXP_ARTIFACTS_DIR)
+    for fold in os.listdir(dir_name):
+        train_dir = os.path.join(dir_name, fold, 'train')
+        test_dir = os.path.join(dir_name, fold, 'test')
         model_path = [os.path.join(train_dir, file) for file in os.listdir(train_dir) if file.endswith(".ckpt")]
-        train_pred_path = [os.path.join(train_dir, file) for file in os.listdir(train_dir) if file.startswith("df_pred")]
-        test_pred_path = [os.path.join(test_dir, file) for file in os.listdir(test_dir) if file.startswith("df_pred")]
-        assert len(model_path) == 1 and len(train_pred_path) == 1 and len(test_pred_path) == 1
+        train_pred_path = [os.path.join(train_dir, file) for file in os.listdir(train_dir) if file.startswith("df_train")]
+        test_pred_path = [os.path.join(test_dir, file) for file in os.listdir(test_dir) if file.startswith("dataset_df")]
+        # assert len(model_path) == 1 and len(train_pred_path) == 1 and len(test_pred_path) == 1
         model_path = model_path[0]
         train_pred_path = train_pred_path[0]
         test_pred_path = test_pred_path[0]
@@ -32,10 +33,10 @@ def save_tile_trained_embeddings():
                 for i, (slide_uuid, df_s) in tqdm(enumerate(df_pred.groupby('slide_uuid')), total=total):
                     slide_tile_embed_list = []
                     dataset = ProcessedTileDataset(df_s, transform=test_transform,
-                                                   cohort_to_index=Configs.TS_COHORT_TO_IND, pretraining=True)
-                    loader = DataLoader(dataset, batch_size=Configs.TS_BATCH_SIZE,
+                                                   cohort_to_index=Configs.SC_COHORT_TO_IND, pretraining=True)
+                    loader = DataLoader(dataset, batch_size=Configs.SC_SAVING_TILE['batch_size'],
                                         shuffle=False,
-                                        num_workers=Configs.TS_NUM_WORKERS)
+                                        num_workers=Configs.SC_SAVING_TILE['num_workers'])
                     for x, c in loader:
                         x = x.to(0)
                         c = c.to(0)
@@ -73,6 +74,6 @@ def init_model(path):
                                                                num_iters_warmup_wo_backbone=Configs.SC_ITER_TRAINING_WARMUP_WO_BACKBONE,
                                                                cohort_to_ind=Configs.SC_COHORT_TO_IND,
                                                                cohort_weight=Configs.SC_COHORT_WEIGHT,
-                                                               **Configs.TS_KW_ARGS)
+                                                               **Configs.SC_KW_ARGS)
     Logger.log(f"Model successfully loaded from checkpoint!", log_importance=1)
     return model

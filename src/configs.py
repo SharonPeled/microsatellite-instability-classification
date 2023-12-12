@@ -61,38 +61,6 @@ class PreprocessingConfigs:
 
 
 @dataclass
-class TileEmbeddingSavingConfigs:
-    TS_EXPERIMENT_NAME = 'SC_MSS_MSI_tile_based_combined_loss'
-    TS_ARTIFACT_DIR = os.path.join(GeneralConfigs.DATA_FOLDER, 'experiments_artifacts', TS_EXPERIMENT_NAME)
-    TS_BATCH_SIZE = 512
-    TS_NUM_WORKERS = 3
-
-    TS_TILE_ENCODER_NAME = 'VIT_PRETRAINED_DINO'
-    # TS_PATH_DIR = os.path.join(GeneralConfigs.DATA_FOLDER, f'tile_embeddings_{TS_TILE_ENCODER_NAME}_p100')
-    TS_DF_TILE_PATHS_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
-                                         f'df_processed_tile_paths_512.csv')
-    TS_COHORT_TO_IND = {'CRC': 0, 'STAD': 1, 'ESCA': 2, 'UCEC': 3}
-    TS_COHORT_AWARE_DICT = {'num_cohorts': 4,
-                         'num_heads_per_cohort': 6,
-                         'num_blocks_per_cohort': 12,  # default is last blocks
-                         'block_position': 'end',
-                         'exclude_cohorts': [2, ],
-                         # separate_query_per_block, separate_noisy_query, separate_query, 'one_hot_head',
-                         # 'shared_query_separate_training'
-                         'awareness_strategy': 'separate_attended_query_per_block',
-                         'q_attention_type': '2_layered_tanh',  # linear, 2_layered_tanh
-                         'q_attention_drop': 0.0,
-                         'bias_matrices': None
-                         }
-    TS_KW_ARGS = {
-                  'tile_encoder': TS_TILE_ENCODER_NAME,
-                  'cohort_aware_dict': TS_COHORT_AWARE_DICT,
-                  'pretrained_ckp_path': os.path.join(GeneralConfigs.ROOT, 'models', 'subtype_classification', 'dgx_SQ6B12_At2Lrelu_32k_4_dino_checkpoints', 'checkpoint.pth'),
-                  # 'pretrained_ckp_path': "/home/sharonpe/microsatellite-instability-classification/data/subtype_classification/third_try_all_slides_16k_4_dino_checkpoints/checkpoint9.pth",
-                  }
-
-
-@dataclass
 class TumorClassificationConfigs:
     TUMOR_EXPERIMENT_NAME = 'tumor_classifier'
     TUMOR_RUN_NAME = 'color_jitter'
@@ -193,8 +161,8 @@ class TumorRegressionConfigs:
 
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
-    SC_EXPERIMENT_NAME = 'SC_MSS_MSI'
-    SC_FORMULATION = f'DISTILMIL_combined_loss'
+    SC_EXPERIMENT_NAME = 'SC_POLE'
+    SC_FORMULATION = f'tile_based_combined_loss'
     SC_RUN_NAME = f"{SC_FORMULATION}"
     SC_RUN_DESCRIPTION = f"""Labels are by bioportal.
     """
@@ -204,11 +172,11 @@ class SubtypeClassificationConfigs:
                                     # 'df_labels_cin_slides_and_other_cin_gs.tsv')
                                     # 'df_labels_cin_slides_and_other_cin_gs_2.tsv')
     SC_BACKBONE_ARTIFACT_DIR = os.path.join(GeneralConfigs.DATA_FOLDER, 'experiments_artifacts',
-                                            'SC_MSS_MSI_tile_based_combined_loss')
+                                            'SC_MSS_MSI_tile_based_combined_loss')  # only for loading in MIL
     # f for fold to be replaced later
     SC_EXP_ARTIFACTS_DIR = os.path.join(GeneralConfigs.DATA_FOLDER, 'experiments_artifacts',
                                         f'{SC_EXPERIMENT_NAME}_{SC_RUN_NAME}', 'f')
-    SC_USE_ARTIFACT_DIR = True
+    SC_USE_ARTIFACT_DIR = False
     SC_DF_TILE_EMBEDDINGS_PATH = os.path.join(GeneralConfigs.DATA_FOLDER,
                                               f'tile_embeddings', 'df_tile_embeddings.csv') # TODO: change this dummy variable
     SC_DF_TILE_PATHS_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
@@ -235,7 +203,7 @@ class SubtypeClassificationConfigs:
     SC_CONTINUE_FROM_FOLD = 0  # 0 to 1/TEST_SIZE
     SC_SINGLE_FOLD = False  # 0 to 1/TEST_SIZE
     SC_Y_TO_BE_STRATIFIED = 'y_to_be_stratified'
-    SC_CLASS_TO_IND = {'MSS': 0, 'MSI': 1} # {'GS': 0, 'CIN': 1} # {'MSS': 0, 'MSI': 1} #
+    SC_CLASS_TO_IND = {'NOT_POLE': 0, 'POLE': 1} # {'GS': 0, 'CIN': 1} # {'MSS': 0, 'MSI': 1} #
     SC_CLASS_WEIGHT = None #  {'GS': 770, 'CIN': 235}
     SC_COHORT_TO_IND = {'CRC': 0, 'STAD': 1, 'UCEC': 3}  # {'CRC': 0, 'STAD': 1, 'ESCA': 2, 'UCEC': 3}
     SC_EXCLUDE_COHORT_AWARENESS = {'ESCA': 2}
@@ -243,24 +211,25 @@ class SubtypeClassificationConfigs:
     # SC_COHORT_TUNE = None # ['COAD', 'READ']
     SC_TEST_ONLY = None
     SC_SAVE_TEST = True
-    SC_SAVE_TRAIN = False
-    SC_NUM_EPOCHS = 300
+    SC_SAVE_TRAIN = True
+    SC_SAVE_TRAIN_DF_PRED = False
+    SC_NUM_EPOCHS = 1
     SC_NUM_DEVICES = 1
     SC_NUM_NODES = 1
     SC_DEVICE = 'gpu'
-    SC_TEST_BATCH_SIZE = 1
+    SC_TEST_BATCH_SIZE = 512
     SC_SAVE_CHECKPOINT_STEP_INTERVAL = None
     SC_VAL_STEP_INTERVAL = 1/2  # 2 times an epoch
-    SC_TRAINING_BATCH_SIZE = 1  # accumulating gradients in MIL only
-    SC_NUM_WORKERS = 2
+    SC_TRAINING_BATCH_SIZE = 256  # accumulating gradients in MIL only
+    SC_NUM_WORKERS = 25
     SC_TEST_SIZE = 0.3333
     SC_VALID_SIZE = 0  # not used if CV=True
     SC_INIT_LR = [1e-6,
-                  5e-4]  # per part of the network, in order of the actual nn
+                  1e-4]  # per part of the network, in order of the actual nn
     SC_TILE_SAMPLE_TRAIN = 1e10  # all tiles
     SC_TILE_SAMPLE_LAMBDA_TRAIN_TUNE = None
     SC_FROZEN_BACKBONE = False
-    SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 0
+    SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 2000
     SC_TILE_ENCODER = 'VIT_PRETRAINED_DINO'  # IMAGENET_VIT_PRETRAINED, SSL_VIT_PRETRAINED VIT_PRETRAINED_DINO
     COHORT_AWARE_DICT = {'num_cohorts': 4,
                          'num_heads_per_cohort': 6,
@@ -314,6 +283,10 @@ class SubtypeClassificationConfigs:
             (1e-4, -1), (1e-2, None)
         ],
     }
+    SC_SAVING_TILE = {
+        'batch_size': 512,
+        'num_workers': 3
+    }
 
 
 class DINOConfigs:
@@ -359,25 +332,28 @@ class DINOConfigs:
 
 
 class VariantClassificationConfigs:
-    VC_EXPERIMENT_NAME = 'cancer_variant_classification_tile_based'
-    VC_FORMULATION = 'cancer1_all_fine_aug_512_sampled_643'
-    VC_RUN_NAME = f'SSL_VIT_{VC_FORMULATION}'
-    # VC_RUN_NAME = f"resnet_" + VC_FORMULATION + '_{permutation_num}'
+    VC_EXPERIMENT_NAME = 'VC_TILE_SSL_VIT'
+    VC_FORMULATION = 'All3_random'
+    VC_RUN_NAME = f'{VC_FORMULATION}'
     VC_RUN_DESCRIPTION = f"""SSL_VIT - fill this
     """
     VC_TILE_SIZE = 512
+    VC_SNP_IND_FILTER = range(2500)  # 2500, 4912
+    VC_COHORT = 'All3'
     VC_LABEL_DF_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'variant_classification',
-                                    # 'variants_labels_1_rand.csv')
-                                    'variant_labels_1_cancer.csv')
-                                    # 'variant_labels_0.csv')
-    VC_DF_TILE_PATHS_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'variant_classification',
-                                         f'df_processed_tile_paths_{VC_TILE_SIZE}.csv')
-    VC_TRAINED_MODEL_PATH = os.path.join(GeneralConfigs.ROOT, 'models', 'variant_classification',
-                                         f'VC_{VC_RUN_NAME}_{GeneralConfigs.START_TIME}.ckpt')
-    VC_TEST_PREDICT_OUTPUT_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'variant_classification',
-                                               f'{VC_RUN_NAME}_pred', 'test')
-    VC_VALID_PREDICT_OUTPUT_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'variant_classification',
-                                                f'{VC_RUN_NAME}_pred', 'valid')
+                                    # 'df_labels_dna.csv')
+                                    'df_labels_rand.csv')
+                                    # 'df_labels_gwas_COAD.csv')
+                                    # 'df_labels_gwas_STAD.csv')
+    VC_DF_TILE_PATHS_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
+                                             f'df_processed_tile_paths_512.csv')
+    VC_EXP_ARTIFACTS_DIR = SC_EXP_ARTIFACTS_DIR = os.path.join(GeneralConfigs.DATA_FOLDER, 'experiments_artifacts',
+                                        f'{VC_EXPERIMENT_NAME}_{VC_RUN_NAME}', 'f')
+    VC_TRAINED_MODEL_PATH = None
+    VC_TEST_PREDICT_OUTPUT_PATH = os.path.join(VC_EXP_ARTIFACTS_DIR, 'test')
+    VC_TRAIN_PREDICT_OUTPUT_PATH = None
+    # VC_VALID_PREDICT_OUTPUT_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'variant_classification',
+    #                                             f'{VC_RUN_NAME}_pred', 'valid')
     VC_SSL_STATISTICS = {'HSV': os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                              f'HSV_statistics_30_512.yaml'),
                          'HED': os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
@@ -386,37 +362,38 @@ class VariantClassificationConfigs:
                                              f'LAB_statistics_30_512.yaml')}
     VC_CROSS_VALIDATE = True
     VC_CONTINUE_FROM_FOLD = 0
-    VC_TEST_ONLY = None # "/home/sharonpe/microsatellite-instability-classification/models/variant_classification/VC_SSL_VIT_cancer_fine_aug_512_15_07_2023_00_00.ckpt"
+    VC_TEST_ONLY = None
     VC_SAVE_TEST = True
     VC_Y_TO_BE_STRATIFIED = None
     VC_CLASS_TO_IND = {'GT0': 0, 'GT1': 1, 'GT2': 2}
+    VC_COHORT_TO_IND = {'COAD': 0, 'STAD': 1, 'UCEC': 3}  # {'CRC': 0, 'STAD': 1, 'ESCA': 2, 'UCEC': 3}
     VC_NUM_EPOCHS = 1
-    VC_NUM_DEVICES = [0, ]
+    VC_NUM_DEVICES = 1
     VC_NUM_NODES = 1
     VC_DEVICE = 'gpu'
-    VC_TEST_BATCH_SIZE = 128
+    VC_TEST_BATCH_SIZE = 256
     VC_SAVE_CHECKPOINT_STEP_INTERVAL = None
     VC_VAL_STEP_INTERVAL = None  # 10 times an epoch
-    VC_TRAINING_BATCH_SIZE = 128
-    VC_NUM_WORKERS = 15
+    VC_TRAINING_BATCH_SIZE = 256
+    VC_NUM_WORKERS = 25
     VC_TEST_SIZE = 0.3333
     VC_VALID_SIZE = None
-    VC_INIT_LR = [1e-6, 1e-4]  # per part of the network, in order of the actual nn
+    VC_INIT_LR = [1e-6 * (VC_TRAINING_BATCH_SIZE/256),
+                  1e-4 * (VC_TRAINING_BATCH_SIZE/256)]
     VC_ITER_TRAINING_WARMUP_WO_BACKBONE = 1000
     VC_TILE_SAMPLE_TRAIN = 1e10
     VC_FROZEN_BACKBONE = False
     VC_TILE_ENCODER = 'SSL_VIT_PRETRAINED'
     # sample stuff
-    VC_SAMPLE_SNPS = 643
+    VC_SAMPLE_SNPS = None
     # permutation stuff
-    VC_NUM_PERMUTATIONS = 10
-    VC_LAST_PERMUTATION = 4
+    VC_NUM_PERMUTATIONS = None
+    VC_LAST_PERMUTATION = None
 
 
 @dataclass
 class ConfigsClass(GeneralConfigs, PreprocessingConfigs, TumorClassificationConfigs, SemanticSegConfigs,
-                   TumorRegressionConfigs, SubtypeClassificationConfigs, VariantClassificationConfigs, DINOConfigs,
-                   TileEmbeddingSavingConfigs):
+                   TumorRegressionConfigs, SubtypeClassificationConfigs, VariantClassificationConfigs, DINOConfigs):
     TASK_PREFIXES = ''
 
     def __init__(self):
@@ -432,7 +409,8 @@ class ConfigsClass(GeneralConfigs, PreprocessingConfigs, TumorClassificationConf
                           'TEST_SIZE', 'VALID_SIZE', 'INIT_LR', 'TILE_SAMPLE_TRAIN', 'SSL_STATISTICS',
                           'CROSS_VALIDATE', 'Y_TO_BE_STRATIFIED', 'TEST_ONLY', 'SAVE_TEST', 'SAVE_TRAIN',
                           'TEST_PREDICT_OUTPUT_PATH', 'TRAIN_PREDICT_OUTPUT_PATH',
-                          'VALID_PREDICT_OUTPUT_PATH', 'COHORT_TO_IND', 'CONTINUE_FROM_FOLD', 'NUM_NODES']
+                          'VALID_PREDICT_OUTPUT_PATH', 'COHORT_TO_IND', 'CONTINUE_FROM_FOLD', 'NUM_NODES',
+                          'EXP_ARTIFACTS_DIR', 'SAVE_TRAIN_DF_PRED']
         for c in common_configs:
             for prefix in self.TASK_PREFIXES:
                 task_c = f'{prefix}_{c}'
@@ -444,5 +422,4 @@ class ConfigsClass(GeneralConfigs, PreprocessingConfigs, TumorClassificationConf
 
 
 Configs = ConfigsClass()
-
 
