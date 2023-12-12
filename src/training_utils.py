@@ -34,40 +34,40 @@ import time
 import gc
 
 
-def save_embeddings(configs):
-    backbone, num_features = load_headless_tile_encoder(configs.TS_TILE_ENCODER_NAME, **configs.TS_KW_ARGS)
-    test_transform = transforms.Compose([
-        transforms.Resize(224),
-        transforms.ToTensor(),
-        transforms.Normalize([0.485, 0.456, 0.406],
-                             [0.229, 0.224, 0.225])
-    ])
-    df_tiles = pd.read_csv(configs.TS_DF_TILE_PATHS_PATH)
-    df_tiles.cohort = df_tiles.cohort.apply(lambda c: c if c not in ['COAD', 'READ'] else 'CRC')
-    df_tiles['y'] = 0 # dummy
-    # df_tiles = df_tiles[df_tiles.slide_uuid.isin(df_tiles.slide_uuid.unique()[:10])].groupby('slide_uuid', as_index=False).apply(lambda d: d.sample(min(len(d), 10)))
-    slide_path_list = []
-    with torch.no_grad():
-        backbone = backbone.to(0)
-        for slide_uuid, df_s in tqdm(df_tiles.groupby('slide_uuid')):
-            slide_tile_embed_list = []
-            dataset = ProcessedTileDataset(df_s, transform=test_transform,
-                                           cohort_to_index=configs.TS_COHORT_TO_IND, pretraining=True)
-            loader = DataLoader(dataset, batch_size=configs.TS_BATCH_SIZE,
-                                shuffle=False,
-                                num_workers=configs.TS_NUM_WORKERS)
-            for x, c in tqdm(loader, total=len(loader)):
-                x = x.to(0)
-                c = c.to(0)
-                slide_tile_embed_list.append(backbone(x, c).detach().cpu())
-            slide_tile_embed = torch.cat(slide_tile_embed_list)
-            path = os.path.join(configs.TS_PATH_DIR, slide_uuid, 'tile_embeddings.tensor')
-            os.makedirs(os.path.join(configs.TS_PATH_DIR, slide_uuid), exist_ok=True)
-            torch.save(slide_tile_embed, path)
-            df_s.to_csv(os.path.join(configs.TS_PATH_DIR, slide_uuid, 'df_slide.csv'), index=False)
-            slide_path_list.append((slide_uuid, path))
-    df_slide_paths = pd.DataFrame(slide_path_list, columns=['slide_uuid', 'tile_embeddings_path'])
-    df_slide_paths.to_csv(os.path.join(configs.TS_PATH_DIR, 'df_tile_embeddings.csv'), index=False)
+# def save_embeddings(configs):
+#     backbone, num_features = load_headless_tile_encoder(configs.TS_TILE_ENCODER_NAME, **configs.TS_KW_ARGS)
+#     test_transform = transforms.Compose([
+#         transforms.Resize(224),
+#         transforms.ToTensor(),
+#         transforms.Normalize([0.485, 0.456, 0.406],
+#                              [0.229, 0.224, 0.225])
+#     ])
+#     df_tiles = pd.read_csv(configs.TS_DF_TILE_PATHS_PATH)
+#     df_tiles.cohort = df_tiles.cohort.apply(lambda c: c if c not in ['COAD', 'READ'] else 'CRC')
+#     df_tiles['y'] = 0 # dummy
+#     # df_tiles = df_tiles[df_tiles.slide_uuid.isin(df_tiles.slide_uuid.unique()[:10])].groupby('slide_uuid', as_index=False).apply(lambda d: d.sample(min(len(d), 10)))
+#     slide_path_list = []
+#     with torch.no_grad():
+#         backbone = backbone.to(0)
+#         for slide_uuid, df_s in tqdm(df_tiles.groupby('slide_uuid')):
+#             slide_tile_embed_list = []
+#             dataset = ProcessedTileDataset(df_s, transform=test_transform,
+#                                            cohort_to_index=configs.TS_COHORT_TO_IND, pretraining=True)
+#             loader = DataLoader(dataset, batch_size=configs.TS_BATCH_SIZE,
+#                                 shuffle=False,
+#                                 num_workers=configs.TS_NUM_WORKERS)
+#             for x, c in tqdm(loader, total=len(loader)):
+#                 x = x.to(0)
+#                 c = c.to(0)
+#                 slide_tile_embed_list.append(backbone(x, c).detach().cpu())
+#             slide_tile_embed = torch.cat(slide_tile_embed_list)
+#             path = os.path.join(configs.TS_PATH_DIR, slide_uuid, 'tile_embeddings.tensor')
+#             os.makedirs(os.path.join(configs.TS_PATH_DIR, slide_uuid), exist_ok=True)
+#             torch.save(slide_tile_embed, path)
+#             df_s.to_csv(os.path.join(configs.TS_PATH_DIR, slide_uuid, 'df_slide.csv'), index=False)
+#             slide_path_list.append((slide_uuid, path))
+#     df_slide_paths = pd.DataFrame(slide_path_list, columns=['slide_uuid', 'tile_embeddings_path'])
+#     df_slide_paths.to_csv(os.path.join(configs.TS_PATH_DIR, 'df_tile_embeddings.csv'), index=False)
 
 
 def train(df, train_transform, test_transform, logger, callbacks, model, **kwargs):

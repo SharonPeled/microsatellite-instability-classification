@@ -62,13 +62,13 @@ class PreprocessingConfigs:
 
 @dataclass
 class TileEmbeddingSavingConfigs:
-    TS_EXPERIMENT_NAME = 'p100_balanced_both_loss_0_0_baseline'
+    TS_EXPERIMENT_NAME = 'SC_MSS_MSI_tile_based_combined_loss'
     TS_ARTIFACT_DIR = os.path.join(GeneralConfigs.DATA_FOLDER, 'experiments_artifacts', TS_EXPERIMENT_NAME)
     TS_BATCH_SIZE = 512
     TS_NUM_WORKERS = 3
 
     TS_TILE_ENCODER_NAME = 'VIT_PRETRAINED_DINO'
-    TS_PATH_DIR = os.path.join(GeneralConfigs.DATA_FOLDER, f'tile_embeddings_{TS_TILE_ENCODER_NAME}_p100')
+    # TS_PATH_DIR = os.path.join(GeneralConfigs.DATA_FOLDER, f'tile_embeddings_{TS_TILE_ENCODER_NAME}_p100')
     TS_DF_TILE_PATHS_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
                                          f'df_processed_tile_paths_512.csv')
     TS_COHORT_TO_IND = {'CRC': 0, 'STAD': 1, 'ESCA': 2, 'UCEC': 3}
