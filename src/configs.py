@@ -161,8 +161,8 @@ class TumorRegressionConfigs:
 
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
-    SC_EXPERIMENT_NAME = 'SC_POLE'
-    SC_FORMULATION = f'tile_based_combined_loss'
+    SC_EXPERIMENT_NAME = 'SC_MSS_MSI'
+    SC_FORMULATION = f'DISTILMIL_combined_loss'
     SC_RUN_NAME = f"{SC_FORMULATION}"
     SC_RUN_DESCRIPTION = f"""Labels are by bioportal.
     """
@@ -172,11 +172,11 @@ class SubtypeClassificationConfigs:
                                     # 'df_labels_cin_slides_and_other_cin_gs.tsv')
                                     # 'df_labels_cin_slides_and_other_cin_gs_2.tsv')
     SC_BACKBONE_ARTIFACT_DIR = os.path.join(GeneralConfigs.DATA_FOLDER, 'experiments_artifacts',
-                                            'SC_MSS_MSI_tile_based_combined_loss')  # only for loading in MIL
+                                            'SC_MSS_MSI_tile_based_combined_loss')
     # f for fold to be replaced later
     SC_EXP_ARTIFACTS_DIR = os.path.join(GeneralConfigs.DATA_FOLDER, 'experiments_artifacts',
                                         f'{SC_EXPERIMENT_NAME}_{SC_RUN_NAME}', 'f')
-    SC_USE_ARTIFACT_DIR = False
+    SC_USE_ARTIFACT_DIR = True
     SC_DF_TILE_EMBEDDINGS_PATH = os.path.join(GeneralConfigs.DATA_FOLDER,
                                               f'tile_embeddings', 'df_tile_embeddings.csv') # TODO: change this dummy variable
     SC_DF_TILE_PATHS_PATH = os.path.join(GeneralConfigs.ROOT, 'data', 'subtype_classification',
@@ -201,9 +201,9 @@ class SubtypeClassificationConfigs:
                                              f'LAB_statistics_30_512.yaml')}
     SC_CROSS_VALIDATE = True  # num folds according to test size
     SC_CONTINUE_FROM_FOLD = 0  # 0 to 1/TEST_SIZE
-    SC_SINGLE_FOLD = False  # 0 to 1/TEST_SIZE
+    SC_SINGLE_FOLD = True  # 0 to 1/TEST_SIZE
     SC_Y_TO_BE_STRATIFIED = 'y_to_be_stratified'
-    SC_CLASS_TO_IND = {'NOT_POLE': 0, 'POLE': 1} # {'GS': 0, 'CIN': 1} # {'MSS': 0, 'MSI': 1} #
+    SC_CLASS_TO_IND = {'MSS': 0, 'MSI': 1} # {'GS': 0, 'CIN': 1} # {'MSS': 0, 'MSI': 1} #
     SC_CLASS_WEIGHT = None #  {'GS': 770, 'CIN': 235}
     SC_COHORT_TO_IND = {'CRC': 0, 'STAD': 1, 'UCEC': 3}  # {'CRC': 0, 'STAD': 1, 'ESCA': 2, 'UCEC': 3}
     SC_EXCLUDE_COHORT_AWARENESS = {'ESCA': 2}
@@ -211,25 +211,25 @@ class SubtypeClassificationConfigs:
     # SC_COHORT_TUNE = None # ['COAD', 'READ']
     SC_TEST_ONLY = None
     SC_SAVE_TEST = True
-    SC_SAVE_TRAIN = True
+    SC_SAVE_TRAIN = False
     SC_SAVE_TRAIN_DF_PRED = False
-    SC_NUM_EPOCHS = 1
+    SC_NUM_EPOCHS = 300
     SC_NUM_DEVICES = 1
     SC_NUM_NODES = 1
     SC_DEVICE = 'gpu'
-    SC_TEST_BATCH_SIZE = 512
+    SC_TEST_BATCH_SIZE = 1
     SC_SAVE_CHECKPOINT_STEP_INTERVAL = None
     SC_VAL_STEP_INTERVAL = 1/2  # 2 times an epoch
-    SC_TRAINING_BATCH_SIZE = 256  # accumulating gradients in MIL only
-    SC_NUM_WORKERS = 25
+    SC_TRAINING_BATCH_SIZE = 1  # accumulating gradients in MIL only
+    SC_NUM_WORKERS = 3
     SC_TEST_SIZE = 0.3333
     SC_VALID_SIZE = 0  # not used if CV=True
     SC_INIT_LR = [1e-6,
-                  1e-4]  # per part of the network, in order of the actual nn
+                  5e-4]  # per part of the network, in order of the actual nn
     SC_TILE_SAMPLE_TRAIN = 1e10  # all tiles
     SC_TILE_SAMPLE_LAMBDA_TRAIN_TUNE = None
     SC_FROZEN_BACKBONE = False
-    SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 2000
+    SC_ITER_TRAINING_WARMUP_WO_BACKBONE = 0
     SC_TILE_ENCODER = 'VIT_PRETRAINED_DINO'  # IMAGENET_VIT_PRETRAINED, SSL_VIT_PRETRAINED VIT_PRETRAINED_DINO
     COHORT_AWARE_DICT = {'num_cohorts': 4,
                          'num_heads_per_cohort': 6,
@@ -277,7 +277,7 @@ class SubtypeClassificationConfigs:
         'num_res_blocks': 3,
         # approx 40 steps per iter
         'lr_pairs': [
-            (5e-5, 0.1), (5e-4, 0.9), (5e-4, -1), (5e-5, None)
+            (5e-5, 0.05), (5e-4, 0.95), (5e-4, -1), (5e-5, None)
         ],
         'wd_pairs': [
             (1e-4, -1), (1e-2, None)

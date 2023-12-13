@@ -15,11 +15,12 @@ on hold:
 to do:
 
     Variants:
-    All3 - when finished - run dna_repair_2
+    All3 - when finished
     Variants vs variants
 
     CIN/GS:
     Repeat on MSI - when saving finished - run MIL
+    POLE?
 
     HDR - read more (breast cancer, prostate, brain, ovarian)
 
