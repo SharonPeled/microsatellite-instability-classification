@@ -162,7 +162,7 @@ class TumorRegressionConfigs:
 class SubtypeClassificationConfigs:
     SC_TILE_SIZE = 512
     SC_EXPERIMENT_NAME = 'SC_MSS_MSI_DISTILL'
-    SC_FORMULATION = f'300e_wm05_combined_loss'
+    SC_FORMULATION = f'400e_wm10_combined_loss'
     SC_RUN_NAME = f"{SC_FORMULATION}"
     SC_RUN_DESCRIPTION = f"""Labels are by bioportal.
     """
@@ -213,7 +213,7 @@ class SubtypeClassificationConfigs:
     SC_SAVE_TEST = True
     SC_SAVE_TRAIN = False
     SC_SAVE_TRAIN_DF_PRED = False
-    SC_NUM_EPOCHS = 300
+    SC_NUM_EPOCHS = 400
     SC_NUM_DEVICES = 1
     SC_NUM_NODES = 1
     SC_DEVICE = 'gpu'
@@ -272,12 +272,12 @@ class SubtypeClassificationConfigs:
         'attn_dim': 128,
         'num_bags': 6,
         'num_tiles_per_bag': None,
-        'cumulative_batch_size': 16,
+        'cumulative_batch_size': 20,
         'grad_clip': 5,
         'num_res_blocks': 3,
         # approx 40 steps per iter
         'lr_pairs': [
-            (5e-5, 0.05), (5e-4, 0.95), (5e-4, -1), (5e-5, None)
+            (5e-5, 0.1), (5e-4, 0.9), (5e-4, -1), (5e-5, None)
         ],
         'wd_pairs': [
             (1e-4, -1), (1e-2, None)
