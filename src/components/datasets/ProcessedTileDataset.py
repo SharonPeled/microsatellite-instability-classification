@@ -16,7 +16,8 @@ class ProcessedTileDataset(Dataset, Logger):
         self.transform = transform
         self.target_transform = target_transform
         self.group_size = group_size
-        self.df_labels.y = self.df_labels.y.astype(float)
+        if not self.pretraining:
+            self.df_labels.y = self.df_labels.y.astype(float)
         if self.group_size > 1:
             # deprecated - see TileGroupDataset
             self.df_labels = self.df_labels.sample(frac=1, random_state=None).reset_index(drop=True)

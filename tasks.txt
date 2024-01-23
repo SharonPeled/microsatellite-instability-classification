@@ -15,19 +15,22 @@ on hold:
 to do:
 
     Variants:
-    All3 - when finished
+    All3 - run auc slide
     Variants vs variants
 
     CIN/GS:
     Repeat on MSI - when saving finished - run MIL
-    POLE?
 
     HDR - read more (breast cancer, prostate, brain, ovarian)
 
     Start refactor all?
+    Labels for MSI + DX/TS TB???
 
 
-
+1720 in df_tiles
+1632 in msi labels
+1562 common
+70 left 
 
 preprocessing
 pretraining
