@@ -8,7 +8,6 @@ from src.subtype_classification.init_task_generic import init_data
 
 def train():
     df, train_transform, test_transform, logger, callbacks, model = init_task()
-    df = df[:10]
     train_general(df, train_transform, test_transform, logger, callbacks, model)
 
 
